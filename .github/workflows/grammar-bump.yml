@@ -1,0 +1,41 @@
+name: grammar-bump
+
+# Weekly early warning (ARCHITECTURE.md §10): run the corpus against the NEWEST
+# grammar wheels — beyond the pyproject caps. Numeric drift is a calibration
+# event (spec MAJOR), surfaced as an issue, never auto-merged.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  grammar-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # job-level permissions zero out everything unlisted — checkout needs this
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package, then force-upgrade grammars PAST the caps
+        run: |
+          pip install -e ".[dev]"
+          pip install --upgrade --pre tree-sitter tree-sitter-python tree-sitter-java
+          pip list | grep -i tree
+      - name: Drift + integrity against latest grammars
+        id: probe
+        run: pytest tests/test_spec_drift.py tests/test_grammar_integrity.py tests/test_consistency_corpus.py
+      - name: Open a calibration issue on drift
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `grammar-bump: latest grammars change calibrated numbers (${new Date().toISOString().slice(0,10)})`,
+              body: 'The weekly grammar early-warning run failed: the newest grammar wheels alter corpus numbers or node inventories. Follow the upgrade procedure in ARCHITECTURE.md §10 (branch, re-run suites, spec MAJOR if numbers changed). See the failed run for the diff.',
+              labels: ['calibration'],
+            })

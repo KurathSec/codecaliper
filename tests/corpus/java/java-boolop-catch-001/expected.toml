@@ -1,0 +1,33 @@
+[case]
+id = "java-boolop-catch-001"
+language = "java"
+rulings = ["CC-JAVA-0003", "CC-JAVA-0005", "COG-ALL-0001", "COG-ALL-0003", "BW-JAVA-0001"]
+computed_by = "hand"
+notes = """
+CC = 1 + if + `&&`*2 (two binary_expression nodes, CC-JAVA-0003) + catch = 5.
+Cognitive: try adds nothing and does not nest (COG-ALL-0004); if at nesting 0
+(+1); ONE sequence of like `&&` operators (+1, COG-ALL-0003); catch (+1,
+nesting 0) = 3, both modes.
+lloc = class + method + try + if + 3 returns = 7.
+true/false and primitive types are KEYWORD tokens (BW-JAVA-0001): line 2
+`static boolean check(int a, int b, boolean flag) {` has 5 (static, boolean,
+int, int, boolean) -> max_keywords = 5.
+"""
+
+[expect.file]
+cyclomatic = 5
+physical_lines = 12
+sloc = 12
+lloc = 7
+
+[expect.file.cognitive]
+whitepaper = 3
+sonar_compat = 3
+
+[expect.functions.check]
+cyclomatic = 5
+cognitive = 3
+
+[expect.bw]
+max_keywords = 5.0
+avg_branches = 0.08333333333333333

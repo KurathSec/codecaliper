@@ -1,0 +1,9 @@
+# Exact calibrated pins for CI and releases (ARCHITECTURE.md §10).
+# Install metadata (pyproject.toml) uses compatible ranges; THESE versions are
+# what the spec-drift snapshot and spec/validated_grammars.toml are calibrated
+# against. Bumping a grammar here follows the fixed upgrade procedure:
+# branch -> run consistency + differential suites -> any changed number forces
+# a spec MAJOR bump + changelog entry.
+tree-sitter==0.26.0
+tree-sitter-python==0.25.0
+tree-sitter-java==0.23.5

@@ -1,0 +1,18 @@
+# HAL-*: Halstead metrics.
+
+[[ruling]]
+id = "HAL-ALL-0001"
+metric = "halstead"
+language = "all"
+title = "Lexical Halstead: token-class harvesting (a declared approximation)"
+statement = """
+Operators are OPERATOR, KEYWORD, and PUNCT tokens; operands are IDENTIFIER,
+NUMBER, and STRING tokens, from the unified lexical stream. n1/n2 are distinct
+counts, N1/N2 total counts; V = N*log2(n); D = (n1/2)*(N2/n2); E = D*V.
+Absolute Halstead values are implementation-defined across all tools — only
+trends and ratios are stable — and every emitted value carries the
+halstead-approximation diagnostic (ARCHITECTURE.md §13). This lexical convention is
+deliberately uniform cross-language; its divergence from AST-harvest
+implementations (radon, the stdlib reference lane) is classified.
+"""
+examples = ["py-cc-boolop-001"]

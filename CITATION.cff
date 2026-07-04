@@ -1,0 +1,38 @@
+# Citation metadata (https://citation-file-format.github.io/).
+cff-version: 1.2.0
+message: "If you use codecaliper, please cite it as below."
+title: "codecaliper: a cross-language code readability and complexity measurement instrument"
+abstract: >-
+  codecaliper measures code readability features (a faithful, tested,
+  cross-language re-implementation of the Buse-Weimer 2010 feature set) and
+  complexity metrics (cyclomatic, dual-mode cognitive, Halstead,
+  maintainability index) on a unified tree-sitter syntactic base, governed by a
+  versioned metric-to-syntax mapping specification with machine-readable
+  rulings, a hand-computed consistency corpus, differential tests against
+  established tools with a published known-divergence list, and a faithfulness
+  reproduction against the original Buse-Weimer dataset.
+type: software
+version: "0.1.0.dev0"
+license: "MIT"
+repository-code: "https://github.com/KurathSec/codecaliper"
+authors:
+  - given-names: "Yuxiang"
+    family-names: "Ji"
+    affiliation: "Sunway College"
+    email: "kurathandrew@gmail.com"
+keywords:
+  - "code readability"
+  - "code metrics"
+  - "Buse-Weimer"
+  - "cognitive complexity"
+  - "cyclomatic complexity"
+  - "tree-sitter"
+  - "measurement instrument"
+  - "mining software repositories"
+references:
+  - type: software
+    title: "Spaghetti Architect"
+    doi: "10.5281/zenodo.21033174"
+    authors:
+      - given-names: "Yuxiang"
+        family-names: "Ji"

@@ -1,0 +1,102 @@
+# COG-*: cognitive complexity (SonarSource whitepaper, dual-mode).
+# Default mode is whitepaper-faithful; --sonar-compat matches the behaviour of
+# the widely-deployed implementations where they diverge from the paper text.
+# Every inter-mode difference is a mode-tagged ruling: the spec table IS the
+# whitepaper-vs-Sonar diff (ARCHITECTURE.md §0).
+
+[[ruling]]
+id = "COG-ALL-0001"
+metric = "cognitive"
+language = "all"
+title = "Structural increments: +1 plus the current nesting level"
+statement = """
+if / loops / catch / switch / ternary each contribute (1 + nesting level at
+their position). Both modes.
+"""
+examples = ["py-cc-boolop-001", "java-boolop-catch-001", "py-nested-function-001"]
+
+[[ruling]]
+id = "COG-ALL-0002"
+metric = "cognitive"
+language = "all"
+title = "elif/else-if and else are hybrid increments: +1, no nesting penalty"
+statement = """
+An elif/else-if continuation and an if-attached else clause each contribute a
+flat +1 regardless of nesting depth, and an elif does not deepen nesting
+relative to its chain head (chain flattening — Sonar's own rule). Both modes.
+In Java an `else` directly followed by an if_statement is the chain
+continuation and is not additionally counted as an else. ONLY an else attached
+to an if/elif chain is a hybrid increment: Python's for/while/try `else`
+clauses contribute nothing (they are completion handlers, not branch arms).
+"""
+examples = ["py-elif-chain-001", "java-elseif-001"]
+
+[[ruling]]
+id = "COG-ALL-0003"
+metric = "cognitive"
+language = "all"
+title = "Boolean operator sequences: +1 per sequence of like operators"
+statement = """
+A run of the same short-circuit operator contributes +1 total; each operator
+change starts a new sequence (`a and b or c` = 2; `a && b && c` = 1).
+Parentheses delimit sequences. Both modes.
+"""
+examples = ["py-cc-boolop-001", "java-boolop-catch-001"]
+
+[[ruling]]
+id = "COG-ALL-0004"
+metric = "cognitive"
+language = "all"
+title = "What deepens nesting"
+statement = """
+Nesting increases inside: if (and its else/elif bodies), loops, catch, switch,
+ternary, and function-like units that are themselves nested inside another
+function (nested functions, lambdas). Nesting does NOT increase inside: try
+bodies, with/synchronized blocks, class bodies, or top-level function bodies.
+Both modes.
+"""
+examples = ["py-nested-function-001"]
+
+[[ruling]]
+id = "COG-ALL-0005"
+metric = "cognitive"
+language = "all"
+title = "Direct recursion counts +1 per recursive call (whitepaper mode)"
+mode = "whitepaper"
+statement = """
+Each call whose callee name equals the enclosing function's name contributes +1
+(the whitepaper lists recursion as a fundamental increment). Receiver rule,
+applied symmetrically across languages: bare calls count (`f(...)`), and
+self-receiver calls count (Python `self.f(...)`/`cls.f(...)`, Java
+`this.f(...)`); a same-named call on any other receiver does NOT count. Name
+matching is a declared syntactic heuristic: it does not resolve overloads or
+mutual recursion.
+"""
+examples = ["py-recursion-001"]
+
+[[ruling]]
+id = "COG-ALL-0006"
+metric = "cognitive"
+language = "all"
+title = "No recursion increment (sonar-compat mode)"
+mode = "sonar-compat"
+statement = """
+The deployed Sonar-lineage implementations (cognitive_complexity for Python,
+and SonarQube's own analyzers in common configurations) do not implement the
+whitepaper's recursion increment; sonar-compat mode therefore omits it.
+"""
+examples = ["py-recursion-001"]
+
+[[ruling]]
+id = "COG-PY-0001"
+metric = "cognitive"
+language = "python"
+title = "Comprehension clauses contribute no cognitive increment"
+statement = """
+Comprehension `for_in_clause` and `if_clause` (guard) contribute no cognitive
+increment and do not deepen nesting: a comprehension reads as a single
+declarative expression (consistent with SonarPython's treatment). Contrast
+with cyclomatic, where the guard IS a decision point (CC-PY-0004).
+"""
+node_types = ["if_clause", "for_in_clause"]
+examples = ["py-comprehension-001"]

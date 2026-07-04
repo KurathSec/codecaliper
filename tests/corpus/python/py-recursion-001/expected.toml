@@ -1,0 +1,28 @@
+[case]
+id = "py-recursion-001"
+language = "python"
+rulings = ["COG-ALL-0005", "COG-ALL-0006"]
+computed_by = "hand"
+notes = """
+THE dual-mode divergence case. CC = 1 + if = 2 in both modes.
+Cognitive whitepaper = if(+1) + direct recursive call fact(...) (+1,
+COG-ALL-0005) = 2. Cognitive sonar-compat = 1 (deployed Sonar-lineage
+implementations omit the recursion increment, COG-ALL-0006).
+"""
+
+[expect.file]
+cyclomatic = 2
+physical_lines = 4
+sloc = 4
+lloc = 4
+
+[expect.file.cognitive]
+whitepaper = 2
+sonar_compat = 1
+
+[expect.functions.fact]
+cyclomatic = 2
+
+[expect.functions.fact.cognitive]
+whitepaper = 2
+sonar_compat = 1

@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install (exact calibrated grammar pins)
+        run: pip install -e ".[dev]" -c constraints/ci.txt
+      - name: Lint
+        run: ruff check src tests tools
+      - name: Test (consistency corpus, spec gates, BW fidelity, determinism)
+        run: pytest
+
+  typecheck:
+    runs-on: ubuntu-latest
+    continue-on-error: true # strict typing is a pre-1.0 hardening task
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]" -c constraints/ci.txt
+      - run: mypy
+
+  spec-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e . -c constraints/ci.txt
+      - name: Generated spec docs must not be stale
+        run: |
+          python tools/gen_spec_docs.py
+          git add -N docs/ # so a newly generated (untracked) file also fails the diff
+          git diff --exit-code docs/ || {
+            echo "::error::docs/spec is stale — run tools/gen_spec_docs.py and commit"; exit 1; }
+
+# The weekly grammar early-warning lane lives in grammar-bump.yml (it needs its
+# own `schedule:` trigger, which this workflow does not declare).

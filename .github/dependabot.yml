@@ -1,0 +1,10 @@
+# Dependabot keeps GitHub Actions fresh. Python grammar dependencies are
+# deliberately NOT managed here: grammar versions are calibrated instrument
+# state (spec/validated_grammars.toml) and are bumped only through the weekly
+# grammar-bump early-warning lane + the upgrade procedure in ARCHITECTURE.md §10.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

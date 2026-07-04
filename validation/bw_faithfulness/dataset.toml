@@ -1,0 +1,22 @@
+# Provenance of the original Buse-Weimer dataset (ARCHITECTURE.md §8.3).
+# THE DATA IS NEVER COMMITTED OR REDISTRIBUTED — fetch.py downloads it to
+# cache/ (gitignored) and verifies the checksum.
+[dataset]
+id = "bw2010-original-100java"
+description = "100 Java snippets rated 1-5 by 120 annotators (Buse & Weimer, TSE 2010)"
+url = "https://dibt-research.unimol.it/report/readability/files/DatasetBW.zip"
+# sha256 of the archive as first fetched — fill in on first successful fetch;
+# an empty value makes fetch.py record (trust-on-first-use) rather than verify.
+sha256 = ""
+
+[license]
+status = "UNVERIFIED"
+note = """
+The Scalabrino replication page (dibt-research.unimol.it/report/readability)
+states no explicit data license for DatasetBW.zip (verified 2026-07-03), and no
+license could be verified for the original Buse-Weimer distribution either.
+Redistribution rights are therefore NOT assumed: the pipeline fetches at run
+time for local research use, commits only derived feature VECTORS
+(vectors.snapshot.json), and contacting the authors to clarify terms is a
+tracked pre-1.0 task.
+"""

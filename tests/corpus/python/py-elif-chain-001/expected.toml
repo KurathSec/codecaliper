@@ -1,0 +1,40 @@
+[case]
+id = "py-elif-chain-001"
+language = "python"
+rulings = ["CC-PY-0001", "CC-PY-0002", "COG-ALL-0001", "COG-ALL-0002", "BW-PY-0002"]
+computed_by = "hand"
+notes = """
+CC = 1 + if(1) + elif(2) = 4 (each arm is a branch; else is not).
+Cognitive = if(+1, nesting 0) + elif(+1 flat, COG-ALL-0002)*2 + else(+1 flat) = 4,
+both modes. Chain flattening: nothing nests deeper than the chain head.
+9 lines, all code -> sloc 9. lloc = def + if + 4 returns = 6.
+BW: branch keywords if/elif/elif = 3 -> avg 3/9; comparisons > *3 -> 3/9;
+identifiers grade,x / x / x / x -> max 2 (def line); keywords: exactly one per
+line (def/if/elif/elif/else/return*4) -> avg 1.0, max 1; indentation
+0/4/8/4/8/4/8/4/8 -> max 8.
+"""
+
+[expect.file]
+cyclomatic = 4
+physical_lines = 9
+blank_lines = 0
+sloc = 9
+comment_lines = 0
+lloc = 6
+
+[expect.file.cognitive]
+whitepaper = 4
+sonar_compat = 4
+
+[expect.functions.grade]
+cyclomatic = 4
+cognitive = 4
+
+[expect.bw]
+avg_branches = 0.3333333333333333
+avg_comparison_ops = 0.3333333333333333
+max_identifiers = 2.0
+avg_keywords = 1.0
+max_keywords = 1.0
+max_indentation = 8.0
+max_line_length = 18.0

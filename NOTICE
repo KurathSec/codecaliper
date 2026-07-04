@@ -1,0 +1,29 @@
+codecaliper
+Copyright (c) 2026 Yuxiang Ji
+Licensed under the MIT License (see LICENSE).
+
+Provenance of measurement primitives
+------------------------------------
+
+Several measurement primitives in this repository descend from Spaghetti
+Architect (MIT, same author) and are reused here with attribution:
+
+- The Buse-Weimer (2010) 25-feature reference extractor
+  (tests/_reference/bw_stdlib.py, and the canonical feature order in
+  src/codecaliper/readability/bw2010.py) descends from bench/anchor.py.
+- The Python-AST metric lane used as a test-only differential oracle
+  (tests/_reference/py_ast_lane.py) descends from eval/metrics.py.
+- The "optional oracle probe with honest SKIP" differential-testing pattern
+  descends from bench/anchor.py.
+- The pure-stdlib statistics helpers (spearman, mean, bootstrap CI) used by the
+  BW faithfulness pipeline descend from bench/grade.py.
+
+Please cite Spaghetti Architect via its concept DOI:
+
+  Ji, Yuxiang. Spaghetti Architect: A Contamination-Resistant,
+  By-Construction-Labelled, Multi-Language Code Dataset Generator.
+  https://doi.org/10.5281/zenodo.21033174
+
+codecaliper is a general-purpose measurement instrument for arbitrary user
+source code; it does not ingest Spaghetti Architect's IR, dataset, or
+anti-pattern machinery (anti-salami boundary, see ARCHITECTURE.md §12).

@@ -1,0 +1,50 @@
+# LOC-*: line counting.
+
+[[ruling]]
+id = "LOC-ALL-0001"
+metric = "loc"
+language = "all"
+title = "Physical and blank lines"
+statement = """
+physical_lines = number of lines of the normalized text (a trailing final
+newline does not create an extra empty line). blank_lines = lines whose content
+strips to empty.
+"""
+examples = ["py-multiline-string-001"]
+
+[[ruling]]
+id = "LOC-ALL-0002"
+metric = "loc"
+language = "all"
+title = "sloc: lines covered by at least one code token"
+statement = """
+sloc counts lines covered by the span of at least one non-comment token. A
+multi-line string is code: every line it spans counts. (This is where the old
+regex lane provably fails — ARCHITECTURE.md §6.)
+"""
+examples = ["py-multiline-string-001"]
+
+[[ruling]]
+id = "LOC-ALL-0003"
+metric = "loc"
+language = "all"
+title = "comment_lines: lines covered by at least one comment token"
+statement = """
+comment_lines counts lines covered by the span of at least one comment token;
+a multi-line block comment counts on EVERY line it spans. A line containing
+both code and a trailing comment counts toward both sloc and comment_lines
+(the two are coverage measures, not a partition).
+"""
+examples = ["java-block-comment-001", "py-multiline-string-001"]
+
+[[ruling]]
+id = "LOC-ALL-0004"
+metric = "loc"
+language = "all"
+title = "lloc: statement-classified nodes"
+statement = """
+lloc counts nodes in the adapter's statement table (simple statements plus
+compound-statement headers plus declarations). The table is part of the spec
+surface and validated against the grammar.
+"""
+examples = ["py-cc-boolop-001", "java-elseif-001"]

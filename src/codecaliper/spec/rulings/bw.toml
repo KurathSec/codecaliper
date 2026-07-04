@@ -1,0 +1,128 @@
+# BW-*: Buse-Weimer (2010) Fig. 6 feature delimitation rulings.
+# The paper is ambiguous about token delimitation, comment counting and
+# normalization (ARCHITECTURE.md §7); every ambiguity is pinned here. Rulings marked
+# PROVISIONAL will be arbitrated empirically by the ARCHITECTURE.md §8.3 faithfulness pipeline
+# and superseded if the arbitration disagrees — with the experiment recorded.
+
+[[ruling]]
+id = "BW-ALL-0001"
+metric = "bw2010"
+language = "all"
+title = "The 25 features, canonical order, raw vector only"
+statement = """
+The feature set is the 25 features of Buse & Weimer 2010 Fig. 6, emitted in the
+canonical order inherited from the reference implementation
+(avg_line_length ... max_identifier_occurrences). Output is always the raw
+feature vector; no scalar readability score exists anywhere in this tool
+(ARCHITECTURE.md §13). Average features divide by the number of lines; max features
+take the maximum.
+"""
+examples = ["py-cc-boolop-001"]
+
+[[ruling]]
+id = "BW-ALL-0002"
+metric = "bw2010"
+language = "all"
+title = "Granularity labelling and the calibrated regime"
+statement = """
+granularity is one of snippet | function | file; anything other than snippet is
+extrapolation beyond the model's native unit and is labelled with
+extrapolated=true plus a diagnostic. Even at snippet granularity, a diagnostic
+warns when the unit falls outside the paper's 4-11 line calibrated regime.
+"""
+
+[[ruling]]
+id = "BW-ALL-0003"
+metric = "bw2010"
+language = "all"
+title = "A comment token counts once (PROVISIONAL)"
+statement = """
+avg_comments counts comment TOKENS divided by lines; a multi-line block comment
+counts once (on its start line), mirroring the stdlib-tokenize reference
+behaviour for line comments. PROVISIONAL: per-spanned-line counting is the
+alternative; the faithfulness pipeline will arbitrate.
+"""
+examples = ["java-block-comment-001"]
+
+[[ruling]]
+id = "BW-ALL-0004"
+metric = "bw2010"
+language = "all"
+title = "Token-level features exclude string contents; character features use raw text"
+statement = """
+Punctuation/operator features (periods, commas, parentheses, arithmetic,
+comparisons, assignments) count TOKENS, so punctuation inside string literals
+and comments is invisible to them. Character-level features (line length,
+indentation, spaces, max_char_occurrences) always use the raw normalized text
+of every line, strings included.
+"""
+examples = ["py-multiline-string-001"]
+
+[[ruling]]
+id = "BW-ALL-0005"
+metric = "bw2010"
+language = "all"
+title = "Identifier-length feature is the mean of per-line maxima"
+statement = """
+avg_identifier_length = mean over all lines of (the longest identifier on that
+line, 0 for lines without identifiers); max_identifier_length is the global
+maximum. Faithful to the reference implementation's reading of Fig. 6
+('average/maximum value per line').
+"""
+
+[[ruling]]
+id = "BW-ALL-0006"
+metric = "bw2010"
+language = "all"
+title = "Operator classes are adapter tables"
+statement = """
+Which operator spellings count as arithmetic / comparison / assignment is a
+per-language adapter table, part of the spec surface. Short-circuit operators
+(and/or, &&/||) are NOT in these classes: Python's are keywords (counted by
+avg_keywords), Java's are uncategorized operators.
+"""
+examples = ["py-comprehension-001"]
+
+[[ruling]]
+id = "BW-PY-0001"
+metric = "bw2010"
+language = "python"
+title = "Python keyword set"
+statement = """
+Keywords are keyword.kwlist of the reference CPython (True/False/None
+included). Soft keywords (match/case/type/_) count as identifiers, matching the
+stdlib tokenize reference.
+"""
+
+[[ruling]]
+id = "BW-PY-0002"
+metric = "bw2010"
+language = "python"
+title = "Python branch/loop keyword features"
+statement = """
+avg_branches counts if/elif keyword tokens; avg_loops counts for/while keyword
+tokens (including comprehension for/if keywords, which are lexically identical
+- faithful to the reference's lexical reading).
+"""
+examples = ["py-elif-chain-001"]
+
+[[ruling]]
+id = "BW-JAVA-0001"
+metric = "bw2010"
+language = "java"
+title = "Java keyword set"
+statement = """
+Keywords are the JLS reserved words plus the literals true/false/null —
+procedurally consistent with Python, whose kwlist includes True/False/None.
+"""
+
+[[ruling]]
+id = "BW-JAVA-0002"
+metric = "bw2010"
+language = "java"
+title = "Java branch/loop keyword features"
+statement = """
+avg_branches counts `if` keyword tokens (an else-if contributes via its `if`);
+avg_loops counts for/while/do keyword tokens.
+"""
+examples = ["java-elseif-001"]

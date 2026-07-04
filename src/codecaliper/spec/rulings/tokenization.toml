@@ -1,0 +1,81 @@
+# TOK-*: input normalization and the unified lexical token stream.
+# These change emitted numbers, so they are spec, not implementation detail.
+
+[[ruling]]
+id = "TOK-ALL-0001"
+metric = "tokenization"
+language = "all"
+title = "Input is decoded as UTF-8 with replacement"
+statement = """
+Byte input is decoded as UTF-8; undecodable bytes are replaced (U+FFFD) and an
+encoding-replaced diagnostic is attached. str input is used as-is.
+"""
+
+[[ruling]]
+id = "TOK-ALL-0002"
+metric = "tokenization"
+language = "all"
+title = "A leading UTF-8 BOM is stripped"
+statement = """
+A leading U+FEFF is stripped before measurement (with a bom-stripped
+diagnostic); otherwise it would pollute line-1 character and length features.
+"""
+
+[[ruling]]
+id = "TOK-ALL-0003"
+metric = "tokenization"
+language = "all"
+title = "Line endings are normalized to LF"
+statement = """
+CRLF and lone CR are normalized to LF before measurement, so character-level
+features are platform-stable.
+"""
+
+[[ruling]]
+id = "TOK-ALL-0004"
+metric = "tokenization"
+language = "all"
+title = "A tab counts as one indentation character (provisional)"
+statement = """
+Indentation is measured as the count of leading whitespace characters; a tab
+counts as 1. PROVISIONAL: the BW faithfulness pipeline (§6.3) will arbitrate
+tab semantics empirically; any change supersedes this ruling.
+"""
+
+[[ruling]]
+id = "TOK-ALL-0005"
+metric = "tokenization"
+language = "all"
+title = "Token line attribution"
+statement = """
+Every lexical token is attributed to the physical line of its start position.
+A multi-line token (string, block comment) is ONE token on its start line for
+token-count features; line-coverage features (sloc, comment lines) use its full
+span instead.
+"""
+
+[[ruling]]
+id = "TOK-PY-0001"
+metric = "tokenization"
+language = "python"
+title = "Python atomic tokens: strings are consumed whole"
+statement = """
+`string` and `concatenated_string` subtrees are consumed as single STRING
+tokens. F-string interpolation contents therefore do NOT contribute token-level
+features (identifiers/operators inside interpolations are invisible). This
+diverges from CPython 3.12+ tokenize (PEP 701), which tokenizes interpolation
+contents; the divergence vs the stdlib reference extractor is classified, and
+uniformity with Java strings is preferred.
+"""
+node_types = ["string", "concatenated_string"]
+
+[[ruling]]
+id = "TOK-JAVA-0001"
+metric = "tokenization"
+language = "java"
+title = "Java atomic tokens: string and character literals"
+statement = """
+`string_literal` and `character_literal` subtrees are consumed as single STRING
+tokens (text blocks included).
+"""
+node_types = ["string_literal", "character_literal"]

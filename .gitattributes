@@ -1,0 +1,12 @@
+# Normalize everything to LF in the repository and on checkout — the
+# reproducibility claim (byte-identical outputs per platform) dies if git
+# rewrites source line endings differently per contributor.
+* text=auto eol=lf
+
+# Corpus fixtures are MEASUREMENT INPUTS with hand-computed expected values:
+# their exact bytes (line endings, trailing whitespace, BOMs for future TOK-*
+# cases) are load-bearing. Never convert them.
+tests/corpus/** -text
+
+# Reference dataset snapshots, if any ever land, are exact bytes too.
+tests/snapshots/** -text

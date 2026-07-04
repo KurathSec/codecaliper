@@ -1,0 +1,6 @@
+# The grammar versions this release is calibrated against (ARCHITECTURE.md §10).
+# A deviating installed version still runs, but every report is stamped
+# GrammarInfo.validated=false plus an unvalidated-grammar diagnostic.
+[grammars]
+python = "0.25.0"
+java = "0.23.5"

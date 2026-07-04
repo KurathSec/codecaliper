@@ -1,0 +1,85 @@
+# CORE-*: cross-cutting measurement policies.
+
+[[ruling]]
+id = "CORE-ALL-0001"
+metric = "core"
+language = "all"
+title = "Metrics operate on pre-preprocessing source text"
+statement = """
+All measurements are functions of the source text as written, before any
+preprocessing (relevant to C-family languages later; declared now, ARCHITECTURE.md §0).
+A purely syntactic tool is an approximation for preprocessed languages, and this
+instrument says so instead of hiding it.
+"""
+
+[[ruling]]
+id = "CORE-ALL-0002"
+metric = "core"
+language = "all"
+title = "Parse-error recovery: measure, label, never fabricate"
+statement = """
+tree-sitter always returns a tree. ERROR and MISSING subtrees are classified as
+opaque (not descended into for metric counting), the report carries
+parse_ok=false and a parse-error-recovered diagnostic. --strict upgrades this
+to an error exit. No number is silently fabricated from broken syntax.
+"""
+examples = []
+
+[[ruling]]
+id = "CORE-ALL-0003"
+metric = "core"
+language = "all"
+title = "Nested-unit attribution"
+statement = """
+Per-function values are computed on the function's own subtree EXCLUDING nested
+named function/method/constructor definitions and nested class declarations,
+which receive their own FunctionReports (lambdas remain part of the enclosing
+unit). File-level values are ONE whole-file walk (top-level code plus all
+units), not the sum of per-function values. This is a classic radon-vs-lizard
+divergence axis, ruled explicitly.
+"""
+examples = ["py-nested-function-001"]
+
+[[ruling]]
+id = "CORE-ALL-0004"
+metric = "core"
+language = "all"
+title = "Float emission and determinism scope"
+statement = """
+Canonical JSON/CSV output rounds floating-point values to 12 significant digits
+(round-half-even). Outputs contain no timestamps and no hash-order dependence;
+byte-identical output is guaranteed PER PLATFORM (libm differences across
+OS/arch may flip the last ULP of ln(); this is documented, not hidden).
+Consistency-corpus float assertions always carry explicit tolerances.
+"""
+
+[[ruling]]
+id = "CORE-ALL-0005"
+metric = "core"
+language = "all"
+title = "Language detection is an extension map — never a guess"
+statement = """
+--lang auto maps file extensions to adapters; an unmapped or ambiguous
+extension is an explicit error. Content sniffing is out of scope for 1.0.
+"""
+
+[[ruling]]
+id = "CORE-JAVA-0001"
+metric = "core"
+language = "java"
+title = "Bare-snippet scaffolding at snippet granularity"
+statement = """
+The Buse-Weimer dataset snippets are mostly statement sequences or bare
+methods, not compilation units. VERIFIED (tree-sitter-java 0.23.5): the
+grammar's `program` rule accepts both bare statement sequences and bare method
+declarations, so BW-shaped snippets parse cleanly WITHOUT scaffolding. As a
+fallback, at granularity="snippet", if the bare parse yields an error-bearing
+tree, the text is re-parsed inside TWO candidate scaffolds — class-body-only
+`class __CC__ { ... }` (rescues constructors and modifier-bearing members) and
+`class __CC__ { void __cc__() { ... } }` — and the strict error-count
+minimizer is adopted only when it beats the bare parse. All features are
+computed ONLY over the original snippet's line range (scaffold lines excluded,
+original indentation unshifted), scaffold-line function units are dropped, all
+emitted spans and traces are rebased to original snippet coordinates, and a
+snippet-scaffolded diagnostic is attached.
+"""

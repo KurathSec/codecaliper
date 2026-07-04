@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.python-version
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# BW faithfulness dataset cache — the license-UNVERIFIED data is NEVER committed
+# (ARCHITECTURE.md §8.3). cache/ holds the fetched archive and anything extracted
+# from it; the committable extractor outputs live in the TRACKED sibling
+# validation/bw_faithfulness/derived/ — do not add ignore rules for derived/.
+validation/bw_faithfulness/cache/
+validation/bw_faithfulness/*.zip
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store

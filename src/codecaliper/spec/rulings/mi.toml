@@ -1,0 +1,15 @@
+# MI-*: maintainability index.
+
+[[ruling]]
+id = "MI-ALL-0001"
+metric = "maintainability_index"
+language = "all"
+title = "MI variant: no comment term, clamped to 0-100"
+statement = """
+MI = clamp_0_100((171 - 5.2*ln(V) - 0.23*CC - 16.2*ln(SLOC)) * 100/171), the
+Visual Studio / radon convention without the comment term. MI is DERIVED from
+Halstead volume, cyclomatic complexity and SLOC — it is not independent of CC
+(ARCHITECTURE.md §13); every MI value carries a typed derived_from and a standing
+mi-contains-cc diagnostic.
+"""
+examples = ["py-cc-boolop-001"]

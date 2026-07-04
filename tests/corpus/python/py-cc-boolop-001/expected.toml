@@ -1,0 +1,82 @@
+[case]
+id = "py-cc-boolop-001"
+language = "python"
+rulings = ["CC-ALL-0001", "CC-PY-0001", "CC-PY-0003", "COG-ALL-0001", "COG-ALL-0003",
+           "HAL-ALL-0001", "MI-ALL-0001", "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003",
+           "LOC-ALL-0004", "BW-ALL-0001", "TOK-ALL-0005"]
+computed_by = "hand"
+notes = """
+CC = 1 + if(1) + boolean operators(2: `a and b or c` is or(and(a,b),c) = two
+nodes, CC-PY-0003) = 4.
+Cognitive = if(+1, nesting 0) + two operator sequences (`and`, `or`; COG-ALL-0003) = 3, both modes.
+Lines: 1 comment, def, if, return, return -> physical 5, sloc 4 (comment line
+has no code token), comment_lines 1, blank 0.
+lloc = function_definition + if_statement + 2 return_statement = 4.
+BW (5 lines): identifiers per line 0/4/3/0/0 -> avg 1.4, max 4; commas: 2 on
+the def line -> 0.4; parens: 2 on the def line -> 0.4; comments 1 -> 0.2;
+keywords def/if,and,or/return/return -> max 3 on the if line; numbers 1,0 -> 0.4;
+branches: one `if` token -> 0.2; loops 0.
+Halstead (HAL-ALL-0001, operators = KEYWORD+OPERATOR+PUNCT, operands =
+IDENTIFIER+NUMBER+STRING): distinct operators {def,if,and,or,return, (,),,,:}
+-> n1 = 9; occurrences def(1) ((1) ,(2) )(1) :(2) if(1) and(1) or(1)
+return(2) -> N1 = 12; distinct operands {resolve,a,b,c,1,0} -> n2 = 6;
+occurrences resolve(1) a(2) b(2) c(2) 1(1) 0(1) -> N2 = 9.
+V = 21*log2(15) = 82.0447... ; D = (9/2)*(9/6) = 6.75; E = D*V = 553.8017...
+MI (MI-ALL-0001) = clamp((171 - 5.2*ln(82.0447) - 0.23*4 - 16.2*ln(4))*100/171)
+= 72.9265 (cc=4, sloc=4).
+"""
+
+[expect.file]
+cyclomatic = 4
+physical_lines = 5
+blank_lines = 0
+sloc = 4
+comment_lines = 1
+lloc = 4
+
+[expect.file.cognitive]
+whitepaper = 3
+sonar_compat = 3
+
+[expect.file."halstead.n1"]
+value = 9.0
+abs_tol = 0.0
+
+[expect.file."halstead.N1"]
+value = 12.0
+abs_tol = 0.0
+
+[expect.file."halstead.n2"]
+value = 6.0
+abs_tol = 0.0
+
+[expect.file."halstead.N2"]
+value = 9.0
+abs_tol = 0.0
+
+[expect.file."halstead.volume"]
+value = 82.0447
+abs_tol = 0.0001
+
+[expect.file."halstead.difficulty"]
+value = 6.75
+abs_tol = 1e-9
+
+[expect.file.maintainability_index]
+value = 72.9265
+abs_tol = 0.0001
+
+[expect.functions.resolve]
+cyclomatic = 4
+cognitive = 3
+
+[expect.bw]
+avg_identifiers = 1.4
+max_identifiers = 4.0
+avg_comments = 0.2
+avg_commas = 0.4
+avg_parentheses = 0.4
+max_keywords = 3.0
+avg_numbers = 0.4
+avg_branches = 0.2
+avg_loops = 0.0

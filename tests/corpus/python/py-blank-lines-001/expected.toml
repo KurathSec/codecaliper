@@ -1,0 +1,32 @@
+[case]
+id = "py-blank-lines-001"
+language = "python"
+rulings = ["LOC-ALL-0001", "BW-ALL-0001"]
+computed_by = "hand"
+notes = """
+Line 2 is empty; line 3 is two spaces (whitespace-only). Both strip to empty
+-> blank_lines = 2 (LOC-ALL-0001). physical = 4; code tokens only on lines 1
+and 4 -> sloc = 2. lloc = 2 expression_statements. CC = 1, cognitive = 0.
+BW: avg_blank_lines = 2/4; assignments 2 -> 0.5; numbers 2 -> 0.5;
+spaces: lines have 2/0/2/2 -> avg 1.5; identifiers a,b -> avg 0.5, max 1.
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 4
+blank_lines = 2
+sloc = 2
+comment_lines = 0
+lloc = 2
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0
+
+[expect.bw]
+avg_blank_lines = 0.5
+avg_assignments = 0.5
+avg_numbers = 0.5
+avg_spaces = 1.5
+avg_identifiers = 0.5
+max_identifiers = 1.0

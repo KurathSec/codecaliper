@@ -1,0 +1,11 @@
+# The versioned metric-to-syntax mapping specification (ARCHITECTURE.md §3).
+# SPEC semver is independent of the package version:
+#   patch = editorial; minor = new rulings, no existing number changes;
+#   major = any change that alters a number for any existing corpus case
+#           (including a grammar pin bump that does so).
+[spec]
+version = "0.1.0"
+
+[[changelog]]
+version = "0.1.0"
+summary = "Seed ruling set: core policies, tokenization, CC/COG/HAL/MI/LOC, BW feature delimitation for Python + Java."

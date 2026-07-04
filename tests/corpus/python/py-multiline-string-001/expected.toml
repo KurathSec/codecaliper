@@ -1,0 +1,33 @@
+[case]
+id = "py-multiline-string-001"
+language = "python"
+rulings = ["LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003", "BW-ALL-0004", "TOK-PY-0001"]
+computed_by = "hand"
+notes = """
+The triple-quoted string spans lines 1-3 and is CODE on every spanned line
+(LOC-ALL-0002) -> sloc = 4; the fake `#`/`//` inside it are string content, not
+comments. The one real comment is on line 4 -> comment_lines = 1. This is the
+case the demoted regex lane provably gets wrong (ARCHITECTURE.md §6).
+CC = 1; cognitive = 0. lloc = 2 expression_statements.
+BW: the string is ONE token on its start line (TOK-PY-0001); its contents feed
+no token features (BW-ALL-0004) -> avg_comments = 1/4; identifiers DOC, count ->
+avg 0.5; assignments 2 -> 0.5; numbers: 1 -> 0.25.
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 4
+blank_lines = 0
+sloc = 4
+comment_lines = 1
+lloc = 2
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0
+
+[expect.bw]
+avg_comments = 0.25
+avg_identifiers = 0.5
+avg_assignments = 0.5
+avg_numbers = 0.25

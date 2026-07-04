@@ -1,0 +1,88 @@
+[build-system]
+# >=1.27 for PEP 639 (SPDX `license = "MIT"` string) — older hatchling rejects it
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "codecaliper"
+dynamic = ["version"]
+description = "A cross-language code readability + complexity measurement instrument with a versioned metric-to-syntax specification"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Yuxiang Ji", email = "kurathandrew@gmail.com" }]
+keywords = [
+  "code metrics", "readability", "buse-weimer", "cyclomatic complexity",
+  "cognitive complexity", "halstead", "maintainability index", "tree-sitter",
+  "mining software repositories", "measurement instrument",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Scientific/Engineering",
+  "Typing :: Typed",
+]
+# Grammar policy (ARCHITECTURE.md §10): compatible RANGES here so pip can resolve
+# in shared environments; EXACT calibrated pins live in constraints/ci.txt and
+# spec/validated_grammars.toml. Provenance always records the actually-installed
+# versions and flags deviation — run and label, never refuse.
+dependencies = [
+  "tree-sitter>=0.25,<0.27",
+  "tree-sitter-python>=0.25,<0.26",
+  "tree-sitter-java>=0.23.5,<0.24",
+  "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+retrain = ["scikit-learn>=1.4"]
+# Differential-test oracles ONLY — never runtime backends (ARCHITECTURE.md §8.2).
+oracles = ["radon>=6", "lizard>=1.17", "cognitive-complexity>=1.3"]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+
+[project.scripts]
+codecaliper = "codecaliper.cli:main"
+
+[project.urls]
+Repository = "https://github.com/KurathSec/codecaliper"
+Issues = "https://github.com/KurathSec/codecaliper/issues"
+Changelog = "https://github.com/KurathSec/codecaliper/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/codecaliper/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codecaliper"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+# corpus inputs are measurement fixtures — their whitespace is load-bearing
+extend-exclude = ["tests/corpus"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "TID253"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Invariant 1 (ARCHITECTURE.md §1): tree_sitter is imported ONLY in syntax/_treesitter.py.
+banned-module-level-imports = ["tree_sitter"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/codecaliper/syntax/_treesitter.py" = ["TID253"]  # the one sanctioned import site
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src/codecaliper"]
