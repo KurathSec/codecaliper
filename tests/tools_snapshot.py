@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conftest import corpus_cases
+from conftest import case_measure_kwargs, case_source, corpus_cases
 
 from codecaliper import measure
 from codecaliper.canonical import qfloat
@@ -13,7 +13,8 @@ def compute_corpus_values() -> dict[str, dict[str, object]]:
     for case in corpus_cases():
         values: dict[str, object] = {}
         for mode in ("whitepaper", "sonar-compat"):
-            rep = measure(case["source"], language=case["language"], cognitive_mode=mode)
+            rep = measure(case_source(case), language=case["language"],
+                          cognitive_mode=mode, **case_measure_kwargs(case))
             for mv in rep.file_metrics:
                 key = f"{mv.metric}.{mode}" if mv.metric == "cognitive" else mv.metric
                 values[key] = qfloat(mv.value) if isinstance(mv.value, float) else mv.value

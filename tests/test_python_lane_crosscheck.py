@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import pytest
 from _reference import py_ast_lane
-from conftest import corpus_cases
+from conftest import corpus_cases, is_reference_comparable
 
 from codecaliper import measure
 from codecaliper.model import metric_map
 
-PY_CASES = [c for c in corpus_cases() if c["language"] == "python"]
+PY_CASES = [c for c in corpus_cases()
+            if c["language"] == "python" and is_reference_comparable(c)]
 
 AGREEING_SNIPPETS = {
     "plain": "x = 1\n",
@@ -39,7 +40,18 @@ def _our_cc(src: str) -> int:
     return int(metric_map(rep.file_metrics)["cyclomatic"].value)
 
 
-@pytest.mark.parametrize("case", PY_CASES, ids=[c["id"] for c in PY_CASES])
+# Rulings where the tree-sitter lane KNOWINGLY diverges from the stdlib-ast
+# reference (ternaries, match/case). The divergences are asserted EXACTLY by
+# the dedicated tests below, so corpus cases citing them are excluded from the
+# equality sweep — an accidental "fix" of either lane still surfaces.
+DIVERGENT_RULINGS = {"CC-PY-0007", "CC-PY-0008"}
+AGREEING_CASES = [
+    c for c in PY_CASES
+    if not DIVERGENT_RULINGS & set(c["expected"]["case"].get("rulings", []))
+]
+
+
+@pytest.mark.parametrize("case", AGREEING_CASES, ids=[c["id"] for c in AGREEING_CASES])
 def test_corpus_cc_matches_reference(case: dict) -> None:
     assert _our_cc(case["source"]) == py_ast_lane.cyclomatic(case["source"])
 

@@ -1,0 +1,107 @@
+[case]
+id = "java-snippet-constructor-001"
+language = "java"
+granularity = "snippet"
+rulings = ["CORE-JAVA-0001", "BW-ALL-0002", "CC-ALL-0001", "CC-JAVA-0001", "CC-JAVA-0003",
+           "COG-ALL-0001", "COG-ALL-0003", "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003",
+           "LOC-ALL-0004", "BW-ALL-0001", "BW-ALL-0005", "BW-ALL-0006", "BW-JAVA-0001",
+           "BW-JAVA-0002", "TOK-ALL-0005"]
+computed_by = "hand"
+notes = """
+A bare public constructor is a class member, not a program-level statement, so
+the bare parse errors; at granularity="snippet" the class-body-only scaffold
+`class __CC__ { ... }` parses it clean and is adopted (CORE-JAVA-0001,
+verified against tree-sitter-java 0.23.5). ALL values below are in ORIGINAL
+snippet coordinates (6 lines); the scaffold lines contribute to nothing.
+CC = 1 (CC-ALL-0001) + if (CC-JAVA-0001) + one `||` binary_expression
+(CC-JAVA-0003) = 3; the two `<=` binary_expressions are not decision points.
+Cognitive = if (+1, nesting 0, COG-ALL-0001) + ONE `||` operator sequence
+(+1, COG-ALL-0003) = 2, both modes (no method_invocation, so no whitepaper
+recursion candidate; `new IllegalArgumentException()` is object creation).
+Lines: every line carries a code token (lines 4 and 6 are `}`) -> physical 6,
+sloc 6, blank 0, comment_lines 0 (LOC-ALL-0001..0003).
+lloc (LOC-ALL-0004) = constructor_declaration + if_statement + throw_statement
++ expression_statement = 4; the scaffold's class_declaration starts outside
+the snippet line range and does NOT count.
+Function units: exactly one, the constructor under its own name `Matrix` with
+its span rebased to start at line 1 (no phantom __CC__/__cc__ units);
+its cc = 3 and cognitive = 2 (same nodes as the file walk).
+BW (BW-ALL-0001, all 25 over the 6 ORIGINAL lines; tokens attributed to their
+start line, TOK-ALL-0005):
+line lengths 35/33/45/5/21/1 -> avg 140/6 = 23.3333..., max 45 (line 3).
+identifiers per line 3/2/1/0/2/0 (Matrix,rows,cols | rows,cols |
+IllegalArgumentException | - | rows,rows | -; `this` is a KEYWORD,
+BW-JAVA-0001) -> avg 8/6 = 1.3333..., max 3. Per-line MAX identifier lengths
+6/4/24/0/4/0 -> avg 38/6 = 6.3333... (BW-ALL-0005), max 24
+(IllegalArgumentException); `rows` occurs 4x -> max_identifier_occurrences 4.
+indentation 0/4/8/4/4/0 -> avg 20/6 = 3.3333..., max 8.
+keywords per line 3/1/2/0/1/0 (public,int,int | if | throw,new | - | this | -)
+-> avg 7/6 = 1.1666..., max 3; `||` is an uncategorized OPERATOR token — not a
+keyword and in no operator class (BW-ALL-0006).
+numbers: two `0` literals on line 2 -> avg 2/6, max 2. comments 0.
+periods 1 (`this.rows`) -> 1/6. commas 1 (line 1) -> 1/6.
+parentheses 2+2+2 (lines 1,2,3) = 6 -> 6/6 = 1.0. arithmetic 0.
+comparisons: two `<=` -> 2/6. assignments: one `=` -> 1/6.
+branches: one `if` (BW-JAVA-0002) -> 1/6. loops 0 (no for/while/do). blanks 0.
+spaces per line 5/12/10/4/6/0 = 37 -> avg 37/6 = 6.1666...; the space is also
+the most frequent character (next candidates: 'o' 8x, 's' 7x) ->
+max_char_occurrences 37.
+Vector labelling (BW-ALL-0002): granularity snippet IS the native unit ->
+extrapolated = false; 6 lines is inside the 4-11 calibrated regime (no
+range diagnostic); the snippet-scaffolded diagnostic is attached
+(CORE-JAVA-0001).
+"""
+
+[expect.file]
+cyclomatic = 3
+physical_lines = 6
+blank_lines = 0
+sloc = 6
+comment_lines = 0
+lloc = 4
+
+[expect.file.cognitive]
+whitepaper = 2
+sonar_compat = 2
+
+[expect.functions.Matrix]
+cyclomatic = 3
+cognitive = 2
+
+[expect.bw]
+avg_line_length = { value = 23.3333333333, abs_tol = 1e-9 }
+max_line_length = { value = 45.0, abs_tol = 0.0 }
+avg_identifiers = { value = 1.3333333333, abs_tol = 1e-9 }
+max_identifiers = { value = 3.0, abs_tol = 0.0 }
+avg_identifier_length = { value = 6.3333333333, abs_tol = 1e-9 }
+max_identifier_length = { value = 24.0, abs_tol = 0.0 }
+avg_indentation = { value = 3.3333333333, abs_tol = 1e-9 }
+max_indentation = { value = 8.0, abs_tol = 0.0 }
+avg_keywords = { value = 1.1666666667, abs_tol = 1e-9 }
+max_keywords = { value = 3.0, abs_tol = 0.0 }
+avg_numbers = { value = 0.3333333333, abs_tol = 1e-9 }
+max_numbers = { value = 2.0, abs_tol = 0.0 }
+avg_comments = { value = 0.0, abs_tol = 0.0 }
+avg_periods = { value = 0.1666666667, abs_tol = 1e-9 }
+avg_commas = { value = 0.1666666667, abs_tol = 1e-9 }
+avg_spaces = { value = 6.1666666667, abs_tol = 1e-9 }
+avg_parentheses = { value = 1.0, abs_tol = 0.0 }
+avg_arithmetic_ops = { value = 0.0, abs_tol = 0.0 }
+avg_comparison_ops = { value = 0.3333333333, abs_tol = 1e-9 }
+avg_assignments = { value = 0.1666666667, abs_tol = 1e-9 }
+avg_branches = { value = 0.1666666667, abs_tol = 1e-9 }
+avg_loops = { value = 0.0, abs_tol = 0.0 }
+avg_blank_lines = { value = 0.0, abs_tol = 0.0 }
+max_char_occurrences = { value = 37.0, abs_tol = 0.0 }
+max_identifier_occurrences = { value = 4.0, abs_tol = 0.0 }
+
+[expect.vector]
+granularity = "snippet"
+native_granularity = "snippet"
+extrapolated = false
+diagnostics_include = ["snippet-scaffolded"]
+
+# CORE-JAVA-0001: the scaffold trace must also exist at REPORT level so a
+# metrics-only run (readability=()) still records the synthetic re-parse.
+[expect.report]
+diagnostics_include = ["snippet-scaffolded"]

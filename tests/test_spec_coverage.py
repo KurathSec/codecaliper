@@ -23,26 +23,9 @@ CASE_IDS = {c["id"] for c in CASES}
 SRC = Path(__file__).parent.parent / "src" / "codecaliper"
 
 #: Rulings not yet exercised by a corpus case. SHRINK-ONLY: adding to this list
-#: is a review-visible act of debt; the 1.0 gate is an empty list.
-UNCOVERED: frozenset[str] = frozenset(
-    {
-        "CORE-ALL-0001",  # declarative (pre-preprocessing text)
-        "CORE-ALL-0002",  # parse-error opacity — exercised by test_measure_behavior::test_error_subtrees_are_opaque
-        "CORE-ALL-0004",  # float policy — exercised by test_determinism
-        "CORE-ALL-0005",  # --lang auto policy — exercised by CLI behavior
-        "CORE-JAVA-0001",  # snippet scaffold — exercised by test_measure_behavior scaffold tests
-        "TOK-ALL-0001", "TOK-ALL-0002", "TOK-ALL-0003", "TOK-ALL-0004",
-        "CC-PY-0006",  # except — needs a python try/except case
-        "CC-PY-0007",  # ternary — divergence asserted in test_python_lane_crosscheck
-        "CC-PY-0008",  # match/case — divergence asserted in test_python_lane_crosscheck
-        "CC-JAVA-0002",  # ternary
-        "CC-JAVA-0004",  # java loops
-        "CC-JAVA-0006",  # switch labels
-        "BW-ALL-0002",  # granularity labelling — exercised by test_measure_behavior
-        "BW-ALL-0005",  # identifier-length definition — exercised by port fidelity
-        "BW-PY-0001",  # keyword set — exercised by port fidelity
-    }
-)
+#: is a review-visible act of debt; the 1.0 gate is an empty list — reached
+#: 2026-07-05 (W4-5). It must stay empty: a new ruling ships with its case.
+UNCOVERED: frozenset[str] = frozenset()
 
 _RULING_ID_RE = re.compile(r"\b(?:CORE|TOK|CC|COG|HAL|MI|LOC|BW)-(?:ALL|PY|JAVA)-\d{4}\b")
 

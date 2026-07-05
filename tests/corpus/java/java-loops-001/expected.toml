@@ -1,0 +1,55 @@
+[case]
+id = "java-loops-001"
+language = "java"
+rulings = ["CC-ALL-0001", "CC-JAVA-0004", "COG-ALL-0001", "COG-ALL-0004",
+           "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0004", "BW-JAVA-0002"]
+computed_by = "hand"
+notes = """
+All four Java loop forms in one method, with the `while` nested inside the
+classic `for` (the cognitive nesting witness).
+CC (CC-ALL-0001 base 1; CC-JAVA-0004 one decision point per loop) =
+1 + for_statement(1) + while_statement(1) + enhanced_for_statement(1) +
+do_statement(1) = 5. No if/ternary/&&/||/catch/case.
+Cognitive: class body and the top-level method body do not deepen nesting
+(COG-ALL-0004); for at nesting 0 -> +1 and deepens nesting; while inside the
+for body at nesting 1 -> +(1+1) = +2 (COG-ALL-0001 structural increment,
+COG-ALL-0004 nesting penalty); enhanced-for at nesting 0 -> +1; do at
+nesting 0 -> +1. Total 1+2+1+1 = 5 in BOTH modes (no recursion, no boolean
+sequences, no hybrids -> no mode divergence).
+Lines (LOC-ALL-0001): 17 physical, 0 blank, 0 comments. Every line carries at
+least one code token (brace-only lines are punctuation tokens) -> sloc 17
+(LOC-ALL-0002).
+lloc (LOC-ALL-0004, statement-table nodes) = class_declaration(1) +
+method_declaration(1) + local_variable_declaration `int total = 0;`(1) +
+for_statement(1) + local_variable_declaration `int i = 0;` (the classic-for
+init IS a local_variable_declaration node in tree-sitter-java)(1) +
+while_statement(1) + expression_statement `total += i;`(1) +
+enhanced_for_statement(1) + expression_statement `total += x;`(1) +
+do_statement(1) + expression_statement `total--;`(1) + return_statement(1)
+= 12. (The enhanced-for binding `int x : xs` is fields of
+enhanced_for_statement, not a declaration node; the for-update `i++` is a bare
+expression, not an expression_statement.)
+BW (BW-JAVA-0002): loop keyword tokens `for`(L4) `while`(L5) `for`(L9)
+`do`(L12) `while`(L14, the do-while tail) = 5 -> avg_loops = 5/17 =
+0.294117647059; no `if` token -> avg_branches = 0.
+"""
+
+[expect.file]
+cyclomatic = 5
+physical_lines = 17
+blank_lines = 0
+sloc = 17
+comment_lines = 0
+lloc = 12
+
+[expect.file.cognitive]
+whitepaper = 5
+sonar_compat = 5
+
+[expect.functions.tally]
+cyclomatic = 5
+cognitive = 5
+
+[expect.bw]
+avg_loops = { value = 0.294117647059, abs_tol = 1e-9 }
+avg_branches = { value = 0.0, abs_tol = 0.0 }

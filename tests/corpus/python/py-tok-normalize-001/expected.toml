@@ -1,0 +1,103 @@
+[case]
+id = "py-tok-normalize-001"
+language = "python"
+input = "bytes"
+rulings = ["TOK-ALL-0001", "TOK-ALL-0002", "TOK-ALL-0003", "TOK-ALL-0004", "TOK-ALL-0005",
+           "CORE-ALL-0001", "CORE-ALL-0005", "CC-ALL-0001",
+           "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003", "LOC-ALL-0004",
+           "BW-ALL-0001", "BW-ALL-0002", "BW-ALL-0004", "BW-ALL-0005", "BW-ALL-0006",
+           "BW-PY-0001"]
+computed_by = "hand"
+notes = """
+Input is EXACT BYTES (input = "bytes"), 50 bytes; do not open in an editor:
+  EF BB BF | '# tok quartet' 0D 0A | 'def f():' 0D 0A |
+  09 'return "' FF '"' 0D 0A | 'x = f()' 0D 0A
+Normalization, in ruling order:
+  TOK-ALL-0001: UTF-8 decode with replacement -> the lone 0xFF (invalid UTF-8)
+  becomes ONE char U+FFFD inside the string literal; the file is still measured
+  and still parses cleanly (parse_ok stays true, no parse_ok=false declared).
+  TOK-ALL-0002: the leading U+FEFF is stripped -> line 1 is exactly
+  '# tok quartet' = 13 chars, not 14; max_line_length below proves it.
+  TOK-ALL-0003: every CRLF -> LF -> no line length includes a \\r (each length
+  below would otherwise be +1).
+  TOK-ALL-0004: the leading TAB on line 3 counts as ONE indentation char.
+Normalized lines (trailing final newline adds no line, LOC-ALL-0001):
+  1 '# tok quartet'        len 13
+  2 'def f():'             len 8
+  3 TAB+'return "\\uFFFD"' len 11  (1 tab + 6 'return' + 1 space + 3 string chars)
+  4 'x = f()'              len 7
+LOC: physical_lines 4, blank_lines 0 (LOC-ALL-0001). Code tokens cover lines
+2,3,4 -> sloc 3 (LOC-ALL-0002; line 1 has only the comment token). Comment
+token covers line 1 -> comment_lines 1 (LOC-ALL-0003). lloc =
+function_definition + return_statement + expression_statement('x = f()') = 3
+(LOC-ALL-0004).
+CC = 1: base only, zero decision points (CC-ALL-0001).
+Token stream, attributed to start lines (TOK-ALL-0005):
+  L1 COMMENT | L2 def(KW) f(ID) ( ) : | L3 return(KW) STRING('"\\uFFFD"', atomic)
+  | L4 x(ID) =(OP) f(ID) ( ).
+BW over 4 lines (BW-ALL-0001 avg = sum/lines, max = max):
+  line lengths 13,8,11,7 -> avg_line_length 39/4 = 9.75, max 13 (BOM-free and
+  CR-free by TOK-ALL-0002/0003).
+  identifiers/line 0,1,0,2 (f | x,f) -> avg 0.75, max 2; per-line max identifier
+  length 0,1,0,1 -> avg_identifier_length 0.5, max 1 (BW-ALL-0005).
+  indentation/line 0,0,1,0 -> avg 0.25, max_indentation 1 (TOK-ALL-0004: tab=1).
+  keywords/line 0,1,1,0 (def; return — both in kwlist, BW-PY-0001) ->
+  avg_keywords 0.5, max_keywords 1.
+  numbers none -> avg 0, max 0. comments: 1 token / 4 lines -> 0.25.
+  periods 0, commas 0. spaces/line 2,1,1,2 -> 6/4 = 1.5 (the TAB is not ' ').
+  parens '(' ')' on lines 2 and 4 -> 4/4 = 1.0; the string's quote chars belong
+  to the atomic STRING token, invisible to punctuation features (BW-ALL-0004).
+  arithmetic 0, comparison 0; one '=' in the assignment table (BW-ALL-0006) ->
+  avg_assignments 1/4 = 0.25. branches 0 (no if/elif), loops 0, blank 0.
+  char frequency over raw normalized lines, string chars INCLUDED
+  (BW-ALL-0004): ' ' = 2+1+1+2 = 6 beats 't' 3+0+1+0 = 4 and 'e'/'r'/'f' = 3
+  -> max_char_occurrences 6. identifier occurrences f=2 (def name + call),
+  x=1 -> max_identifier_occurrences 2.
+Vector at default file granularity: granularity file, native_granularity
+snippet, extrapolated true with the granularity-extrapolated diagnostic
+(BW-ALL-0002).
+CORE-ALL-0001: the measured text is the source as written (decode + BOM/CRLF
+normalization only, no preprocessing). CORE-ALL-0005: the .py extension maps to
+python (the runner asserts detect_language for citing cases).
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 4
+blank_lines = 0
+sloc = 3
+comment_lines = 1
+lloc = 3
+
+[expect.bw]
+avg_line_length = { value = 9.75, abs_tol = 1e-9 }
+max_line_length = { value = 13.0, abs_tol = 0.0 }
+avg_identifiers = { value = 0.75, abs_tol = 1e-9 }
+max_identifiers = { value = 2.0, abs_tol = 0.0 }
+avg_identifier_length = { value = 0.5, abs_tol = 1e-9 }
+max_identifier_length = { value = 1.0, abs_tol = 0.0 }
+avg_indentation = { value = 0.25, abs_tol = 1e-9 }
+max_indentation = { value = 1.0, abs_tol = 0.0 }
+avg_keywords = { value = 0.5, abs_tol = 1e-9 }
+max_keywords = { value = 1.0, abs_tol = 0.0 }
+avg_numbers = { value = 0.0, abs_tol = 0.0 }
+max_numbers = { value = 0.0, abs_tol = 0.0 }
+avg_comments = { value = 0.25, abs_tol = 1e-9 }
+avg_periods = { value = 0.0, abs_tol = 0.0 }
+avg_commas = { value = 0.0, abs_tol = 0.0 }
+avg_spaces = { value = 1.5, abs_tol = 1e-9 }
+avg_parentheses = { value = 1.0, abs_tol = 1e-9 }
+avg_arithmetic_ops = { value = 0.0, abs_tol = 0.0 }
+avg_comparison_ops = { value = 0.0, abs_tol = 0.0 }
+avg_assignments = { value = 0.25, abs_tol = 1e-9 }
+avg_branches = { value = 0.0, abs_tol = 0.0 }
+avg_loops = { value = 0.0, abs_tol = 0.0 }
+avg_blank_lines = { value = 0.0, abs_tol = 0.0 }
+max_char_occurrences = { value = 6.0, abs_tol = 0.0 }
+max_identifier_occurrences = { value = 2.0, abs_tol = 0.0 }
+
+[expect.vector]
+granularity = "file"
+native_granularity = "snippet"
+extrapolated = true
+diagnostics_include = ["granularity-extrapolated"]

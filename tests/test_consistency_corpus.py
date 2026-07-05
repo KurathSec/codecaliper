@@ -10,9 +10,10 @@ from __future__ import annotations
 import math
 
 import pytest
-from conftest import corpus_cases
+from conftest import case_measure_kwargs, case_source, corpus_cases
 
 from codecaliper import measure
+from codecaliper.languages import detect_language
 from codecaliper.model import metric_map
 
 CASES = corpus_cases()
@@ -37,10 +38,16 @@ def test_case(case: dict) -> None:
     rulings = expected["case"].get("rulings", [])
     header = f"[{case['id']}] rulings in dispute: {', '.join(rulings)}"
 
+    src = case_source(case)
+    kwargs = case_measure_kwargs(case)
     reports = {
-        "whitepaper": measure(case["source"], language=case["language"],
-                              cognitive_mode="whitepaper"),
+        "whitepaper": measure(src, language=case["language"],
+                              cognitive_mode="whitepaper", **kwargs),
     }
+
+    if "CORE-ALL-0005" in rulings:
+        # the cited case doubles as the extension-map witness
+        assert detect_language(str(case["input_path"])) == case["language"]
 
     file_expect = dict(expected.get("expect", {}).get("file", {}))
     cog_expect = file_expect.pop("cognitive", None)
@@ -53,7 +60,7 @@ def test_case(case: dict) -> None:
     def _sonar_report():
         if "sonar-compat" not in reports:
             reports["sonar-compat"] = measure(
-                case["source"], language=case["language"], cognitive_mode="sonar-compat"
+                src, language=case["language"], cognitive_mode="sonar-compat", **kwargs
             )
         return reports["sonar-compat"]
 
@@ -90,8 +97,40 @@ def test_case(case: dict) -> None:
         for name, exp in bw_expect.items():
             _assert_value(case["id"], f"bw.{name}", features[name], exp)
 
+    # scaffold artifacts must never leak into emitted output (CORE-JAVA-0001)
+    for fn in reports["whitepaper"].functions:
+        assert "__CC__" not in fn.qualified_name and "__cc__" not in fn.qualified_name, (
+            f"{header}: scaffold identifier leaked into {fn.qualified_name!r}"
+        )
 
-def test_parse_ok_everywhere() -> None:
+    report_expect = expected.get("expect", {}).get("report", {})
+    for code in report_expect.get("diagnostics_include", []):
+        assert any(d.code == code for d in reports["whitepaper"].diagnostics), (
+            f"{header}: report diagnostics missing {code!r}"
+        )
+
+    vec_expect = expected.get("expect", {}).get("vector", {})
+    if vec_expect:
+        vec = reports["whitepaper"].readability[0]
+        for field in ("granularity", "native_granularity", "extrapolated"):
+            if field in vec_expect:
+                assert getattr(vec, field) == vec_expect[field], (
+                    f"{header}: vector.{field} = {getattr(vec, field)!r}, "
+                    f"expected {vec_expect[field]!r}"
+                )
+        for code in vec_expect.get("diagnostics_include", []):
+            assert any(d.code == code for d in vec.diagnostics), (
+                f"{header}: vector diagnostics missing {code!r}"
+            )
+
+
+def test_parse_ok_matches_declaration() -> None:
+    """Corpus inputs parse cleanly unless the case EXPLICITLY declares
+    parse_ok = false (error-opacity fixtures, CORE-ALL-0002)."""
     for case in CASES:
-        rep = measure(case["source"], language=case["language"])
-        assert rep.parse_ok, f"{case['id']}: corpus inputs must parse cleanly"
+        rep = measure(case_source(case), language=case["language"],
+                      **case_measure_kwargs(case))
+        declared = case["expected"]["case"].get("parse_ok", True)
+        assert rep.parse_ok == declared, (
+            f"{case['id']}: parse_ok={rep.parse_ok}, declared {declared}"
+        )

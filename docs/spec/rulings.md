@@ -26,6 +26,8 @@ extrapolation beyond the model's native unit and is labelled with
 extrapolated=true plus a diagnostic. Even at snippet granularity, a diagnostic
 warns when the unit falls outside the paper's 4-11 line calibrated regime.
 
+Normative cases: `java-snippet-constructor-001`
+
 ### BW-ALL-0003 — A comment token counts once (PROVISIONAL)
 
 *language: all · status: active · since spec 0.1.0*
@@ -57,6 +59,8 @@ avg_identifier_length = mean over all lines of (the longest identifier on that
 line, 0 for lines without identifiers); max_identifier_length is the global
 maximum. Faithful to the reference implementation's reading of Fig. 6
 ('average/maximum value per line').
+
+Normative cases: `py-try-except-001`
 
 ### BW-ALL-0006 — Operator classes are adapter tables
 
@@ -92,6 +96,8 @@ Normative cases: `java-elseif-001`
 Keywords are keyword.kwlist of the reference CPython (True/False/None
 included). Soft keywords (match/case/type/_) count as identifiers, matching the
 stdlib tokenize reference.
+
+Normative cases: `py-try-except-001`
 
 ### BW-PY-0002 — Python branch/loop keyword features
 
@@ -207,6 +213,8 @@ opaque (not descended into for metric counting), the report carries
 parse_ok=false and a parse-error-recovered diagnostic. --strict upgrades this
 to an error exit. No number is silently fabricated from broken syntax.
 
+Normative cases: `py-error-opacity-001`
+
 ### CORE-ALL-0003 — Nested-unit attribution
 
 *language: all · status: active · since spec 0.1.0*
@@ -255,6 +263,8 @@ original indentation unshifted), scaffold-line function units are dropped, all
 emitted spans and traces are rebased to original snippet coordinates, and a
 snippet-scaffolded diagnostic is attached.
 
+Normative cases: `java-snippet-constructor-001`
+
 ## cyclomatic
 
 ### CC-ALL-0001 — Base value and decision-point summation
@@ -285,6 +295,8 @@ Binds node types: `ternary_expression`
 
 Each `ternary_expression` contributes one decision point.
 
+Normative cases: `java-ternary-001`
+
 ### CC-JAVA-0003 — Short-circuit operators count per operator
 
 *language: java · status: active · since spec 0.1.0*
@@ -304,6 +316,8 @@ Binds node types: `for_statement`, `enhanced_for_statement`, `while_statement`, 
 
 Each `for_statement` / `enhanced_for_statement` / `while_statement` / `do_statement` contributes one decision point.
 
+Normative cases: `java-loops-001`
+
 ### CC-JAVA-0005 — catch clauses count +1 each
 
 *language: java · status: active · since spec 0.1.0*
@@ -322,6 +336,8 @@ Binds node types: `switch_label`
 
 Each `switch_label` beginning with `case` contributes one decision point; a
 `default` label does not (it is the fall-through path, like an else).
+
+Normative cases: `java-switch-001`
 
 ### CC-PY-0001 — if statements count +1
 
@@ -389,6 +405,8 @@ Binds node types: `except_clause`
 
 Each `except_clause` contributes one decision point.
 
+Normative cases: `py-try-except-001`
+
 ### CC-PY-0007 — Conditional expressions (ternaries) count +1
 
 *language: python · status: active · since spec 0.1.0*
@@ -399,6 +417,8 @@ Each `conditional_expression` contributes one decision point. Diverges from the
 stdlib-ast reference lane (which does not count IfExp); the divergence is
 classified.
 
+Normative cases: `py-ternary-001`
+
 ### CC-PY-0008 — match case clauses count +1 each; the match statement and bare wildcard do not
 
 *language: python · status: active · since spec 0.1.0*
@@ -408,6 +428,8 @@ Binds node types: `case_clause`
 Each `case_clause` contributes one decision point, EXCEPT a bare-wildcard
 `case _:` with no guard, which is the fall-through path and does not count —
 the exact mirror of Java `default:` (CC-JAVA-0006).
+
+Normative cases: `py-match-001`
 
 ## halstead
 
@@ -492,12 +514,16 @@ Normative cases: `py-cc-boolop-001`
 Byte input is decoded as UTF-8; undecodable bytes are replaced (U+FFFD) and an
 encoding-replaced diagnostic is attached. str input is used as-is.
 
+Normative cases: `py-tok-normalize-001`
+
 ### TOK-ALL-0002 — A leading UTF-8 BOM is stripped
 
 *language: all · status: active · since spec 0.1.0*
 
 A leading U+FEFF is stripped before measurement (with a bom-stripped
 diagnostic); otherwise it would pollute line-1 character and length features.
+
+Normative cases: `py-tok-normalize-001`
 
 ### TOK-ALL-0003 — Line endings are normalized to LF
 
@@ -506,6 +532,8 @@ diagnostic); otherwise it would pollute line-1 character and length features.
 CRLF and lone CR are normalized to LF before measurement, so character-level
 features are platform-stable.
 
+Normative cases: `py-tok-normalize-001`
+
 ### TOK-ALL-0004 — A tab counts as one indentation character (provisional)
 
 *language: all · status: active · since spec 0.1.0*
@@ -513,6 +541,8 @@ features are platform-stable.
 Indentation is measured as the count of leading whitespace characters; a tab
 counts as 1. PROVISIONAL: the BW faithfulness pipeline (§6.3) will arbitrate
 tab semantics empirically; any change supersedes this ruling.
+
+Normative cases: `py-tok-normalize-001`
 
 ### TOK-ALL-0005 — Token line attribution
 

@@ -5,9 +5,13 @@
 id = "bw2010-original-100java"
 description = "100 Java snippets rated 1-5 by 120 annotators (Buse & Weimer, TSE 2010)"
 url = "https://dibt-research.unimol.it/report/readability/files/DatasetBW.zip"
-# sha256 of the archive as first fetched — fill in on first successful fetch;
-# an empty value makes fetch.py record (trust-on-first-use) rather than verify.
-sha256 = ""
+# sha256 of the archive as first fetched (TOFU-anchored 2026-07-04); fetch.py
+# verifies against this and refuses a mismatching download.
+sha256 = "27eb445ba407b2ae5582d63e6072ad00072bfb96365562769b0724fa14485ece"
+# Layout confirmed against that archive: snippets/1.jsnp .. snippets/100.jsnp
+# (Java fragments) + oracle.csv (one row per annotator: id, cohort, then 100
+# scores 1-5 in snippet order 1..100). NOTE: the archive holds 121 annotator
+# rows, not the paper's "120 annotators" — reported as-is, not reconciled.
 
 [license]
 status = "UNVERIFIED"

@@ -77,6 +77,7 @@ language = "python"
 title = "except clauses count +1 each"
 statement = "Each `except_clause` contributes one decision point."
 node_types = ["except_clause"]
+examples = ["py-try-except-001"]
 
 [[ruling]]
 id = "CC-PY-0007"
@@ -89,6 +90,7 @@ stdlib-ast reference lane (which does not count IfExp); the divergence is
 classified.
 """
 node_types = ["conditional_expression"]
+examples = ["py-ternary-001"]
 
 [[ruling]]
 id = "CC-PY-0008"
@@ -101,6 +103,7 @@ Each `case_clause` contributes one decision point, EXCEPT a bare-wildcard
 the exact mirror of Java `default:` (CC-JAVA-0006).
 """
 node_types = ["case_clause"]
+examples = ["py-match-001"]
 
 [[ruling]]
 id = "CC-JAVA-0001"
@@ -121,6 +124,7 @@ language = "java"
 title = "Ternary expressions count +1"
 statement = "Each `ternary_expression` contributes one decision point."
 node_types = ["ternary_expression"]
+examples = ["java-ternary-001"]
 
 [[ruling]]
 id = "CC-JAVA-0003"
@@ -141,6 +145,7 @@ language = "java"
 title = "Loops count +1"
 statement = "Each `for_statement` / `enhanced_for_statement` / `while_statement` / `do_statement` contributes one decision point."
 node_types = ["for_statement", "enhanced_for_statement", "while_statement", "do_statement"]
+examples = ["java-loops-001"]
 
 [[ruling]]
 id = "CC-JAVA-0005"
@@ -161,3 +166,5 @@ Each `switch_label` beginning with `case` contributes one decision point; a
 `default` label does not (it is the fall-through path, like an else).
 """
 node_types = ["switch_label"]
+examples = ["java-switch-001"]
+

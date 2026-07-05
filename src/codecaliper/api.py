@@ -161,6 +161,18 @@ def _measure(
             _, source_bytes, tree, line_offset = best
             n_errors = best[0]
             line_range = (line_offset + 1, line_offset + len(lines))
+            # CORE-JAVA-0001 promises a report-level trace: every metric below
+            # was computed from the synthetically scaffolded parse, so the
+            # diagnostic must survive a metrics-only run (readability=()).
+            diagnostics.append(
+                Diagnostic(
+                    "info", "snippet-scaffolded",
+                    "bare Java snippet parsed inside a synthetic scaffold; all "
+                    "values computed over the original snippet lines only "
+                    "(CORE-JAVA-0001)",
+                    ruling="CORE-JAVA-0001",
+                )
+            )
 
     parse_ok = n_errors == 0
     if not parse_ok:

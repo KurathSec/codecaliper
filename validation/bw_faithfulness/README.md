@@ -23,16 +23,33 @@ cited.
 
 ```bash
 pip install -e ".[retrain]"
-python validation/bw_faithfulness/fetch.py     # downloads to cache/ (never committed)
-python validation/bw_faithfulness/extract.py   # -> derived/features.csv (public API path)
-python validation/bw_faithfulness/train.py     # 10-fold CV logistic, fixed seed
+python validation/bw_faithfulness/fetch.py     # downloads to cache/ (never committed; idempotent)
+python validation/bw_faithfulness/extract.py   # -> derived/features.csv + derived/extract_meta.json
+                                               #    + cache/scores.csv + cache/oracle.csv
+python validation/bw_faithfulness/train.py     # -> derived/train_results.json (10-fold CV
+                                               #    logistic, fixed seed; re-runs extract if
+                                               #    its outputs are missing)
 python validation/bw_faithfulness/report.py    # -> derived/bw_faithfulness_report.{json,md}
 ```
 
 Directory contract: `cache/` holds the fetched archive and anything extracted
-from it (snippets, annotator scores) — ignored by git, never committed;
-`derived/` holds only values computed by codecaliper (feature vectors, training
-metrics, the report) and is tracked — it is the committable scholarly artifact.
+from it — the snippets, the verbatim per-annotator matrix (`cache/oracle.csv`,
+one row per annotator: id, cohort, 100 scores in snippet order 1..100) and the
+per-snippet means (`cache/scores.csv`: `snippet_id,mean_score,n_ratings`) —
+ignored by git, never committed; `derived/` holds only values computed by
+codecaliper (feature vectors, extraction stamps/stats, training metrics, the
+report) and is tracked — it is the committable scholarly artifact.
+
+Archive layout (confirmed 2026-07-04, recorded in `dataset.toml`):
+`snippets/1.jsnp .. snippets/100.jsnp` + `oracle.csv` with **121** annotator
+rows vs the paper's "120 annotators" — reported as-is, never reconciled
+silently.
+
+Expected per-feature directionality lives in `fig9_signs.toml`, keyed by our
+canonical feature names (`BW_FEATURE_NAMES`) and sourced from the paper's
+Fig. 9 (bar colors pixel-verified against the figure legend); features whose
+direction the paper never states carry `sign = "unclear"` and are excluded
+from the sign-agreement gate (the excluded count is reported).
 
 Missing dataset ⇒ each step SKIPs with a precise reason (anchor.py style) and
 exit code 0 — absence must never fail a build. The **license status is

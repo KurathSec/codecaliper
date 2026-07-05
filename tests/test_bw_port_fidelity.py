@@ -12,11 +12,12 @@ import math
 
 import pytest
 from _reference.bw_stdlib import bw_readability_features
-from conftest import corpus_cases
+from conftest import corpus_cases, is_reference_comparable
 
 from codecaliper import measure
 
-PY_CASES = [c for c in corpus_cases() if c["language"] == "python"]
+PY_CASES = [c for c in corpus_cases()
+            if c["language"] == "python" and is_reference_comparable(c)]
 
 EXTRA_SNIPPETS = {
     "empty-ish": "x = 1\n",

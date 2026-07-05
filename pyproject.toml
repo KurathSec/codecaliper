@@ -86,3 +86,10 @@ banned-module-level-imports = ["tree_sitter"]
 python_version = "3.10"
 strict = true
 files = ["src/codecaliper"]
+
+[[tool.mypy.overrides]]
+# tomli is the py<3.11-only tomllib fallback (see the environment marker in
+# [project.dependencies]); it is absent from >=3.11 dev venvs, so mypy checking
+# at the 3.10 floor cannot resolve it there.
+module = "tomli"
+ignore_missing_imports = true

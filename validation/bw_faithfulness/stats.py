@@ -56,4 +56,4 @@ def spearman(x: list[float], y: list[float]) -> float:
     sy = (sum((b - my) ** 2 for b in ry)) ** 0.5
     if sx == 0 or sy == 0:
         return 0.0
-    return sum((a - mx) * (b - my) for a, b in zip(rx, ry)) / (sx * sy)
+    return sum((a - mx) * (b - my) for a, b in zip(rx, ry, strict=True)) / (sx * sy)

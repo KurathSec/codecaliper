@@ -39,9 +39,9 @@ def load_language(grammar_module: str) -> tuple[Language, str, int]:
     except importlib.metadata.PackageNotFoundError:
         version = "unknown"
     # version -> abi_version shim (abi_version since py-tree-sitter 0.25)
-    abi = getattr(lang, "abi_version", None)
+    abi: int | None = getattr(lang, "abi_version", None)
     if abi is None:  # pragma: no cover - older binding shim
-        abi = getattr(lang, "version", 0)
+        abi = int(getattr(lang, "version", 0))
     return lang, version, int(abi)
 
 
@@ -55,7 +55,9 @@ def walk(tree: Tree) -> Iterator[tuple[Node, int]]:
     cursor = tree.walk()
     depth = 0
     while True:
-        yield cursor.node, depth
+        node = cursor.node
+        assert node is not None  # a fresh walk cursor always sits on a node
+        yield node, depth
         if cursor.goto_first_child():
             depth += 1
             continue
@@ -83,6 +85,7 @@ def leaves(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
     cursor = tree.walk()
     while True:
         node = cursor.node
+        assert node is not None  # a fresh walk cursor always sits on a node
         descend = False
         if not is_opaque(node):
             if node.child_count == 0 or node.type in atomic_types:

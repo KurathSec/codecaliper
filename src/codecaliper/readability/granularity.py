@@ -25,11 +25,19 @@ JAVA_CLASS_LINE_OFFSET = 1
 
 
 def rebase_unit(unit: FunctionUnit, line_offset: int, n_lines: int) -> FunctionUnit:
-    """Shift a FunctionUnit's span from scaffold to original snippet coordinates."""
+    """Shift a FunctionUnit's span from scaffold to original snippet coordinates,
+    and strip the synthetic scaffold qualifiers from qualified_name — scaffold
+    artifacts must never leak into emitted output (CORE-JAVA-0001). Longest
+    prefix first: the class+method scaffold nests units under __CC__.__cc__."""
+    qualified = unit.qualified_name
+    for scaffold_prefix in ("__CC__.__cc__.", "__CC__."):
+        if qualified.startswith(scaffold_prefix):
+            qualified = qualified[len(scaffold_prefix):]
+            break
     s = unit.span
     return FunctionUnit(
         unit.name,
-        unit.qualified_name,
+        qualified,
         unit.node,
         Span(
             start_line=s.start_line - line_offset,

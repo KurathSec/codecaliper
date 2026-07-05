@@ -1,0 +1,155 @@
+# Expected per-feature directionality from Buse & Weimer 2010, Figure 9
+# ("Relative power of features as determined by a singleton (one-feature-at-a-
+# time) analysis. The direction of correlation for each is also indicated."),
+# keyed by codecaliper's canonical feature names (BW_FEATURE_NAMES,
+# src/codecaliper/readability/bw2010.py — Fig. 6 order).
+#
+# sign = "+"  : positively correlated with HIGH readability (dark bar)
+# sign = "-"  : negatively correlated with HIGH readability (light bar)
+# sign = "unclear": no direction stated in the paper — EXCLUDED from the
+#                   sign-agreement gate; train.py reports the excluded count.
+#
+# Provenance: preprint PDF (weimerw/p/weimer-tse2010-readability-preprint.pdf).
+# The Fig. 9 legend ("Direction of correlation with high readability:
+# negative (light gray) / positive (dark)") and every bar's fill were verified
+# by pixel-sampling a 200-DPI render (light bars gray~147 = negative, dark
+# bars gray~72 = positive), then cross-checked against the prose (2026-07-04).
+# relative_power is the bar length read off Figure 9 (approximate).
+#
+# Caveats carried into the report:
+# - Fig. 9's parentheses bar is labelled "avg '(' '{'" — it also counts the
+#   open brace; our avg_parentheses counts '(' and ')' only (BW-ALL-0006).
+# - avg_arithmetic_ops is positive per bar color but has near-zero power
+#   (~0.07) and no prose discussion of its direction.
+# - avg_identifier_length has NO bar in Fig. 9 (0% relative predictive power);
+#   the paper never states its direction -> "unclear".
+
+[meta]
+source = "Buse & Weimer, IEEE TSE 36(4):546-558, 2010, Figure 9"
+doi = "10.1109/TSE.2009.70"
+verified = "2026-07-04, bar colors pixel-checked against the Fig. 9 legend"
+
+[signs.avg_line_length]
+sign = "-"
+relative_power = 0.96
+evidence = "Fig. 9 light/negative bar; prose: 'programmers should keep their lines short'"
+
+[signs.max_line_length]
+sign = "-"
+relative_power = 0.78
+evidence = "Fig. 9 'max line length' light/negative bar"
+
+[signs.avg_identifiers]
+sign = "-"
+relative_power = 1.00
+evidence = "Fig. 9 'avg identifiers' light/negative bar; most predictive feature (100%)"
+
+[signs.max_identifiers]
+sign = "-"
+relative_power = 0.64
+evidence = "Fig. 9 'max identifiers' light/negative bar"
+
+[signs.avg_identifier_length]
+sign = "unclear"
+relative_power = 0.0
+evidence = "no bar in Fig. 9 (0% relative predictive power); direction never stated"
+
+[signs.max_identifier_length]
+sign = "-"
+relative_power = 0.40
+evidence = "prose: 'maximum identifier length was much more useful as a negative predictor'"
+
+[signs.avg_indentation]
+sign = "-"
+relative_power = 0.55
+evidence = "Fig. 9 'avg indent' light/negative bar"
+
+[signs.max_indentation]
+sign = "-"
+relative_power = 0.50
+evidence = "Fig. 9 'max indent' light/negative bar"
+
+[signs.avg_keywords]
+sign = "-"
+relative_power = 0.55
+evidence = "Fig. 9 'avg keywords' light/negative bar"
+
+[signs.max_keywords]
+sign = "-"
+relative_power = 0.13
+evidence = "Fig. 9 'max keywords' light/negative bar"
+
+[signs.avg_numbers]
+sign = "-"
+relative_power = 0.23
+evidence = "Fig. 9 'avg numbers' light/negative bar"
+
+[signs.max_numbers]
+sign = "-"
+relative_power = 0.16
+evidence = "Fig. 9 'max numbers' light/negative bar"
+
+[signs.avg_comments]
+sign = "+"
+relative_power = 0.33
+evidence = "Fig. 9 'avg comment' dark/positive bar; 'moderately well-correlated' (33%)"
+
+[signs.avg_periods]
+sign = "-"
+relative_power = 0.78
+evidence = "Fig. 9 \"avg '.'\" light/negative bar"
+
+[signs.avg_commas]
+sign = "-"
+relative_power = 0.45
+evidence = "Fig. 9 \"avg ','\" light/negative bar"
+
+[signs.avg_spaces]
+sign = "-"
+relative_power = 0.21
+evidence = "Fig. 9 'avg spaces' light/negative bar"
+
+[signs.avg_parentheses]
+sign = "-"
+relative_power = 0.93
+evidence = "Fig. 9 label is \"avg '(' '{'\" (parens AND open brace), light/negative bar"
+
+[signs.avg_arithmetic_ops]
+sign = "+"
+relative_power = 0.07
+evidence = "Fig. 9 \"avg '+' '*' '%' '/' '-'\" dark/positive bar (pixel-verified); near-zero power"
+
+[signs.avg_comparison_ops]
+sign = "-"
+relative_power = 0.21
+evidence = "Fig. 9 \"avg '==' '<' '>'\" light/negative bar; prose: not very predictive"
+
+[signs.avg_assignments]
+sign = "-"
+relative_power = 0.26
+evidence = "Fig. 9 \"avg '='\" light/negative bar"
+
+[signs.avg_branches]
+sign = "-"
+relative_power = 0.20
+evidence = "Fig. 9 \"avg 'if'\" light/negative bar"
+
+[signs.avg_loops]
+sign = "-"
+relative_power = 0.19
+evidence = "Fig. 9 \"avg 'for' 'while'\" light/negative bar"
+
+[signs.avg_blank_lines]
+sign = "+"
+relative_power = 0.53
+evidence = "Fig. 9 dark/positive bar; prose: 'positively correlated with high readability'"
+
+[signs.max_char_occurrences]
+sign = "-"
+relative_power = 0.37
+evidence = "Fig. 9 'max char' light/negative bar"
+
+[signs.max_identifier_occurrences]
+sign = "-"
+relative_power = 0.41
+evidence = "Fig. 9 'max occurences ident' [sic] light/negative bar"

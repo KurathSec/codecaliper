@@ -10,6 +10,7 @@ statement = """
 Byte input is decoded as UTF-8; undecodable bytes are replaced (U+FFFD) and an
 encoding-replaced diagnostic is attached. str input is used as-is.
 """
+examples = ["py-tok-normalize-001"]
 
 [[ruling]]
 id = "TOK-ALL-0002"
@@ -20,6 +21,7 @@ statement = """
 A leading U+FEFF is stripped before measurement (with a bom-stripped
 diagnostic); otherwise it would pollute line-1 character and length features.
 """
+examples = ["py-tok-normalize-001"]
 
 [[ruling]]
 id = "TOK-ALL-0003"
@@ -30,6 +32,7 @@ statement = """
 CRLF and lone CR are normalized to LF before measurement, so character-level
 features are platform-stable.
 """
+examples = ["py-tok-normalize-001"]
 
 [[ruling]]
 id = "TOK-ALL-0004"
@@ -41,6 +44,7 @@ Indentation is measured as the count of leading whitespace characters; a tab
 counts as 1. PROVISIONAL: the BW faithfulness pipeline (§6.3) will arbitrate
 tab semantics empirically; any change supersedes this ruling.
 """
+examples = ["py-tok-normalize-001"]
 
 [[ruling]]
 id = "TOK-ALL-0005"

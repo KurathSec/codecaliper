@@ -3,7 +3,7 @@ id = "py-cc-boolop-001"
 language = "python"
 rulings = ["CC-ALL-0001", "CC-PY-0001", "CC-PY-0003", "COG-ALL-0001", "COG-ALL-0003",
            "HAL-ALL-0001", "MI-ALL-0001", "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003",
-           "LOC-ALL-0004", "BW-ALL-0001", "TOK-ALL-0005"]
+           "LOC-ALL-0004", "BW-ALL-0001", "TOK-ALL-0005", "CORE-ALL-0004"]
 computed_by = "hand"
 notes = """
 CC = 1 + if(1) + boolean operators(2: `a and b or c` is or(and(a,b),c) = two
@@ -24,6 +24,8 @@ occurrences resolve(1) a(2) b(2) c(2) 1(1) 0(1) -> N2 = 9.
 V = 21*log2(15) = 82.0447... ; D = (9/2)*(9/6) = 6.75; E = D*V = 553.8017...
 MI (MI-ALL-0001) = clamp((171 - 5.2*ln(82.0447) - 0.23*4 - 16.2*ln(4))*100/171)
 = 72.9265 (cc=4, sloc=4).
+Float assertions carry explicit abs_tol per CORE-ALL-0004 (12-significant-digit
+canonical emission, per-platform determinism) — this case is its corpus witness.
 """
 
 [expect.file]

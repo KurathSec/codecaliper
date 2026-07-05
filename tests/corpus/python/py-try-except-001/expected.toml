@@ -1,0 +1,119 @@
+[case]
+id = "py-try-except-001"
+language = "python"
+rulings = ["CC-ALL-0001", "CC-PY-0006", "COG-ALL-0001",
+           "HAL-ALL-0001", "MI-ALL-0001", "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003",
+           "LOC-ALL-0004", "BW-ALL-0001", "BW-ALL-0005", "BW-PY-0001", "TOK-ALL-0005"]
+computed_by = "hand"
+notes = """
+CC = 1 (CC-ALL-0001) + except_clause x2 (CC-PY-0006) = 3; the try statement
+itself is not a decision point.
+Cognitive (COG-ALL-0001): each except_clause is CATCH -> structural +1 +
+nesting. Both handlers sit at nesting 0 (a top-level function body does not
+deepen nesting and a try body never does), so 1+0 each -> total 2. No
+recursion, so whitepaper = sonar_compat = 2.
+Lines (7): def / try / return int(raw) / except ValueError / return None /
+except Exception / raise. physical 7 (trailing final newline adds no line,
+LOC-ALL-0001), blank 0; every line bears a code token -> sloc 7 (LOC-ALL-0002);
+no comment tokens -> comment_lines 0 (LOC-ALL-0003).
+lloc (LOC-ALL-0004) = function_definition + try_statement + 2 return_statement
++ raise_statement = 5 (except_clause is not in the statement table).
+BW (7 lines; keywords = kwlist per BW-PY-0001, None included; per-line
+attribution per TOK-ALL-0005): keywords per line def / try / return / except /
+return+None / except / raise = 1,1,1,1,2,1,1 -> avg 8/7 = 1.142857...,
+max 2 (line 5 proves None counts as a keyword, not an identifier).
+identifiers per line parse_count,raw / - / int,raw / ValueError / - /
+Exception / - = 2,0,2,1,0,1,0 -> avg 6/7 = 0.857142..., max 2; `raw` occurs
+twice -> max_identifier_occurrences 2.
+identifier lengths (BW-ALL-0005, mean of per-line maxima): per-line max
+11 (parse_count), 0, 3 (int/raw tie), 10 (ValueError), 0, 9 (Exception), 0
+-> avg 33/7 = 4.714285..., max 11.
+line lengths 21,8,23,22,19,21,13 -> avg 127/7 = 18.142857..., max 23.
+indentation 0,4,8,4,8,4,8 -> avg 36/7 = 5.142857..., max 8. spaces per line
+1,4,9,5,9,5,8 -> 41 total -> avg 41/7 = 5.857142...; the space is also the
+most frequent character (41 > 'e' 12) -> max_char_occurrences 41.
+parens: 2 on the def line + 2 in int(raw) = 4 -> avg 4/7 = 0.571428...
+numbers, comments, commas, periods, branches (no if/elif), loops: all 0.
+Halstead (HAL-ALL-0001, operators = KEYWORD+OPERATOR+PUNCT, operands =
+IDENTIFIER+NUMBER+STRING): operator occurrences def(1) try(1) return(2)
+except(2) None(1) raise(1) ((2) )(2) :(4) -> n1 = 9, N1 = 16 (None is a
+KEYWORD token, hence an operator); operand occurrences parse_count(1) raw(2)
+int(1) ValueError(1) Exception(1) -> n2 = 5, N2 = 6.
+V = 22*log2(14) = 83.76180... ; D = (9/2)*(6/5) = 5.4; E = D*V = 452.31376...
+MI (MI-ALL-0001) = clamp((171 - 5.2*ln(83.76181) - 0.23*3 - 16.2*ln(7))*100/171)
+= (171 - 23.02548 - 0.69 - 31.52374)*100/171 = 67.6964 (cc=3, sloc=7).
+"""
+
+[expect.file]
+cyclomatic = 3
+physical_lines = 7
+blank_lines = 0
+sloc = 7
+comment_lines = 0
+lloc = 5
+
+[expect.file.cognitive]
+whitepaper = 2
+sonar_compat = 2
+
+[expect.file."halstead.n1"]
+value = 9.0
+abs_tol = 0.0
+
+[expect.file."halstead.N1"]
+value = 16.0
+abs_tol = 0.0
+
+[expect.file."halstead.n2"]
+value = 5.0
+abs_tol = 0.0
+
+[expect.file."halstead.N2"]
+value = 6.0
+abs_tol = 0.0
+
+[expect.file."halstead.volume"]
+value = 83.7618
+abs_tol = 0.0001
+
+[expect.file."halstead.difficulty"]
+value = 5.4
+abs_tol = 1e-9
+
+[expect.file."halstead.effort"]
+value = 452.3138
+abs_tol = 0.0001
+
+[expect.file.maintainability_index]
+value = 67.6964
+abs_tol = 0.0001
+
+[expect.functions.parse_count]
+cyclomatic = 3
+
+[expect.functions.parse_count.cognitive]
+whitepaper = 2
+sonar_compat = 2
+
+[expect.bw]
+avg_identifiers = { value = 0.857142857142857, abs_tol = 1e-9 }
+max_identifiers = { value = 2.0, abs_tol = 0.0 }
+avg_identifier_length = { value = 4.714285714285714, abs_tol = 1e-9 }
+max_identifier_length = { value = 11.0, abs_tol = 0.0 }
+avg_keywords = { value = 1.142857142857143, abs_tol = 1e-9 }
+max_keywords = { value = 2.0, abs_tol = 0.0 }
+avg_line_length = { value = 18.142857142857142, abs_tol = 1e-9 }
+max_line_length = { value = 23.0, abs_tol = 0.0 }
+avg_indentation = { value = 5.142857142857143, abs_tol = 1e-9 }
+max_indentation = { value = 8.0, abs_tol = 0.0 }
+avg_spaces = { value = 5.857142857142857, abs_tol = 1e-9 }
+avg_parentheses = { value = 0.571428571428571, abs_tol = 1e-9 }
+avg_numbers = { value = 0.0, abs_tol = 0.0 }
+avg_comments = { value = 0.0, abs_tol = 0.0 }
+avg_commas = { value = 0.0, abs_tol = 0.0 }
+avg_periods = { value = 0.0, abs_tol = 0.0 }
+avg_branches = { value = 0.0, abs_tol = 0.0 }
+avg_loops = { value = 0.0, abs_tol = 0.0 }
+avg_blank_lines = { value = 0.0, abs_tol = 0.0 }
+max_char_occurrences = { value = 41.0, abs_tol = 0.0 }
+max_identifier_occurrences = { value = 2.0, abs_tol = 0.0 }

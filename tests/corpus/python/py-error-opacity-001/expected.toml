@@ -1,0 +1,40 @@
+[case]
+id = "py-error-opacity-001"
+language = "python"
+parse_ok = false
+rulings = ["CORE-ALL-0002", "CC-ALL-0001", "LOC-ALL-0001", "LOC-ALL-0003"]
+computed_by = "hand"
+notes = """
+Error-opacity fixture (CORE-ALL-0002): the unclosed paren on line 4 makes
+tree-sitter-python emit ONE ERROR subtree spanning lines 4-6 (`x = (1 +`,
+`if a and b:`, `    pass`) — verified by dumping the tree: module's children
+are comment (line 1), expression_statement `total = 0` (line 3), ERROR (lines
+4-6). Inside the ERROR there is no if_statement node at all, only a raw `if`
+keyword token and a boolean_operator node; both sit under ERROR and are
+therefore opaque to all metric counting. The comment (line 1) and `total = 0`
+(line 3) are clean siblings OUTSIDE the error region.
+CC (CC-ALL-0001) = 1 + decision points visible outside opaque subtrees. The
+only candidates (`if` head, `and`) are inside the ERROR subtree, which is not
+descended into -> 0 decision points -> CC = 1.
+Cognitive = 0 in BOTH modes: the walker skips opaque subtrees, so no
+structural or boolean-sequence increment fires; with an empty increment set
+the whitepaper/sonar-compat recursion divergence cannot arise.
+physical_lines (LOC-ALL-0001) is a text-level count of the normalized source,
+NOT tree-derived, so lines inside the error region still count: comment /
+blank / `total = 0` / `x = (1 +` / `if a and b:` / `    pass` = 6 (the
+trailing final newline adds no line). blank_lines = 1 (line 2, strips to
+empty; also text-level).
+comment_lines (LOC-ALL-0003) = lines covered by comment tokens in the lexical
+stream. Tokens under ERROR subtrees are never emitted, but the only comment
+sits on line 1 OUTSIDE the error region, so it counts -> 1.
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 6
+blank_lines = 1
+comment_lines = 1
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0

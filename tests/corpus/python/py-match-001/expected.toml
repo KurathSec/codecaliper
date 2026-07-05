@@ -1,0 +1,45 @@
+[case]
+id = "py-match-001"
+language = "python"
+rulings = ["CC-ALL-0001", "CC-PY-0004", "CC-PY-0008", "COG-ALL-0001"]
+computed_by = "hand"
+notes = """
+Two top-level functions, one match_statement each. match_statement is SWITCH:
+a cognitive structural increment, never a cyclomatic decision point.
+Cyclomatic (CC-ALL-0001 base 1 per unit; CC-PY-0008 +1 per case_clause):
+dispatch: `case 1` (+1) + `case 2` (+1) + `case _ if strict` (+1: a wildcard
+WITH a guard is a real branch, so the case_clause counts) = 3 decision points
+-> CC 4. The guard's if_clause is NOT additionally counted: CC-PY-0004 scopes
+if_clause counting to comprehension guards; the guarded case_clause already
+counted under CC-PY-0008, and counting the guard too would double-count one
+branch (guard counted would give 5, not 4).
+label: `case "x"` (+1); bare `case _:` with no guard is the fall-through path
+and does not count (CC-PY-0008 exception, mirror of Java `default:`) -> CC 2.
+File CC = 1 + 3 + 1 = 5.
+Cognitive (COG-ALL-0001): each match_statement is one structural increment at
+nesting level 0 (top-level function bodies do not deepen nesting) -> +1 per
+function; case_clauses, guards, and return statements contribute nothing.
+dispatch = 1, label = 1, file = 1 + 1 = 2. No recursion and no mode-divergent
+constructs -> whitepaper == sonar_compat everywhere.
+"""
+
+[expect.file]
+cyclomatic = 5
+
+[expect.file.cognitive]
+whitepaper = 2
+sonar_compat = 2
+
+[expect.functions.dispatch]
+cyclomatic = 4
+
+[expect.functions.dispatch.cognitive]
+whitepaper = 1
+sonar_compat = 1
+
+[expect.functions.label]
+cyclomatic = 2
+
+[expect.functions.label.cognitive]
+whitepaper = 1
+sonar_compat = 1

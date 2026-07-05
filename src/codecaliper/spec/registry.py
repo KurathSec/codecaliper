@@ -12,6 +12,7 @@ import sys
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
+from typing import Any
 
 from codecaliper.errors import SpecError
 
@@ -47,10 +48,11 @@ class Ruling:
     superseded_by: str = ""
 
 
-def _load_toml(name: str) -> dict:
+def _load_toml(name: str) -> dict[str, Any]:
     ref = resources.files("codecaliper.spec") / "rulings" / name
     with ref.open("rb") as f:
-        return tomllib.load(f)
+        data: dict[str, Any] = tomllib.load(f)
+    return data
 
 
 @lru_cache(maxsize=1)

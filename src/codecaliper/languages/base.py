@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from codecaliper.model import GrammarInfo, Span
 
 if TYPE_CHECKING:  # pragma: no cover
-    from codecaliper.syntax._treesitter import Node, Tree
+    from codecaliper.syntax._treesitter import Node, Parser, Tree
 
 
 class NodeClass(Enum):
@@ -89,7 +89,7 @@ class LanguageAdapter:
     class_def_types: frozenset[str] = frozenset()
 
     _grammar: object = None
-    _parser: object = None
+    _parser: Parser | None = None
     _grammar_info: GrammarInfo | None = None
 
     # --- parsing ---
@@ -101,7 +101,8 @@ class LanguageAdapter:
 
     def parse(self, source: bytes) -> Tree:
         self._ensure_loaded()
-        return self._parser.parse(source)  # type: ignore[union-attr]
+        assert self._parser is not None
+        return self._parser.parse(source)
 
     def grammar_info(self) -> GrammarInfo:
         self._ensure_loaded()

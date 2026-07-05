@@ -122,6 +122,14 @@ def test_java_snippet_scaffold_engages_for_constructor() -> None:
     assert rep.parse_ok, "class-only scaffold should yield an error-free tree"
     vec = rep.readability[0]
     assert any(d.code == "snippet-scaffolded" for d in vec.diagnostics)
+    # the trace must be report-level too (survives readability=()) and carry the ruling
+    assert any(
+        d.code == "snippet-scaffolded" and d.ruling == "CORE-JAVA-0001"
+        for d in rep.diagnostics
+    )
+    rep_metrics_only = measure(snippet, language="java", granularity="snippet",
+                               readability=())
+    assert any(d.code == "snippet-scaffolded" for d in rep_metrics_only.diagnostics)
     features = dict(zip(vec.names, vec.values, strict=True))
     # original 6 lines, not scaffold coordinates
     fm = metric_map(rep.file_metrics)

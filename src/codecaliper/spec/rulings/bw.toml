@@ -30,6 +30,7 @@ extrapolation beyond the model's native unit and is labelled with
 extrapolated=true plus a diagnostic. Even at snippet granularity, a diagnostic
 warns when the unit falls outside the paper's 4-11 line calibrated regime.
 """
+examples = ["java-snippet-constructor-001"]
 
 [[ruling]]
 id = "BW-ALL-0003"
@@ -69,6 +70,7 @@ line, 0 for lines without identifiers); max_identifier_length is the global
 maximum. Faithful to the reference implementation's reading of Fig. 6
 ('average/maximum value per line').
 """
+examples = ["py-try-except-001"]
 
 [[ruling]]
 id = "BW-ALL-0006"
@@ -93,6 +95,7 @@ Keywords are keyword.kwlist of the reference CPython (True/False/None
 included). Soft keywords (match/case/type/_) count as identifiers, matching the
 stdlib tokenize reference.
 """
+examples = ["py-try-except-001"]
 
 [[ruling]]
 id = "BW-PY-0002"

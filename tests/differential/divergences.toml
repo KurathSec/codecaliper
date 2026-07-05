@@ -1,0 +1,143 @@
+# Classified known divergences from external oracles (ARCHITECTURE.md §3.4).
+#
+# The differential lane keeps this table complete BY CONSTRUCTION, in both
+# directions: an observed divergence with no entry fails CI (the test prints a
+# ready-to-paste stanza), and an entry that is no longer observed fails as
+# stale. `unit` is the codecaliper qualified function name; `ours` is the
+# value pinned by `ruling`; `theirs` is the installed oracle's value.
+# Cognitive comparisons run codecaliper in sonar-compat mode.
+#
+# Rendered to docs/spec/divergences.md by tools/gen_divergences.py.
+# Append-order file: new stanzas from the ready-to-paste test output land at the
+# end. The RENDERED doc (tools/gen_divergences.py) sorts by (oracle, case, unit,
+# metric); this file is not required to.
+
+[[divergence]]
+oracle = "cognitive_complexity"
+case = "py-nested-function-001"
+unit = "outer"
+metric = "cognitive"
+ours = 3
+theirs = 5
+ruling = "CORE-ALL-0003"
+reason = "cognitive_complexity scores a function including its nested defs (inner's `if` lands at nesting 2); CORE-ALL-0003 excludes nested named units, which get their own FunctionReports."
+
+[[divergence]]
+oracle = "cognitive_complexity"
+case = "py-recursion-001"
+unit = "fact"
+metric = "cognitive"
+ours = 1
+theirs = 2
+ruling = "COG-ALL-0006"
+reason = "cognitive_complexity 1.3 implements the whitepaper's +1-per-recursive-call increment; our sonar-compat mode omits recursion per COG-ALL-0006 (whitepaper mode agrees with the oracle here)."
+
+[[divergence]]
+oracle = "cognitive_complexity"
+case = "snippet:diff-match-in-func"
+unit = "dispatch"
+metric = "cognitive"
+ours = 1
+theirs = 0
+ruling = "COG-ALL-0001"
+reason = "match/case is a switch-like structural increment for us (COG-ALL-0001); cognitive_complexity 1.3 has no ast.Match handling and scores the whole statement zero."
+
+[[divergence]]
+oracle = "cognitive_complexity"
+case = "snippet:diff-while-else"
+unit = "scan"
+metric = "cognitive"
+ours = 1
+theirs = 2
+ruling = "COG-ALL-0002"
+reason = "cognitive_complexity gives a loop's `else` clause a +1 hybrid increment; COG-ALL-0002 rules only if-attached else arms count — loop/try completion clauses contribute nothing."
+
+[[divergence]]
+oracle = "lizard"
+case = "snippet:diff-comp-guard"
+unit = "evens"
+metric = "cyclomatic"
+ours = 2
+theirs = 3
+ruling = "CC-PY-0004"
+reason = "lizard's token-based CCN counts the comprehension `for` keyword as a loop; CC-PY-0004 rules the iteration clause is not a decision point (only the guard counts)."
+
+[[divergence]]
+oracle = "lizard"
+case = "snippet:diff-match-in-func"
+unit = "dispatch"
+metric = "cyclomatic"
+ours = 3
+theirs = 4
+ruling = "CC-PY-0008"
+reason = "lizard counts every `case` token including the bare wildcard arm; CC-PY-0008 rules `case _:` with no guard is the fall-through path and does not count (mirror of Java `default:`)."
+
+[[divergence]]
+oracle = "radon"
+case = "snippet:diff-comp-guard"
+unit = "evens"
+metric = "cyclomatic"
+ours = 2
+theirs = 3
+ruling = "CC-PY-0004"
+reason = "radon counts each comprehension generator as a decision point in addition to its guards; CC-PY-0004 counts only guard `if_clause`s, never the iteration clause."
+
+[[divergence]]
+oracle = "radon"
+case = "snippet:diff-while-else"
+unit = "scan"
+metric = "cyclomatic"
+ours = 2
+theirs = 3
+ruling = "CC-PY-0005"
+reason = "radon counts a loop's `else` clause as a decision point; under CC-PY-0005 a loop contributes exactly one, and its completion `else` is not a branch."
+
+[[divergence]]
+oracle = "radon"
+case = "py-match-001"
+unit = "dispatch"
+metric = "cyclomatic"
+ours = 4
+theirs = 3
+ruling = "CC-PY-0008"
+reason = "radon never counts a wildcard case; CC-PY-0008 counts a GUARDED `case _ if p:` (only the unguarded wildcard is the fall-through path)."
+
+[[divergence]]
+oracle = "lizard"
+case = "py-match-001"
+unit = "dispatch"
+metric = "cyclomatic"
+ours = 4
+theirs = 5
+ruling = "CC-PY-0004"
+reason = "lizard counts a case guard's `if` token in addition to the case itself; CC-PY-0004 never double-counts a guard whose case_clause already counts under CC-PY-0008."
+
+[[divergence]]
+oracle = "lizard"
+case = "py-match-001"
+unit = "label"
+metric = "cyclomatic"
+ours = 2
+theirs = 3
+ruling = "CC-PY-0008"
+reason = "lizard counts every `case` token including the bare wildcard; CC-PY-0008 excludes an unguarded `case _:` as the fall-through path (mirror of Java default, CC-JAVA-0006)."
+
+[[divergence]]
+oracle = "cognitive_complexity"
+case = "py-match-001"
+unit = "dispatch"
+metric = "cognitive"
+ours = 1
+theirs = 0
+ruling = "COG-ALL-0001"
+reason = "the cognitive_complexity package has no handler for ast.Match, so match statements contribute nothing; COG-ALL-0001 gives match one structural increment (Sonar's own spec counts match)."
+
+[[divergence]]
+oracle = "cognitive_complexity"
+case = "py-match-001"
+unit = "label"
+metric = "cognitive"
+ours = 1
+theirs = 0
+ruling = "COG-ALL-0001"
+reason = "the cognitive_complexity package has no handler for ast.Match, so match statements contribute nothing; COG-ALL-0001 gives match one structural increment (Sonar's own spec counts match)."

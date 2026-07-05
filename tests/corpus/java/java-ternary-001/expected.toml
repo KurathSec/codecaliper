@@ -1,0 +1,35 @@
+[case]
+id = "java-ternary-001"
+language = "java"
+rulings = ["CC-ALL-0001", "CC-JAVA-0002", "COG-ALL-0001", "COG-ALL-0004", "LOC-ALL-0004"]
+computed_by = "hand"
+notes = """
+Three ternary_expression nodes: line 3 plain (`a > b ? a : b`), line 4 outer
+(`a > 0 ? 1 : (...)`), line 4 inner (`a < 0 ? -1 : 0`, nested in the outer's
+alternative behind a parenthesized_expression).
+CC = 1 (CC-ALL-0001) + 3 ternaries (CC-JAVA-0002) = 4. The `>`/`<` comparisons
+are binary_expressions with non-short-circuit operators and contribute nothing.
+Cognitive (COG-ALL-0001 structural = 1 + nesting): class body and the top-level
+method body do not deepen nesting (COG-ALL-0004); a ternary DOES. Plain ternary
+at nesting 0 -> +1; outer ternary at nesting 0 -> +1; inner ternary at nesting
+1 (inside the outer ternary; parentheses do not change nesting) -> +2.
+Total = 4. No boolean sequences, no recursion -> both modes identical.
+lloc (LOC-ALL-0004, statement table) = class_declaration + method_declaration
++ 2 local_variable_declaration + return_statement = 5; ternaries are
+expressions, not statements.
+"""
+
+[expect.file]
+cyclomatic = 4
+lloc = 5
+
+[expect.file.cognitive]
+whitepaper = 4
+sonar_compat = 4
+
+[expect.functions.pick]
+cyclomatic = 4
+
+[expect.functions.pick.cognitive]
+whitepaper = 4
+sonar_compat = 4

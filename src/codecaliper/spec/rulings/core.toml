@@ -23,7 +23,7 @@ opaque (not descended into for metric counting), the report carries
 parse_ok=false and a parse-error-recovered diagnostic. --strict upgrades this
 to an error exit. No number is silently fabricated from broken syntax.
 """
-examples = []
+examples = ["py-error-opacity-001"]
 
 [[ruling]]
 id = "CORE-ALL-0003"
@@ -83,3 +83,5 @@ original indentation unshifted), scaffold-line function units are dropped, all
 emitted spans and traces are rebased to original snippet coordinates, and a
 snippet-scaffolded diagnostic is attached.
 """
+examples = ["java-snippet-constructor-001"]
+

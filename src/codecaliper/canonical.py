@@ -11,7 +11,7 @@ import csv
 import io
 import json
 from dataclasses import fields, is_dataclass
-from typing import Any
+from typing import Any, cast
 
 from codecaliper.model import FileReport
 
@@ -40,7 +40,7 @@ def _plain(obj: Any) -> Any:
 
 
 def to_dict(report: FileReport) -> dict[str, Any]:
-    return _plain(report)
+    return cast("dict[str, Any]", _plain(report))
 
 
 def to_json(report: FileReport) -> str:
@@ -62,8 +62,8 @@ def to_csv(reports: list[FileReport]) -> str:
         for mv in rep.file_metrics:
             if mv.metric not in metric_names:
                 metric_names.append(mv.metric)
-        for vec in rep.readability:
-            for n in vec.names:
+        for rvec in rep.readability:
+            for n in rvec.names:
                 if n not in bw_names:
                     bw_names.append(n)
     header = (

@@ -1,0 +1,43 @@
+[case]
+id = "py-ternary-001"
+language = "python"
+rulings = ["CC-ALL-0001", "CC-PY-0007", "COG-ALL-0001", "COG-ALL-0004",
+           "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003", "LOC-ALL-0004"]
+computed_by = "hand"
+notes = """
+Ternary nodes: `a if p else b` is one conditional_expression. In the return,
+`x if q else (b if p else c)` is TWO conditional_expression nodes — the outer
+node's `alternative` is a parenthesized_expression wrapping the inner node
+(the grammar nests a ternary in the else arm even without parens; the parens
+just make the nesting unambiguous). Total conditional_expression nodes = 3.
+CC = 1 (CC-ALL-0001) + 3 ternaries (CC-PY-0007) = 4; there are no
+boolean_operator nodes and no other decision points. Function `pick` spans all
+decision points, so its CC is also 4.
+Cognitive (COG-ALL-0001 ternary is structural +1+nesting; COG-ALL-0004 ternary
+deepens nesting, a top-level function body does not):
+plain ternary at nesting 0 -> +1; outer return ternary at nesting 0 -> +1;
+inner ternary inside the outer's else arm at nesting 1 -> +1+1 = +2.
+Total = 4, both modes (no recursion, no boolean sequences -> the modes cannot
+diverge here).
+Lines: 1 comment, def, assignment, return -> physical 4, blank 0, sloc 3
+(lines 2-4 carry code tokens), comment_lines 1 (line 1 only).
+lloc = function_definition + expression_statement + return_statement = 3
+(the comment is not a statement; conditional_expression is not in the
+statement table).
+"""
+
+[expect.file]
+cyclomatic = 4
+physical_lines = 4
+blank_lines = 0
+sloc = 3
+comment_lines = 1
+lloc = 3
+
+[expect.file.cognitive]
+whitepaper = 4
+sonar_compat = 4
+
+[expect.functions.pick]
+cyclomatic = 4
+cognitive = { whitepaper = 4, sonar_compat = 4 }
