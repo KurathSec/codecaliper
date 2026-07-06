@@ -129,3 +129,24 @@ avg_branches counts `if` keyword tokens (an else-if contributes via its `if`);
 avg_loops counts for/while/do keyword tokens.
 """
 examples = ["java-elseif-001"]
+
+[[ruling]]
+id = "BW-ALL-0007"
+metric = "bw2010"
+language = "all"
+title = "Token-family features use the full lexical stream, ERROR regions included"
+since_spec = "1.0.0"
+statement = """
+The BW construct is lexical: the original instrument was grammar-less and saw
+every token of every (frequently non-compilable) snippet. When the parse tree
+contains errors, token-family BW features are therefore computed over the FULL
+leaf stream, descending into ERROR subtrees (MISSING nodes are zero-width
+fabrications and still yield nothing), and the vector carries a
+bw-lexical-fallback diagnostic. This deliberately scopes CORE-ALL-0002, which
+continues to govern every metric (cyclomatic, cognitive, Halstead, LOC):
+zeroing lexical features on fragments silently changes the construct — a
+parser-based reimplementation degraded on 71/100 original BW snippets before
+this ruling. Arbitrated by the BW faithfulness experiment
+(validation/bw_faithfulness/derived/arbitration_report.md).
+"""
+examples = ["py-bw-fallback-001"]

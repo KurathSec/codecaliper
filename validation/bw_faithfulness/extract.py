@@ -128,9 +128,11 @@ def main() -> int:
         writer.writeheader()
         writer.writerows(rows)
 
-    # Extraction-quality stats the report must carry (honesty, not tuning):
-    # an all-ERROR tree lexes to zero tokens (CORE-ALL-0002 error-opaque), which
-    # zeroes every token-family feature while raw-line features survive.
+    # Extraction-quality stats the report must carry (honesty, not tuning).
+    # With BW-ALL-0007, parse-error snippets still receive a full lexical
+    # stream, so a nonzero empty-token count would mean a genuinely token-free
+    # snippet or a regression (pre-BW-ALL-0007 runs reported 8 here, caused by
+    # CORE-ALL-0002 error-opacity zeroing token-family features).
     parse_ok_count = sum(1 for r in rows if r["parse_ok"])
     scaffolded_count = sum(1 for r in rows if r["scaffolded"])
     empty_token = sum(

@@ -70,7 +70,11 @@ def bw_features(
     for line in lines:
         line_len.append(len(line))
         stripped = line.lstrip()
-        indent.append(len(line) - len(stripped))  # TOK-ALL-0004: tab = 1 char
+        # TOK-ALL-0006 (supersedes TOK-ALL-0004): a tab counts as 8 indentation
+        # characters, arbitrated by the BW faithfulness experiment. Line length
+        # above stays a raw character count.
+        leading = line[: len(line) - len(stripped)]
+        indent.append(sum(8 if ch == "\t" else 1 for ch in leading))
         spaces += line.count(" ")
         if stripped == "":
             blank += 1

@@ -4,11 +4,11 @@ Reproduction of Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Co
 
 ## Headline numbers
 
-- **10-fold accuracy**: 0.720 (bootstrap 95% CI [0.660, 0.790]) vs the paper's ~0.80 — CI DOES NOT overlap the paper's figure
-- **AUC**: 0.783
-- fold accuracies: 0.90, 0.60, 0.90, 0.70, 0.70, 0.60, 0.70, 0.80, 0.60, 0.70
+- **10-fold accuracy**: 0.820 (bootstrap 95% CI [0.770, 0.870]) vs the paper's ~0.80 — CI OVERLAPS the paper's figure
+- **AUC**: 0.828
+- fold accuracies: 0.90, 0.70, 0.80, 0.70, 0.90, 0.80, 0.80, 0.80, 1.00, 0.80
 - convergence warnings during fitting: 0
-- **sign agreement vs Fig. 9**: 20/24 agree, 4 disagree, 1 excluded (direction unclear in the paper)
+- **sign agreement vs Fig. 9**: 21/24 agree, 3 disagree, 1 excluded (direction unclear in the paper)
 
 ## Protocol
 
@@ -25,33 +25,33 @@ Spearman rho of each feature against the snippet mean score; expected sign is th
 |---|---:|:---:|---:|:---:|
 | avg_line_length | -0.544 | - | 0.96 | yes |
 | max_line_length | -0.412 | - | 0.78 | yes |
-| avg_identifiers | -0.574 | - | 1.00 | yes |
-| max_identifiers | -0.417 | - | 0.64 | yes |
-| avg_identifier_length | -0.496 | unclear | 0.00 | excluded (unclear) |
-| max_identifier_length | -0.229 | - | 0.40 | yes |
-| avg_indentation | +0.001 | - | 0.55 | **NO** |
-| max_indentation | -0.007 | - | 0.50 | yes |
-| avg_keywords | -0.282 | - | 0.55 | yes |
-| max_keywords | -0.166 | - | 0.13 | yes |
-| avg_numbers | -0.113 | - | 0.23 | yes |
-| max_numbers | -0.080 | - | 0.16 | yes |
-| avg_comments | +0.326 | + | 0.33 | yes |
-| avg_periods | -0.429 | - | 0.78 | yes |
-| avg_commas | -0.413 | - | 0.45 | yes |
+| avg_identifiers | -0.660 | - | 1.00 | yes |
+| max_identifiers | -0.494 | - | 0.64 | yes |
+| avg_identifier_length | -0.535 | unclear | 0.00 | excluded (unclear) |
+| max_identifier_length | -0.239 | - | 0.40 | yes |
+| avg_indentation | -0.230 | - | 0.55 | yes |
+| max_indentation | -0.254 | - | 0.50 | yes |
+| avg_keywords | -0.331 | - | 0.55 | yes |
+| max_keywords | -0.206 | - | 0.13 | yes |
+| avg_numbers | -0.167 | - | 0.23 | yes |
+| max_numbers | -0.129 | - | 0.16 | yes |
+| avg_comments | +0.291 | + | 0.33 | yes |
+| avg_periods | -0.442 | - | 0.78 | yes |
+| avg_commas | -0.442 | - | 0.45 | yes |
 | avg_spaces | +0.039 | - | 0.21 | **NO** |
-| avg_parentheses | -0.518 | - | 0.93 | yes |
-| avg_arithmetic_ops | -0.177 | + | 0.07 | **NO** |
-| avg_comparison_ops | -0.292 | - | 0.21 | yes |
-| avg_assignments | -0.024 | - | 0.26 | yes |
-| avg_branches | -0.207 | - | 0.20 | yes |
+| avg_parentheses | -0.619 | - | 0.93 | yes |
+| avg_arithmetic_ops | -0.230 | + | 0.07 | **NO** |
+| avg_comparison_ops | -0.335 | - | 0.21 | yes |
+| avg_assignments | -0.067 | - | 0.26 | yes |
+| avg_branches | -0.213 | - | 0.20 | yes |
 | avg_loops | -0.131 | - | 0.19 | yes |
 | avg_blank_lines | +0.262 | + | 0.53 | yes |
 | max_char_occurrences | +0.090 | - | 0.37 | **NO** |
-| max_identifier_occurrences | -0.223 | - | 0.41 | yes |
+| max_identifier_occurrences | -0.285 | - | 0.41 | yes |
 
 ## Extraction quality (reported, not tuned away)
 
-- parse_ok 29/100 snippets, 10 scaffolded (CORE-JAVA-0001), 8 with an EMPTY token stream (all-ERROR tree; error subtrees are opaque per CORE-ALL-0002, so every token-family feature is zero while raw-line features survive). This is measured extractor behaviour on bare snippets — an arbitration input, not something to tune away.
+- parse_ok 29/100 snippets, 10 scaffolded (CORE-JAVA-0001), 0 with an EMPTY token vector — on parse errors BW token-family features are computed over the full lexical stream, ERROR subtrees included (BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this count is zero; metrics remain error-opaque per CORE-ALL-0002. Measured extractor behaviour on bare snippets — an arbitration outcome (see arbitration_report.md), never tuned away.
 
 ## Dataset
 
@@ -64,6 +64,6 @@ Spearman rho of each feature against the snippet mean score; expected sign is th
 
 ## Provenance
 
-- codecaliper 0.1.0.dev0, spec 0.1.0
+- codecaliper 0.1.0.dev0, spec 1.0.0
 - grammar: tree-sitter-java 0.23.5 (ABI 14, validated=True)
 - BW feature-order sha256: 8adae3992539a4eb2cf8d3b2386558612c77ad8e2e850f5bab940bbf430ad56d

@@ -1,4 +1,4 @@
-# Known divergences from external oracles (spec v0.1.0)
+# Known divergences from external oracles (spec v1.0.0)
 
 > Generated from `tests/differential/divergences.toml` by
 > `tools/gen_divergences.py` — do not edit by hand. The differential

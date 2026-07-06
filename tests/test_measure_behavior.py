@@ -226,3 +226,43 @@ def test_explain_traces() -> None:
     assert {t.ruling_id for t in cc.trace} == {"CC-PY-0001", "CC-PY-0003"}
     rep_default = measure("if x and y:\n    pass\n", language="python")
     assert not metric_map(rep_default.file_metrics)["cyclomatic"].trace
+
+
+def test_bw_lexical_fallback_scoping() -> None:
+    """BW-ALL-0007: on parse errors, BW token features see ERROR-region tokens
+    (both diagnostic levels + provenance), while every metric stays error-opaque
+    (CORE-ALL-0002) — and a clean parse never carries the fallback."""
+    src = "count = 1\nbroken = (count +\nif count and flag:\n    pass\n"
+    rep = measure(src, language="python")
+    assert not rep.parse_ok
+    assert any(
+        d.code == "bw-lexical-fallback" and d.ruling == "BW-ALL-0007"
+        for d in rep.diagnostics
+    )
+    vec = rep.readability[0]
+    assert any(d.code == "bw-lexical-fallback" for d in vec.diagnostics)
+    assert "BW-ALL-0007" in vec.rulings
+    assert "BW-ALL-0007" in rep.provenance.rulings_applied
+    features = dict(zip(vec.names, vec.values, strict=True))
+    assert features["max_identifiers"] == 2.0, "ERROR-region identifiers must count for BW"
+    fm = metric_map(rep.file_metrics)
+    assert fm["cyclomatic"].value == 1, "metrics must stay error-opaque"
+    assert fm["sloc"].value == 1
+
+    clean = measure("count = 1\n", language="python")
+    assert not any(d.code == "bw-lexical-fallback" for d in clean.diagnostics)
+    assert "BW-ALL-0007" not in clean.provenance.rulings_applied
+
+    # per-unit scoping at granularity="function": only a unit whose own span
+    # gained ERROR-region tokens carries the flag; clean units stay unflagged
+    src_fn = ("def clean(a):\n    return a\n\n"
+              "def dirty(b):\n    y = (b +\n    z = 1\n    return b\n")
+    rep_fn = measure(src_fn, language="python", granularity="function")
+    flags = {
+        v.unit_name: any(d.code == "bw-lexical-fallback" for d in v.diagnostics)
+        for v in rep_fn.readability
+    }
+    assert flags == {"clean": False, "dirty": True}
+    by_name = {v.unit_name: v for v in rep_fn.readability}
+    assert "BW-ALL-0007" not in by_name["clean"].rulings
+    assert "BW-ALL-0007" in by_name["dirty"].rulings

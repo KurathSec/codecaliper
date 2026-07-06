@@ -7,7 +7,7 @@ codecaliper is built as an *instrument*: every number it emits is **traceable**
 — to a versioned metric-to-syntax specification, to the exact machine-readable
 rulings that fired, to the exact tree-sitter grammar that parsed the source —
 and **reproducible** — clock-free, hash-seed-free, order-stable. Where a
-scoreboard says "CC = 7", codecaliper says "CC = 7 *under spec 0.1.0, ruling
+scoreboard says "CC = 7", codecaliper says "CC = 7 *under spec 1.0.0, ruling
 CC-PY-0003, tree-sitter-python 0.25.0, whitepaper mode*".
 
 ## What it measures
@@ -84,9 +84,18 @@ print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 
 ## Status
 
-Pre-1.0 scaffold (spec v0.1.0): Python + Java wired end-to-end; seed ruling set
-and consistency corpus; the differential lane and the BW faithfulness
-reproduction are the next milestones (see `ARCHITECTURE.md` §16).
+Spec **v1.0.0** (package 0.1.0.dev0 — the spec and package are versioned
+independently): Python + Java wired end-to-end; every active ruling is
+exercised by a hand-computed corpus case; mypy --strict and the differential
+oracle lane (radon/lizard/cognitive_complexity, classified divergence list)
+are hard CI gates. The BW faithfulness reproduction ran on the original
+100-snippet dataset: 10-fold logistic accuracy 0.820 (bootstrap 95% CI
+[0.770, 0.870], overlapping the paper's ~0.80), AUC 0.828, Fig. 9 sign
+agreement 21/24 — after a pre-registered arbitration experiment resolved two
+feature-definition ambiguities (indentation tab width; lexical fallback on
+parse errors) as versioned ruling supersessions (see
+`validation/bw_faithfulness/derived/`). Next: docs site and the MSR tool
+paper (`ARCHITECTURE.md` §16, W7-W8).
 
 ## Development
 

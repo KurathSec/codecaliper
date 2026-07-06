@@ -293,11 +293,36 @@ def _measure(
     # --- readability vectors
     vectors = []
     if "bw2010" in readability:
+        # BW-ALL-0007: the BW construct is lexical — on parse errors its
+        # token-family features use the full leaf stream, ERROR regions
+        # included. Every metric above stays error-opaque (CORE-ALL-0002).
+        bw_tokens = tokens
+        lexical_fallback = False
+        if not parse_ok:
+            full = tok_mod.lex(tree, source_bytes, adapter, include_error_tokens=True)
+            if line_range is not None:
+                full = gran_mod.rebase_tokens(full, line_range[0], line_range[1])
+            lexical_fallback = len(full) != len(tokens)
+            if lexical_fallback:
+                bw_tokens = full
+                diagnostics.append(
+                    Diagnostic(
+                        "info", "bw-lexical-fallback",
+                        "parse errors present; bw2010 token-family features were "
+                        "computed over the full lexical stream, ERROR regions "
+                        "included (BW-ALL-0007)",
+                        ruling="BW-ALL-0007",
+                    )
+                )
         if granularity == "function":
-            vectors = gran_mod.function_vectors(lines, tokens, adapter, units)
+            vectors = gran_mod.function_vectors(
+                lines, bw_tokens, adapter, units,
+                opaque_tokens=tokens if lexical_fallback else None,
+            )
         else:
             vectors = [
-                gran_mod.vector(lines, tokens, adapter, granularity, scaffolded=scaffolded)
+                gran_mod.vector(lines, bw_tokens, adapter, granularity,
+                                scaffolded=scaffolded, lexical_fallback=lexical_fallback)
             ]
         for v in vectors:
             ctx.fired.update(v.rulings)

@@ -602,6 +602,9 @@ general-purpose measurement primitives.
 | PMD in CI, rust-code-analysis scheduled-only | All oracles per-PR | PMD is the only serious Java witness; RCA is stale (2023) — witness value without treadmill |
 | ctx.count() + opt-in `--explain` traces | rulings-applied lists only | Divergence triage needs *where and how much*, not just *which* |
 | 12-sig-digit float quantization + per-platform byte claim | Cross-OS byte-identity claim | libm differences make the stronger claim false; honesty is the brand |
+| Indentation tab = 8 (TOK-ALL-0006, supersedes TOK-ALL-0004's tab = 1) | tab = 1 / tab = 4 | Pre-registered 32-cell arbitration: tab=1 zeroes the Fig. 9 indentation correlation; any tab>=2 fixes the sign, 8 won the pre-registered AUC tie-break (8-vs-4 is a stated convention pick within noise) |
+| BW token features see ERROR-region tokens (BW-ALL-0007) | Error-opaque BW (CORE-ALL-0002 everywhere) | The BW construct is lexical (the original tool was grammar-less); opacity zeroed 8/100 original snippets and depressed AUC 0.798 -> fallback 0.827; metrics stay opaque |
+| Java arithmetic-op class unchanged after arbitration (null result) | Adding ++/--/compound assignment | No variant changed any Fig. 9 sign in 32 cells; AUC spread <= 0.00124 is noise — a ruling is not changed on noise |
 
 ## 15. De-scoping ladder (cut order when — not if — W6 slips)
 

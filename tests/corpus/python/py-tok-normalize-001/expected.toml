@@ -2,7 +2,7 @@
 id = "py-tok-normalize-001"
 language = "python"
 input = "bytes"
-rulings = ["TOK-ALL-0001", "TOK-ALL-0002", "TOK-ALL-0003", "TOK-ALL-0004", "TOK-ALL-0005",
+rulings = ["TOK-ALL-0001", "TOK-ALL-0002", "TOK-ALL-0003", "TOK-ALL-0006", "TOK-ALL-0005",
            "CORE-ALL-0001", "CORE-ALL-0005", "CC-ALL-0001",
            "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003", "LOC-ALL-0004",
            "BW-ALL-0001", "BW-ALL-0002", "BW-ALL-0004", "BW-ALL-0005", "BW-ALL-0006",
@@ -20,7 +20,8 @@ Normalization, in ruling order:
   '# tok quartet' = 13 chars, not 14; max_line_length below proves it.
   TOK-ALL-0003: every CRLF -> LF -> no line length includes a \\r (each length
   below would otherwise be +1).
-  TOK-ALL-0004: the leading TAB on line 3 counts as ONE indentation char.
+  TOK-ALL-0006: the leading TAB on line 3 counts as EIGHT indentation chars
+  (supersedes TOK-ALL-0004 tab=1; arbitrated by the BW faithfulness experiment).
 Normalized lines (trailing final newline adds no line, LOC-ALL-0001):
   1 '# tok quartet'        len 13
   2 'def f():'             len 8
@@ -40,7 +41,8 @@ BW over 4 lines (BW-ALL-0001 avg = sum/lines, max = max):
   CR-free by TOK-ALL-0002/0003).
   identifiers/line 0,1,0,2 (f | x,f) -> avg 0.75, max 2; per-line max identifier
   length 0,1,0,1 -> avg_identifier_length 0.5, max 1 (BW-ALL-0005).
-  indentation/line 0,0,1,0 -> avg 0.25, max_indentation 1 (TOK-ALL-0004: tab=1).
+  indentation/line 0,0,8,0 -> avg 8/4 = 2.0, max_indentation 8 (TOK-ALL-0006: tab=8;
+  line length stays a raw char count, so the tab is 1 char there).
   keywords/line 0,1,1,0 (def; return — both in kwlist, BW-PY-0001) ->
   avg_keywords 0.5, max_keywords 1.
   numbers none -> avg 0, max 0. comments: 1 token / 4 lines -> 0.25.
@@ -76,8 +78,8 @@ avg_identifiers = { value = 0.75, abs_tol = 1e-9 }
 max_identifiers = { value = 2.0, abs_tol = 0.0 }
 avg_identifier_length = { value = 0.5, abs_tol = 1e-9 }
 max_identifier_length = { value = 1.0, abs_tol = 0.0 }
-avg_indentation = { value = 0.25, abs_tol = 1e-9 }
-max_indentation = { value = 1.0, abs_tol = 0.0 }
+avg_indentation = { value = 2.0, abs_tol = 1e-9 }
+max_indentation = { value = 8.0, abs_tol = 0.0 }
 avg_keywords = { value = 0.5, abs_tol = 1e-9 }
 max_keywords = { value = 1.0, abs_tol = 0.0 }
 avg_numbers = { value = 0.0, abs_tol = 0.0 }

@@ -71,12 +71,24 @@ def source_lines(text: str) -> list[str]:
     return lines
 
 
-def lex(tree: Tree, source_bytes: bytes, adapter: LanguageAdapter) -> list[LexicalToken]:
-    """Classify the leaf stream via the adapter's token tables."""
-    from codecaliper.syntax._treesitter import leaves, node_text
+def lex(
+    tree: Tree,
+    source_bytes: bytes,
+    adapter: LanguageAdapter,
+    *,
+    include_error_tokens: bool = False,
+) -> list[LexicalToken]:
+    """Classify the leaf stream via the adapter's token tables.
 
+    ``include_error_tokens=True`` descends into ERROR subtrees (BW-ALL-0007:
+    the BW construct is lexical); the default stream is error-opaque
+    (CORE-ALL-0002) and feeds every metric.
+    """
+    from codecaliper.syntax._treesitter import leaves, leaves_lexical, node_text
+
+    iterator = leaves_lexical if include_error_tokens else leaves
     out: list[LexicalToken] = []
-    for node in leaves(tree, adapter.atomic_types):
+    for node in iterator(tree, adapter.atomic_types):
         ttype = node.type
         if ttype in ("ERROR",) or node.is_missing:
             continue

@@ -93,11 +93,14 @@ from ruling `examples`.
 
 ## Current status / next milestones
 
-Spec v0.1.0, W1–6 done: skeleton + tree-sitter + BW port (W1–3); UNCOVERED list EMPTY — every
+Spec v1.0.0 (first calibrated evolution: TOK-ALL-0006 tab=8 supersedes TOK-ALL-0004,
+BW-ALL-0007 lexical fallback added, ops arbitration null — all via the pre-registered
+experiment in `validation/bw_faithfulness/derived/arbitration_report.md`), W1–6 done:
+skeleton + tree-sitter + BW port (W1–3); UNCOVERED list EMPTY — every
 active ruling has a corpus case — and mypy --strict is a hard CI gate (W4–5); BW faithfulness
-reproduction ran end-to-end (W6, paper's Fig. 5 cutoff 3.14: 10-fold logistic accuracy 0.720,
-bootstrap 95% CI [0.660, 0.790] vs the paper's ~0.80 (battery of classifiers; deviations
-documented in the report), AUC 0.783, sign agreement 20/24 — see
+reproduction ran end-to-end (W6, paper's Fig. 5 cutoff 3.14; under spec 1.0.0's arbitrated
+rulings: 10-fold logistic accuracy 0.820, bootstrap 95% CI [0.770, 0.870] overlapping the
+paper's ~0.80, AUC 0.828, sign agreement 21/24; deviations documented in the report — see
 `validation/bw_faithfulness/derived/bw_faithfulness_report.md`; dataset license is UNVERIFIED,
 dataset content stays in gitignored `cache/`, only aggregates/feature vectors live in tracked
 `derived/`), plus the external-oracle differential lane (`tests/differential/` vs

@@ -1,0 +1,81 @@
+[case]
+id = "py-bw-fallback-001"
+language = "python"
+parse_ok = false
+rulings = ["BW-ALL-0007", "CORE-ALL-0002", "CC-ALL-0001", "BW-ALL-0001", "BW-ALL-0005",
+           "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0004"]
+computed_by = "hand"
+notes = """
+Line 3's unclosed paren swallows lines 3-5 into ONE ERROR subtree; line-1
+comment and line-2 assignment are clean siblings outside it.
+METRICS stay error-opaque (CORE-ALL-0002): cc = 1 (base only), cognitive = 0
+both modes, sloc = 1 (only line 2 has a code token in the opaque stream),
+lloc = 1 (one expression_statement outside the ERROR).
+BW features use the FULL lexical stream (BW-ALL-0007) — tokens inside the
+ERROR region count. Per line:
+  L1 `# demo` comment; L2 `count = 1` id/=/1; L3 `broken = (count +`
+  id/=/(/id/+; L4 `if count and flag:` if/id/and/id/:; L5 `    pass` pass.
+identifiers 0,1,2,2,0 -> avg 5/5 = 1.0, max 2; keywords 0,0,0,2 (if,and),
+1 (pass) -> avg 0.6, max 2; numbers only L2 -> avg 0.2, max 1; comments 1/5 =
+0.2; line lengths 6,9,17,18,8 -> avg 58/5 = 11.6, max 18; identifier-length
+per-line maxima 0,5,6,5,0 (count/broken/count|flag) -> avg 16/5 = 3.2, max 6
+(BW-ALL-0005); indentation 0,0,0,0,4 -> avg 0.8, max 4; spaces 1,2,3,3,4 ->
+avg 13/5 = 2.6; parens: one `(` -> 0.2; arithmetic: one `+` -> 0.2;
+assignments: `=` on L2 and L3 (the L3 one is INSIDE the error region — the
+fallback's witness) -> avg 0.4; branches: `if` -> 0.2; loops 0; commas 0;
+periods 0; blank 0; max_char_occurrences = 13 (space);
+max_identifier_occurrences = 3 (count x3).
+The vector carries bw-lexical-fallback and cites BW-ALL-0007; the report
+carries it too whenever bw2010 is requested. The diagnostic is BW-scoped:
+under readability=() no BW vector is computed, no affected value is emitted,
+and the diagnostic is correctly absent (contrast CORE-JAVA-0001's
+snippet-scaffolded, which taints all metrics and so survives metrics-only
+runs).
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 5
+blank_lines = 0
+sloc = 1
+comment_lines = 1
+lloc = 1
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0
+
+[expect.bw]
+avg_identifiers = 1.0
+max_identifiers = 2.0
+avg_keywords = 0.6
+max_keywords = 2.0
+avg_numbers = 0.2
+max_numbers = 1.0
+avg_comments = 0.2
+avg_line_length = 11.6
+max_line_length = 18.0
+avg_identifier_length = 3.2
+max_identifier_length = 6.0
+avg_indentation = 0.8
+max_indentation = 4.0
+avg_spaces = 2.6
+avg_parentheses = 0.2
+avg_arithmetic_ops = 0.2
+avg_assignments = 0.4
+avg_branches = 0.2
+avg_loops = 0.0
+avg_commas = 0.0
+avg_periods = 0.0
+avg_blank_lines = 0.0
+max_char_occurrences = 13.0
+max_identifier_occurrences = 3.0
+
+[expect.vector]
+granularity = "file"
+native_granularity = "snippet"
+extrapolated = true
+diagnostics_include = ["bw-lexical-fallback"]
+
+[expect.report]
+diagnostics_include = ["bw-lexical-fallback"]

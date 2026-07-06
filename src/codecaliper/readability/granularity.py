@@ -69,9 +69,21 @@ def vector(
     unit_name: str | None = None,
     span: Span | None = None,
     scaffolded: bool = False,
+    lexical_fallback: bool = False,
 ) -> FeatureVectorResult:
     features = bw_features(lines, tokens, adapter)
     diags: list[Diagnostic] = []
+    if lexical_fallback:
+        diags.append(
+            Diagnostic(
+                "info", "bw-lexical-fallback",
+                "parse errors present; token-family features computed over the "
+                "full lexical stream, ERROR regions included — the BW construct "
+                "is lexical (BW-ALL-0007). CORE-ALL-0002 still governs every "
+                "metric.",
+                ruling="BW-ALL-0007",
+            )
+        )
     extrapolated = granularity != "snippet"
     if extrapolated:
         diags.append(
@@ -109,7 +121,7 @@ def vector(
         extrapolated=extrapolated,
         names=BW_FEATURE_NAMES,
         values=tuple(features[n] for n in BW_FEATURE_NAMES),
-        rulings=BW_RULINGS,
+        rulings=BW_RULINGS + (("BW-ALL-0007",) if lexical_fallback else ()),
         diagnostics=tuple(diags),
         unit_name=unit_name,
         span=span,
@@ -121,18 +133,30 @@ def function_vectors(
     tokens: list[LexicalToken],
     adapter: LanguageAdapter,
     units: list[FunctionUnit],
+    opaque_tokens: list[LexicalToken] | None = None,
 ) -> list[FeatureVectorResult]:
+    """Per-unit vectors. ``opaque_tokens`` is the error-opaque stream, passed
+    only when the file-level BW lexical fallback engaged (BW-ALL-0007): a
+    unit's vector is flagged only when its OWN span gained ERROR-region tokens
+    — the opaque stream is a subsequence of the full one, so equal slice
+    lengths imply identical slices."""
     out = []
     for unit in units:
         s, e = unit.span.start_line, unit.span.end_line
+        unit_tokens = rebase_tokens(tokens, s, e)
+        unit_fallback = (
+            opaque_tokens is not None
+            and len(unit_tokens) != len(rebase_tokens(opaque_tokens, s, e))
+        )
         out.append(
             vector(
                 lines[s - 1 : e],
-                rebase_tokens(tokens, s, e),
+                unit_tokens,
                 adapter,
                 "function",
                 unit_name=unit.qualified_name,
                 span=unit.span,
+                lexical_fallback=unit_fallback,
             )
         )
     return out

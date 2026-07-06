@@ -80,7 +80,9 @@ def leaves(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
     children) as single opaque tokens (TOK-PY-0001 / TOK-JAVA-0001).
 
     ERROR/MISSING subtrees yield nothing and are not descended into
-    (CORE-ALL-0002): their tokens must not feed BW/Halstead/LOC.
+    (CORE-ALL-0002): their tokens must not feed Halstead/LOC or (on clean
+    parses) BW. On parse errors, BW token-family features instead use
+    :func:`leaves_lexical`, which descends into ERROR subtrees (BW-ALL-0007).
     """
     cursor = tree.walk()
     while True:
@@ -89,6 +91,33 @@ def leaves(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
         descend = False
         if not is_opaque(node):
             if node.child_count == 0 or node.type in atomic_types:
+                yield node
+            else:
+                descend = True
+        if descend and cursor.goto_first_child():
+            continue
+        while True:
+            if cursor.goto_next_sibling():
+                break
+            if not cursor.goto_parent():
+                return
+
+
+def leaves_lexical(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
+    """Full lexical leaf stream: like :func:`leaves`, but DESCENDS into ERROR
+    subtrees, yielding the tokens tree-sitter recovered inside them — the BW
+    construct is lexical and must see fragment tokens (BW-ALL-0007). MISSING
+    nodes are zero-width fabrications and still yield nothing; a childless
+    ERROR node (raw untokenized bytes) also yields nothing."""
+    cursor = tree.walk()
+    while True:
+        node = cursor.node
+        assert node is not None  # a fresh walk cursor always sits on a node
+        descend = False
+        if not node.is_missing:
+            if node.type == "ERROR":
+                descend = node.child_count > 0
+            elif node.child_count == 0 or node.type in atomic_types:
                 yield node
             else:
                 descend = True

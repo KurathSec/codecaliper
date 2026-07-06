@@ -4,7 +4,22 @@
 #   major = any change that alters a number for any existing corpus case
 #           (including a grammar pin bump that does so).
 [spec]
-version = "0.1.0"
+version = "1.0.0"
+
+[[changelog]]
+version = "1.0.0"
+summary = """
+First calibrated evolution, arbitrated by the pre-registered BW faithfulness
+experiment (validation/bw_faithfulness/derived/arbitration_report.md):
+TOK-ALL-0006 supersedes TOK-ALL-0004 (indentation tab = 8, was 1 — under
+tab=1 the indentation/readability correlation contradicted BW Fig. 9);
+BW-ALL-0007 added (BW token-family features use the full lexical stream,
+ERROR regions included — the construct is lexical; coverage on the original
+dataset 29/100 clean parses -> 100/100 full token streams). The operator-class
+arbitration returned a NULL result: BW-ALL-0006 unchanged. Numeric changes:
+indentation features on tab-indented lines; BW token features on parse-error
+inputs. Every active ruling is corpus-covered (the 1.0 gate).
+"""
 
 [[changelog]]
 version = "0.1.0"

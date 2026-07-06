@@ -1,4 +1,4 @@
-# codecaliper mapping specification v0.1.0
+# codecaliper mapping specification v1.0.0
 
 > Generated from `src/codecaliper/spec/rulings/*.toml` by `tools/gen_spec_docs.py` — do not edit by hand.
 
@@ -72,6 +72,24 @@ per-language adapter table, part of the spec surface. Short-circuit operators
 avg_keywords), Java's are uncategorized operators.
 
 Normative cases: `py-comprehension-001`
+
+### BW-ALL-0007 — Token-family features use the full lexical stream, ERROR regions included
+
+*language: all · status: active · since spec 1.0.0*
+
+The BW construct is lexical: the original instrument was grammar-less and saw
+every token of every (frequently non-compilable) snippet. When the parse tree
+contains errors, token-family BW features are therefore computed over the FULL
+leaf stream, descending into ERROR subtrees (MISSING nodes are zero-width
+fabrications and still yield nothing), and the vector carries a
+bw-lexical-fallback diagnostic. This deliberately scopes CORE-ALL-0002, which
+continues to govern every metric (cyclomatic, cognitive, Halstead, LOC):
+zeroing lexical features on fragments silently changes the construct — a
+parser-based reimplementation degraded on 71/100 original BW snippets before
+this ruling. Arbitrated by the BW faithfulness experiment
+(validation/bw_faithfulness/derived/arbitration_report.md).
+
+Normative cases: `py-bw-fallback-001`
 
 ### BW-JAVA-0001 — Java keyword set
 
@@ -536,13 +554,11 @@ Normative cases: `py-tok-normalize-001`
 
 ### TOK-ALL-0004 — A tab counts as one indentation character (provisional)
 
-*language: all · status: active · since spec 0.1.0*
+*language: all · status: superseded · since spec 0.1.0*
 
 Indentation is measured as the count of leading whitespace characters; a tab
 counts as 1. PROVISIONAL: the BW faithfulness pipeline (§6.3) will arbitrate
 tab semantics empirically; any change supersedes this ruling.
-
-Normative cases: `py-tok-normalize-001`
 
 ### TOK-ALL-0005 — Token line attribution
 
@@ -552,6 +568,25 @@ Every lexical token is attributed to the physical line of its start position.
 A multi-line token (string, block comment) is ONE token on its start line for
 token-count features; line-coverage features (sloc, comment lines) use its full
 span instead.
+
+### TOK-ALL-0006 — A tab counts as 8 indentation characters (arbitrated)
+
+*language: all · status: active · since spec 1.0.0*
+
+Indentation features count leading whitespace with a tab as 8 characters and a
+space as 1. Supersedes TOK-ALL-0004 (tab = 1), whose PROVISIONAL marker was
+resolved by the pre-registered 32-cell BW faithfulness arbitration
+(validation/bw_faithfulness/derived/arbitration_report.md, 2026-07): under
+tab = 1 the avg_indentation correlation with the human readability scores is
+zero (rho +0.001), contradicting the paper's Fig. 9; any expansion >= 2 fixes
+the sign in both extraction modes, and 8 won the pre-registered AUC tie-break
+(honest caveat, per the independent verification: 8-vs-4 is a deterministic
+convention pick within statistical noise at n=100 — both deliver the
+Fig. 9-matching rho ~ -0.25; 2 does not). Scope: indentation features only;
+line-length and space-count features remain raw character counts (a candidate
+for future arbitration, noted in the report).
+
+Normative cases: `py-tok-normalize-001`
 
 ### TOK-JAVA-0001 — Java atomic tokens: string and character literals
 

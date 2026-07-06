@@ -100,10 +100,12 @@ def main() -> int:
                 f"parse_ok {extraction.get('parse_ok_count')}/{extraction.get('n_snippets')} "
                 f"snippets, {extraction.get('scaffolded_count')} scaffolded "
                 f"(CORE-JAVA-0001), {extraction.get('empty_token_vector_count')} with an "
-                "EMPTY token stream (all-ERROR tree; error subtrees are opaque per "
-                "CORE-ALL-0002, so every token-family feature is zero while raw-line "
-                "features survive). This is measured extractor behaviour on bare "
-                "snippets — an arbitration input, not something to tune away."
+                "EMPTY token vector — on parse errors BW token-family features are "
+                "computed over the full lexical stream, ERROR subtrees included "
+                "(BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this "
+                "count is zero; metrics remain error-opaque per CORE-ALL-0002. "
+                "Measured extractor behaviour on bare snippets — an arbitration "
+                "outcome (see arbitration_report.md), never tuned away."
             ),
             "sign_disagreements_are_arbitration_inputs": (
                 "each sign disagreement localizes a candidate tokenization/feature "

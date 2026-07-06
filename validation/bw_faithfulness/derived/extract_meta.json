@@ -1,6 +1,6 @@
 {
   "dataset_id": "bw2010-original-100java",
-  "empty_token_vector_count": 8,
+  "empty_token_vector_count": 0,
   "feature_names": [
     "avg_line_length",
     "max_line_length",
@@ -40,6 +40,6 @@
   "n_snippets": 100,
   "parse_ok_count": 29,
   "scaffolded_count": 10,
-  "spec_version": "0.1.0",
+  "spec_version": "1.0.0",
   "tool_version": "0.1.0.dev0"
 }
