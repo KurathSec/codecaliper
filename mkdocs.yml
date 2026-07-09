@@ -1,0 +1,76 @@
+site_name: codecaliper
+site_description: >-
+  A traceable, reproducible code readability + complexity measurement
+  instrument (Buse-Weimer 2010, cyclomatic, dual-mode cognitive, Halstead,
+  MI) on a unified tree-sitter base for Python and Java.
+site_url: https://kurathsec.github.io/codecaliper/
+repo_url: https://github.com/KurathSec/codecaliper
+repo_name: KurathSec/codecaliper
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.footer
+    - navigation.top
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: false
+            show_root_heading: true
+            members_order: source
+            docstring_section_style: list
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      # base_path is the repo root so pages can verbatim-include GENERATED
+      # artifacts (validation/bw_faithfulness/derived/*.md) — included, never
+      # copied, so the site cannot drift from the derived reports.
+      base_path: ["."]
+      check_paths: true
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Honesty invariants: honesty.md
+  - Specification:
+      - Rulings: spec/rulings.md
+      - Known divergences: spec/divergences.md
+  - Validation: validation.md
+  - API: api.md
+  - Contributing: contributing.md
+
+# `mkdocs build --strict` (CI) turns any warning — broken nav entry, bad
+# link, missing snippet include — into a build failure.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn

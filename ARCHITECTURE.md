@@ -3,7 +3,7 @@
 > **Design thesis.** Every number codecaliper emits is *traceable* — to a spec version, to the
 > exact rulings that fired, to the exact grammar that parsed the source — and *reproducible* —
 > clock-free, hash-seed-free, order-stable. Where a scoreboard says "CC = 7", this instrument says
-> "CC = 7 *under spec 0.1.0, ruling CC-PY-0003, tree-sitter-python 0.25.0, whitepaper mode*".
+> "CC = 7 *under spec 1.0.0, ruling CC-PY-0003, tree-sitter-python 0.25.0*".
 > That sentence is the data model.
 >
 > This document is the synthesis of a three-way architecture study (instrument-purist,
@@ -112,10 +112,10 @@ codecaliper/
 │   ├── fetch.py  extract.py  train.py  report.py  README.md
 ├── tools/
 │   ├── gen_spec_docs.py         # ruling TOMLs → docs/spec/*.md (generated, staleness-checked)
-│   ├── gen_divergence_doc.py    # classification TOMLs → docs/known-divergences.md
+│   ├── gen_divergences.py       # classification TOMLs → docs/spec/divergences.md
 │   └── update_snapshot.py       # refuses numeric changes without --confirm-spec-bump
 ├── docs/
-└── .github/workflows/           # ci.yml, differential.yml, bw-faithfulness.yml, grammar-bump.yml, release.yml
+└── .github/workflows/           # ci.yml (incl. differential job), docs.yml, grammar-bump.yml, release.yml
 ```
 
 Three structural invariants, mechanically enforced:
@@ -156,6 +156,9 @@ class Diagnostic:
     code: str    # closed set: parse-error-recovered | unvalidated-grammar | granularity-extrapolated
                  #             | snippet-out-of-calibrated-range | mi-contains-cc
                  #             | halstead-approximation | encoding-replaced | snippet-scaffolded
+                 #             | bom-stripped | bw-lexical-fallback
+                 # (authoritative: DIAGNOSTIC_CODES in model.py — membership is
+                 # enforced across the corpus by test_diagnostic_codes_are_a_closed_set)
     message: str
     span: Span | None = None
     ruling: str | None = None
@@ -274,7 +277,7 @@ explanation = "radon counts a BoolOp chain as one decision point; CC-PY-0003 cou
 
 The differential harness fails CI on any **unclassified** divergence — the maintainer either
 fixes the bug or authors a classification citing a ruling / filing an upstream issue. There is no
-third option, so the published `docs/known-divergences.md` (generated, staleness-checked) is the
+third option, so the published `docs/spec/divergences.md` (generated, staleness-checked) is the
 complete scholarly artifact the charter promises.
 
 ## 4. tree-sitter integration (`syntax/`)
@@ -447,7 +450,7 @@ Probe/SKIP pattern inherited from `bench/anchor.py`. Two-sided honesty:
 
 - **Locally**: missing oracle ⇒ `SKIP` with a precise reason; a contributor's build never fails
   for a missing tool.
-- **In CI** (`differential.yml`): all oracles installed at pinned versions in a quarantined venv,
+- **In CI** (the `differential` job in `ci.yml`): all oracles installed at pinned versions,
   and the job asserts `skips == EXPECTED_SKIPS` (normally empty) — absence can never mask a
   regression.
 
@@ -552,15 +555,20 @@ a guess. Diagnostics → stderr, data → stdout; exit codes 0/1/2.
   Runtime deps: the tree-sitter binding + two grammar wheels + nothing else.
 - Extras: `[retrain]` (scikit-learn), `[oracles]` (radon, lizard, cognitive_complexity —
   test-time only), `[dev]`.
-- CI: `ci.yml` (ubuntu × 3.10–3.14 + one macOS/Windows job: ruff, mypy --strict, unit,
-  consistency, spec-coverage, spec-drift, grammar-integrity, BW port fidelity, AST-lane
-  crosscheck, determinism, perf smoke; one job at the lowest supported binding version);
-  `differential.yml` (oracle venv + PMD; zero unclassified divergences; SKIP set asserted; docs
-  staleness); `bw-faithfulness.yml` (weekly/manual/tag); `grammar-bump.yml` (weekly);
-  `release.yml` (build, PyPI trusted publishing, Zenodo webhook).
+- CI, as built (original plan de-scoped per §15 items 3–4): `ci.yml` (ubuntu × 3.10/3.12/3.14:
+  ruff, mypy --strict as a hard gate, unit, consistency, spec-coverage, spec-drift,
+  grammar-integrity, BW port fidelity, AST-lane crosscheck, determinism; plus a `differential`
+  job — oracles at `constraints/ci.txt` pins, hard-import step so SKIP cannot mask absence,
+  zero unclassified divergences, stale entries fail; plus a spec-docs staleness job);
+  `docs.yml` (mkdocs build --strict, Pages deploy); `grammar-bump.yml` (weekly early warning);
+  `release.yml` (gate + build in parallel → PyPI trusted publishing → GitHub Release → Zenodo
+  webhook; RELEASING.md). Deliberately NO bw-faithfulness workflow: the dataset license is
+  UNVERIFIED, so fetching it stays a local action (RELEASING.md "What deliberately does NOT
+  happen here").
 - Docs (mkdocs-material): quickstart, typed API, **generated** spec tables + divergence list, the
-  honesty page, adding-a-language. Paper sources (ACM format, MSR tool track) live in `paper/`,
-  outside the docs tree.
+  honesty page, adding-a-language. Paper sources (ACM format, MSR tool track) live in a local,
+  gitignored `paper/` directory — submission material stays out of the public repo until
+  publication.
 
 ## 12. Reuse from Spaghetti Architect (NOTICE-credited, DOI 10.5281/zenodo.21033174)
 

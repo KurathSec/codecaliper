@@ -25,6 +25,14 @@ htmlcov/
 validation/bw_faithfulness/cache/
 validation/bw_faithfulness/*.zip
 
+# mkdocs build output (deployed by .github/workflows/docs.yml, never committed)
+site/
+
+# MSR paper sources — submission material, kept local until publication
+# (pyproject.toml excludes it from the sdist and release.yml asserts that,
+# as defense in depth should this rule ever be dropped)
+paper/
+
 # Editors / OS
 .idea/
 .vscode/

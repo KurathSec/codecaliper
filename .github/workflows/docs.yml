@@ -1,0 +1,56 @@
+name: docs
+
+# Build the mkdocs-material site strictly on every push/PR (a broken link or
+# missing snippet-include is a failure, not a warning) and deploy to GitHub
+# Pages on pushes to main. The docs toolchain is pinned in
+# constraints/docs.txt, separate from the instrument's calibrated pins.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Never cancel an in-flight Pages deployment (GitHub's recommended setting
+# for deploy-pages); superseded queued runs are still skipped.
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install (calibrated grammar pins + pinned docs toolchain)
+        run: pip install -e ".[docs]" -c constraints/ci.txt -c constraints/docs.txt
+      - run: mkdocs build --strict
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          path: site/
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # Pages must be enabled once by hand (Settings -> Pages -> Source:
+      # GitHub Actions) BEFORE the first run — automatic enablement requires
+      # an admin-scoped token the workflow GITHUB_TOKEN can never hold
+      # (RELEASING.md, one-time setup §4).
+      - uses: actions/configure-pages@v5
+      - uses: actions/deploy-pages@v4
+        id: deployment

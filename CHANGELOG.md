@@ -34,6 +34,19 @@ three versions, not one:
     ~0.80), AUC 0.828, Fig. 9 sign agreement 21/24.
 - Corpus 19 -> 20 cases (`py-bw-fallback-001`); every active ruling remains
   corpus-covered.
+- Release pipeline (`release.yml`): tag-triggered gate -> build (tag/version/
+  changelog guards) -> PyPI trusted publishing -> GitHub Release (fires the
+  Zenodo archival webhook); procedure and one-time setup in `RELEASING.md`.
+- Docs site (mkdocs-material, deployed to GitHub Pages by `docs.yml`):
+  quickstart, honesty invariants, generated spec rulings + divergence list,
+  a validation page that verbatim-includes the derived faithfulness and
+  arbitration reports, mkdocstrings API reference. Toolchain pinned in
+  `constraints/docs.txt`, separate from the instrument's calibrated pins.
+- `DIAGNOSTIC_CODES` now includes `bw-lexical-fallback`, and the closed set
+  is enforced by a corpus sweep test instead of by comment (no emitted value
+  changes).
+- `CITATION.cff`: hand-maintained `version` removed (Zenodo/GitHub take it
+  from the release itself), docs URL added.
 - Initial scaffold: unified tree-sitter measurement base (Python + Java),
   Buse–Weimer 25-feature extractor (fidelity-tested against the reference
   implementation), cyclomatic complexity, dual-mode cognitive complexity

@@ -1,6 +1,15 @@
-# Citation metadata (https://citation-file-format.github.io/).
+# Citation metadata (https://citation-file-format.github.io/) — read by
+# GitHub's "Cite this repository" box and by Zenodo's GitHub integration when
+# a release is archived. `version` and `date-released` are deliberately
+# omitted: Zenodo takes both from the release itself, and a hand-maintained
+# copy here would only drift (RELEASING.md). Keep title/author in sync with
+# `codecaliper cite` (src/codecaliper/cli.py).
 cff-version: 1.2.0
-message: "If you use codecaliper, please cite it as below."
+message: >-
+  If you use codecaliper, please cite it as below. `codecaliper cite` prints
+  a methods-section template stating the package version, the mapping
+  specification version, and the exact grammar versions your numbers were
+  produced under — report all three.
 title: "codecaliper: a cross-language code readability and complexity measurement instrument"
 abstract: >-
   codecaliper measures code readability features (a faithful, tested,
@@ -12,9 +21,9 @@ abstract: >-
   established tools with a published known-divergence list, and a faithfulness
   reproduction against the original Buse-Weimer dataset.
 type: software
-version: "0.1.0.dev0"
 license: "MIT"
 repository-code: "https://github.com/KurathSec/codecaliper"
+url: "https://kurathsec.github.io/codecaliper/"
 authors:
   - given-names: "Yuxiang"
     family-names: "Ji"

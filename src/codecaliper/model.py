@@ -26,6 +26,7 @@ DIAGNOSTIC_CODES = frozenset(
         "granularity-extrapolated",
         "snippet-out-of-calibrated-range",
         "snippet-scaffolded",
+        "bw-lexical-fallback",
         "mi-contains-cc",
         "halstead-approximation",
         "encoding-replaced",

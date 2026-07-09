@@ -46,17 +46,34 @@ retrain = ["scikit-learn>=1.4"]
 # Differential-test oracles ONLY — never runtime backends (ARCHITECTURE.md §8.2).
 oracles = ["radon>=6", "lizard>=1.17", "cognitive-complexity>=1.3"]
 dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+# Docs toolchain (mkdocs-material site, ARCHITECTURE.md §11); exact pins for
+# the docs workflow live in constraints/docs.txt.
+docs = ["mkdocs>=1.6", "mkdocs-material>=9.6", "mkdocstrings[python]>=1.0"]
 
 [project.scripts]
 codecaliper = "codecaliper.cli:main"
 
 [project.urls]
 Repository = "https://github.com/KurathSec/codecaliper"
+Documentation = "https://kurathsec.github.io/codecaliper/"
 Issues = "https://github.com/KurathSec/codecaliper/issues"
 Changelog = "https://github.com/KurathSec/codecaliper/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "src/codecaliper/_version.py"
+
+[tool.hatch.build.targets.sdist]
+# hatchling already honors .gitignore (which covers the license-UNVERIFIED
+# dataset cache); this list is the explicit, gitignore-independent policy for
+# what must never enter the immutable PyPI artifact. release.yml asserts it.
+exclude = [
+  "/paper",                              # unreviewed draft — the repo/DOI archive carries it, PyPI does not
+  "/.github",
+  "/CLAUDE.md",
+  "/site",
+  "validation/bw_faithfulness/cache",    # dataset content — NEVER shipped (ARCHITECTURE.md §8.3)
+  "validation/bw_faithfulness/*.zip",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/codecaliper"]

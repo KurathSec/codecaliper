@@ -1,0 +1,6 @@
+# Pins for the release build toolchain (release.yml build job). The job sets
+# PIP_CONSTRAINT to this file so the isolated PEP 517 build environment is
+# pinned too — otherwise `python -m build` resolves hatchling at
+# latest-at-tag-time, the one floating tool in an otherwise pinned release.
+build==1.5.0
+hatchling==1.30.1

@@ -1,14 +1,18 @@
 # codecaliper
 
+[![ci](https://github.com/KurathSec/codecaliper/actions/workflows/ci.yml/badge.svg)](https://github.com/KurathSec/codecaliper/actions/workflows/ci.yml)
+[![docs](https://github.com/KurathSec/codecaliper/actions/workflows/docs.yml/badge.svg)](https://kurathsec.github.io/codecaliper/)
+
 > A cross-language (Python + Java, more staged) **code-readability + complexity
 > measurement instrument** — not another metrics scoreboard.
+> Documentation: <https://kurathsec.github.io/codecaliper/>
 
 codecaliper is built as an *instrument*: every number it emits is **traceable**
 — to a versioned metric-to-syntax specification, to the exact machine-readable
 rulings that fired, to the exact tree-sitter grammar that parsed the source —
 and **reproducible** — clock-free, hash-seed-free, order-stable. Where a
 scoreboard says "CC = 7", codecaliper says "CC = 7 *under spec 1.0.0, ruling
-CC-PY-0003, tree-sitter-python 0.25.0, whitepaper mode*".
+CC-PY-0003, tree-sitter-python 0.25.0*".
 
 ## What it measures
 
@@ -36,10 +40,11 @@ extractor in the literature). codecaliper's answer:
    result;
 2. a **hand-computed consistency corpus** — every ruling is exercised by a case
    with human-verified expected values;
-3. **differential tests** against radon / lizard / cognitive_complexity / PMD /
-   rust-code-analysis with a **published known-divergence list** — every
-   disagreement is classified against a ruling or an upstream bug, or CI fails
-   (this lane lands pre-1.0; see Status);
+3. **differential tests** against radon / lizard / cognitive_complexity with
+   a **published known-divergence list** — every disagreement is classified
+   against a ruling, in both directions (an unclassified divergence fails CI,
+   and so does a stale entry); PMD and rust-code-analysis are staged as
+   additional oracles;
 4. a **faithfulness reproduction** of the original Buse–Weimer study (100 Java
    snippets, 120 annotators) using this extractor and a retrained model.
 
@@ -94,8 +99,11 @@ are hard CI gates. The BW faithfulness reproduction ran on the original
 agreement 21/24 — after a pre-registered arbitration experiment resolved two
 feature-definition ambiguities (indentation tab width; lexical fallback on
 parse errors) as versioned ruling supersessions (see
-`validation/bw_faithfulness/derived/`). Next: docs site and the MSR tool
-paper (`ARCHITECTURE.md` §16, W7-W8).
+`validation/bw_faithfulness/derived/`). The
+[docs site](https://kurathsec.github.io/codecaliper/) and the tag-triggered
+release pipeline (PyPI trusted publishing + Zenodo archival, `RELEASING.md`)
+are in place; next: the first tagged release (v0.1.0 + DOI) and the MSR
+Data & Tool Showcase paper (`ARCHITECTURE.md` §16, W8).
 
 ## Development
 
@@ -108,6 +116,16 @@ ruff check src tests tools
 See `ARCHITECTURE.md` for the full design (data model, spec mechanism,
 validation architecture, grammar-evolution policy) and `CONTRIBUTING.md` for
 how rulings, corpus cases, and adapters are added.
+
+## Citing
+
+Citation metadata lives in
+[`CITATION.cff`](https://github.com/KurathSec/codecaliper/blob/main/CITATION.cff)
+(GitHub's "Cite this repository" box reads it; Zenodo archives releases from
+it).
+`codecaliper cite` prints a methods-section template stating the package,
+spec, and grammar versions your numbers were produced under — report all
+three.
 
 ## License & provenance
 

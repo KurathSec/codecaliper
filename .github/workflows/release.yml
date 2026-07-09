@@ -1,0 +1,167 @@
+name: release
+
+# Tag-triggered release pipeline (ARCHITECTURE.md §11). Chain:
+#   gate (full test suite at the tagged commit) + build (sdist+wheel,
+#   tag/version/changelog/ancestry guards) — in parallel
+#   -> publish-pypi (trusted publishing via OIDC — no long-lived token)
+#   -> github-release (publishing the Release is what fires the Zenodo
+#      archival webhook and mints the version DOI)
+# A partial failure must be recovered with "Re-run failed jobs" — see
+# RELEASING.md, which also documents the one-time setup (PyPI pending
+# publisher, the `pypi` environment, the Zenodo toggle).
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    # A tag is only a pointer — re-run the whole gate suite at the tagged
+    # commit instead of trusting that some earlier CI run covered it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install (exact calibrated grammar pins + differential oracles)
+        run: pip install -e ".[dev,oracles]" -c constraints/ci.txt
+      - run: ruff check src tests tools
+      - run: mypy
+      - name: Oracles must import (differential lane must not silently SKIP)
+        run: python -c "import radon.complexity, lizard, cognitive_complexity.api"
+      - run: pytest
+      - name: Generated spec docs must not be stale (same check as ci.yml)
+        run: |
+          python tools/gen_spec_docs.py
+          git add -N docs/
+          git diff --exit-code docs/ || {
+            echo "::error::docs/spec is stale — run tools/gen_spec_docs.py and commit"; exit 1; }
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history — the ancestry guard below needs origin/main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Tag must point at a commit on main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            echo "::error::tag $GITHUB_REF_NAME is not in main's history — releases are cut from main only"
+            exit 1
+          }
+      - name: Tag must match the package version and not be a dev version
+        run: |
+          python - <<'EOF'
+          import os
+          import re
+
+          text = open("src/codecaliper/_version.py", encoding="utf-8").read()
+          match = re.search(r'__version__ = "([^"]+)"', text)
+          if match is None:
+              raise SystemExit("cannot find __version__ in src/codecaliper/_version.py")
+          version = match.group(1)
+          tag = os.environ["GITHUB_REF_NAME"]
+          if tag != f"v{version}":
+              raise SystemExit(f"tag {tag!r} does not match package version {version!r}")
+          if "dev" in version:
+              raise SystemExit(f"refusing to release dev version {version!r}")
+          EOF
+      - name: CHANGELOG must yield non-empty release notes (same extraction github-release uses)
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v header="## [$version]" '
+            index($0, header) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::CHANGELOG.md has no non-empty '## [$version]' section — fix it BEFORE anything publishes"
+            exit 1
+          fi
+      # PIP_CONSTRAINT reaches the isolated PEP 517 build env, pinning hatchling too.
+      - run: pip install build -c constraints/build.txt
+      - run: python -m build
+        env:
+          PIP_CONSTRAINT: constraints/build.txt
+      - name: sdist must not ship excluded paths (the full pyproject exclude policy)
+        run: |
+          if tar tzf dist/*.tar.gz | grep -E "(bw_faithfulness/cache/|bw_faithfulness/.*\.zip|/paper/|/\.github/|/CLAUDE\.md$|/site/)"; then
+            echo "::error::sdist contains paths excluded by policy (pyproject sdist excludes)"
+            exit 1
+          fi
+      - name: Smoke-test the built wheel in a clean venv (the artifact, not -e .)
+        run: |
+          python -m venv smoke
+          smoke/bin/pip install dist/*.whl
+          printf 'def f(x):\n    return x + 1\n' > /tmp/smoke_input.py
+          smoke/bin/codecaliper /tmp/smoke_input.py > /dev/null
+          smoke/bin/codecaliper cite
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish-pypi:
+    needs: [gate, build]
+    runs-on: ubuntu-latest
+    # The `pypi` environment name is part of the PyPI trusted-publisher
+    # registration (RELEASING.md); add required reviewers to it in the repo
+    # settings if you want a manual approval pause before publishing.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/codecaliper
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Re-running a partially-failed publish converges instead of dying
+          # on files PyPI already accepted; the tag/version guards upstream
+          # prevent accidental version reuse.
+          skip-existing: true
+
+  github-release:
+    # Published AFTER PyPI succeeds so a failed upload never leaves a GitHub
+    # Release (and therefore a Zenodo DOI) pointing at an unpublishable build.
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Extract this version's CHANGELOG section as the release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v header="## [$version]" '
+            index($0, header) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::empty release notes for $version — check CHANGELOG.md"
+            exit 1
+          fi
+      - name: Publish the GitHub Release (fires the Zenodo webhook)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "codecaliper $GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            --verify-tag

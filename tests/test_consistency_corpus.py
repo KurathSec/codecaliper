@@ -14,7 +14,7 @@ from conftest import case_measure_kwargs, case_source, corpus_cases
 
 from codecaliper import measure
 from codecaliper.languages import detect_language
-from codecaliper.model import metric_map
+from codecaliper.model import DIAGNOSTIC_CODES, metric_map
 
 CASES = corpus_cases()
 
@@ -122,6 +122,22 @@ def test_case(case: dict) -> None:
             assert any(d.code == code for d in vec.diagnostics), (
                 f"{header}: vector diagnostics missing {code!r}"
             )
+
+
+def test_diagnostic_codes_are_a_closed_set() -> None:
+    """Every diagnostic code emitted anywhere across the corpus is a member of
+    DIAGNOSTIC_CODES — the set stays closed by enforcement, not by comment
+    (ARCHITECTURE.md §2). A new code lands by extending the set, never ad hoc."""
+    for case in CASES:
+        rep = measure(case_source(case), language=case["language"],
+                      **case_measure_kwargs(case))
+        seen = {d.code for d in rep.diagnostics}
+        seen.update(d.code for m in rep.file_metrics for d in m.diagnostics)
+        seen.update(d.code for v in rep.readability for d in v.diagnostics)
+        for fn in rep.functions:
+            seen.update(d.code for m in fn.metrics for d in m.diagnostics)
+        unknown = seen - DIAGNOSTIC_CODES
+        assert not unknown, f"{case['id']}: diagnostic codes outside the closed set: {unknown}"
 
 
 def test_parse_ok_matches_declaration() -> None:
