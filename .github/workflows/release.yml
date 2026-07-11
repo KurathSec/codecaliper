@@ -103,7 +103,7 @@ jobs:
           printf 'def f(x):\n    return x + 1\n' > /tmp/smoke_input.py
           smoke/bin/codecaliper /tmp/smoke_input.py > /dev/null
           smoke/bin/codecaliper cite
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
