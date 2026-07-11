@@ -14,9 +14,9 @@ three versions, not one:
 - **grammars** — the exact calibrated tree-sitter grammar versions
   (`src/codecaliper/spec/validated_grammars.toml`).
 
-## [Unreleased]
+## [0.1.0] - 2026-07-12
 
-- package 0.1.0.dev0 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,
+- package 0.1.0 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5 (binding tree-sitter 0.26.0)
 - **Spec 1.1.0** (MINOR: new rulings + table completions; no existing corpus
   value changes — verified through the drift gate) from a whole-project
