@@ -52,5 +52,5 @@ jobs:
       # an admin-scoped token the workflow GITHUB_TOKEN can never hold
       # (RELEASING.md, one-time setup §4).
       - uses: actions/configure-pages@v6
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deployment
