@@ -2,6 +2,7 @@
 
 [![ci](https://github.com/KurathSec/codecaliper/actions/workflows/ci.yml/badge.svg)](https://github.com/KurathSec/codecaliper/actions/workflows/ci.yml)
 [![docs](https://github.com/KurathSec/codecaliper/actions/workflows/docs.yml/badge.svg)](https://kurathsec.github.io/codecaliper/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21312527.svg)](https://doi.org/10.5281/zenodo.21312527)
 
 > A cross-language (Python + Java, more staged) **code-readability + complexity
 > measurement instrument** — not another metrics scoreboard.
