@@ -29,6 +29,7 @@ class NodeClass(Enum):
     LOOP = "loop"
     CATCH = "catch"
     BOOL_OP = "boolop"
+    JUMP_LABEL = "labeled-jump"           # break/continue LABEL — flat +1 (COG-JAVA-0001)
     COMPREHENSION_GUARD = "comp-guard"
     LAMBDA = "lambda"
     FUNCTION_DEF = "function"
@@ -72,6 +73,7 @@ class LanguageAdapter:
     soft_keywords: frozenset[str] = frozenset()  # classify as IDENTIFIER (BW-PY-0001)
     keyword_leaf_types: frozenset[str] = frozenset()
     identifier_types: frozenset[str] = frozenset()
+    operator_leaf_types: frozenset[str] = frozenset()  # named leaves that are OPERATOR tokens
     number_types: frozenset[str] = frozenset()
     string_types: frozenset[str] = frozenset()
     comment_types: frozenset[str] = frozenset()
@@ -81,6 +83,11 @@ class LanguageAdapter:
     assignment_ops: frozenset[str] = frozenset()
     branch_keywords: frozenset[str] = frozenset()
     loop_keywords: frozenset[str] = frozenset()
+
+    # Construct-specific tokenization rulings that only govern when their node
+    # type actually lexes (node_type -> ruling id) — cited per-occurrence, like
+    # TOK-ALL-0007, NOT statically the way the atomic-string rulings are.
+    conditional_token_rulings: dict[str, str] = field(default_factory=dict)
 
     # --- structural tables ---
     node_class_map: dict[str, tuple[NodeClass, tuple[str, ...]]] = field(default_factory=dict)

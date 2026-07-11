@@ -64,6 +64,12 @@ def render() -> str:
         "Calibrated against the oracle versions pinned in `constraints/ci.txt`:",
         _oracle_pins_line(),
         "",
+        "**Known witnessing gap** (ARCHITECTURE.md §8.2/§15): Java cyclomatic",
+        "is witnessed by lizard only, and Java cognitive complexity has NO",
+        "external oracle — PMD and rust-code-analysis are staged, not yet",
+        "wired. Until then, Java counting rests on the hand-computed corpus",
+        "and the spec alone.",
+        "",
     ]
     by_oracle: dict[str, list[dict]] = {}
     for e in entries:

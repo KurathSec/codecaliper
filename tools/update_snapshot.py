@@ -32,12 +32,26 @@ def main() -> int:
     live = compute_corpus_values()
     if SNAPSHOT_PATH.exists():
         old = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
+        # every snapshotted key is compared; a key that vanished from the live
+        # values counts as a change too, so a snapshot that lost per-case keys
+        # cannot be silently re-adopted with drifted values (the drift gate
+        # mirrors this with key-set equality). Purely additive live keys are
+        # new values, not changes.
         changed = [
-            f"{case}::{key}: {vals[key]} -> {live[case][key]}"
+            f"{case}::{key}: {vals[key]} -> {live[case].get(key, '<absent>')}"
             for case, vals in old["values"].items()
             if case in live
             for key in vals
-            if key in live[case] and live[case][key] != vals[key]
+            if vals[key] != live[case].get(key)
+        ]
+        # a whole case vanishing from the corpus is a coverage change too:
+        # deleting a case then regenerating must require --confirm-spec-bump,
+        # else a counting change affecting only that construct could land
+        # silently (delete case X, regenerate, later re-add X with new values).
+        changed += [
+            f"{case}: entire case removed from the corpus"
+            for case in old["values"]
+            if case not in live
         ]
         if changed and not args.confirm_spec_bump:
             print("REFUSING: existing corpus values would change:", file=sys.stderr)

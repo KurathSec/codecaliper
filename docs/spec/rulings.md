@@ -1,4 +1,4 @@
-# codecaliper mapping specification v1.0.0
+# codecaliper mapping specification v1.1.0
 
 > Generated from `src/codecaliper/spec/rulings/*.toml` by `tools/gen_spec_docs.py` — do not edit by hand.
 
@@ -97,6 +97,10 @@ Normative cases: `py-bw-fallback-001`
 
 Keywords are the JLS reserved words plus the literals true/false/null —
 procedurally consistent with Python, whose kwlist includes True/False/None.
+(Editorial clarification in spec 1.1.0: the table deliberately omits the
+reserved word `_` — JLS §3.9 lists it since SE 9 — because `_` is ruled an
+identifier token in every position (TOK-JAVA-0002), mirroring BW-PY-0001's
+treatment of Python's `_`. The normative table is unchanged.)
 
 ### BW-JAVA-0002 — Java branch/loop keyword features
 
@@ -192,11 +196,31 @@ Normative cases: `py-recursion-001`
 
 *language: all · status: active · since spec 0.1.0*
 
-The deployed Sonar-lineage implementations (cognitive_complexity for Python,
-and SonarQube's own analyzers in common configurations) do not implement the
+SonarQube's own analyzers (sonar-python, sonar-java) do not implement the
 whitepaper's recursion increment; sonar-compat mode therefore omits it.
+(Editorial correction in spec 1.1.0: the original justification also named
+the cognitive_complexity Python package as omitting recursion — false; that
+package DOES implement the +1-per-recursive-call increment, as this repo's
+own differential lane classifies. The normative content of this ruling —
+sonar-compat omits the recursion increment — is unchanged.)
 
 Normative cases: `py-recursion-001`
+
+### COG-JAVA-0001 — Labeled jumps are a fundamental increment: flat +1, both modes
+
+*language: java · status: active · since spec 1.1.0*
+
+Binds node types: `break_statement`, `continue_statement`
+
+A `break LABEL` or `continue LABEL` contributes a flat +1 regardless of
+nesting depth and does not deepen nesting (the whitepaper's fundamental
+increment list names goto LABEL / break LABEL / continue LABEL; sonar-java
+implements it identically, so both modes agree). A bare break/continue
+contributes nothing, and the label declaration itself (`LABEL: for ...`) is
+not separately counted. Cyclomatic is unaffected: a jump is not a decision
+point.
+
+Normative cases: `java-labeled-jump-001`
 
 ### COG-PY-0001 — Comprehension clauses contribute no cognitive increment
 
@@ -400,8 +424,10 @@ Each `if_clause` inside a comprehension/generator contributes one decision
 point (a guard is a branch). The `for_in_clause` itself does not (it is
 iteration syntax, not a decision). A case-clause guard `if_clause` is NOT
 separately counted — the guarded case_clause already counts under CC-PY-0008,
-and counting both would double-count one branch. Diverges from lizard
-(ignores comprehension guards).
+and counting both would double-count one branch. Diverges from lizard, which
+also counts the comprehension `for` clause as a loop (see divergences.toml,
+lizard/snippet:diff-comp-guard) — lizard counts the guard AND the for-clause;
+ours counts only the guard.
 
 Normative cases: `py-comprehension-001`
 
@@ -462,7 +488,9 @@ Absolute Halstead values are implementation-defined across all tools — only
 trends and ratios are stable — and every emitted value carries the
 halstead-approximation diagnostic (ARCHITECTURE.md §13). This lexical convention is
 deliberately uniform cross-language; its divergence from AST-harvest
-implementations (radon, the stdlib reference lane) is classified.
+implementations (radon, the stdlib reference lane) is declared, not classified
+against a differential oracle: every value carries the halstead-approximation
+diagnostic (there is no Halstead differential lane, unlike cyclomatic/cognitive).
 
 Normative cases: `py-cc-boolop-001`
 
@@ -476,7 +504,7 @@ physical_lines = number of lines of the normalized text (a trailing final
 newline does not create an extra empty line). blank_lines = lines whose content
 strips to empty.
 
-Normative cases: `py-multiline-string-001`
+Normative cases: `py-multiline-string-001`, `py-blank-lines-001`
 
 ### LOC-ALL-0002 — sloc: lines covered by at least one code token
 
@@ -554,7 +582,7 @@ Normative cases: `py-tok-normalize-001`
 
 ### TOK-ALL-0004 — A tab counts as one indentation character (provisional)
 
-*language: all · status: superseded · since spec 0.1.0*
+*language: all · status: superseded (superseded by TOK-ALL-0006) · since spec 0.1.0*
 
 Indentation is measured as the count of leading whitespace characters; a tab
 counts as 1. PROVISIONAL: the BW faithfulness pipeline (§6.3) will arbitrate
@@ -588,6 +616,22 @@ for future arbitration, noted in the report).
 
 Normative cases: `py-tok-normalize-001`
 
+### TOK-ALL-0007 — Anonymous word tokens outside the keyword table are identifiers
+
+*language: all · status: active · since spec 1.1.0*
+
+A grammar-anonymous leaf token whose text is word-shaped (letter/underscore
+start, word characters, internal hyphens allowed) and not in the language's
+keyword table is an IDENTIFIER token: Python's `__future__`, Java's contextual
+keywords (record, sealed, non-sealed, permits, when, yield, module directives).
+This matches the reference tokenizers, which yield NAME for all of them, and
+keeps the keyword tables exactly the reserved-word sets (BW-PY-0001,
+BW-JAVA-0001). Before 1.1.0 these tokens fell through to OPERATOR — except
+Java's `yield`, which was wrongly in the keyword table (contradicting
+BW-JAVA-0001's stated set) and lexed as KEYWORD.
+
+Normative cases: `py-future-import-001`, `java-contextual-001`
+
 ### TOK-JAVA-0001 — Java atomic tokens: string and character literals
 
 *language: java · status: active · since spec 0.1.0*
@@ -597,9 +641,27 @@ Binds node types: `string_literal`, `character_literal`
 `string_literal` and `character_literal` subtrees are consumed as single STRING
 tokens (text blocks included).
 
+### TOK-JAVA-0002 — Java `_` is an identifier token in every position
+
+*language: java · status: active · since spec 1.1.0*
+
+Binds node types: `underscore_pattern`
+
+The reserved word `_` (JLS §3.9, reserved since SE 9) lexes as an IDENTIFIER
+token in every syntactic position. The grammar already yields `identifier`
+nodes for `_` in switch patterns and lambda parameters; the
+`underscore_pattern` node it yields for unnamed variable declarators is
+classified identically, so the same source token cannot silently change token
+class with syntactic position (before 1.1.0 it lexed as OTHER there —
+invisible to BW token-family features and Halstead). Mirrors BW-PY-0001,
+which counts Python's soft-keyword `_` as an identifier. BW-JAVA-0001's
+keyword table deliberately omits `_`.
+
+Normative cases: `java-underscore-001`
+
 ### TOK-PY-0001 — Python atomic tokens: strings are consumed whole
 
-*language: python · status: active · since spec 0.1.0*
+*language: python · status: superseded (superseded by TOK-PY-0002) · since spec 0.1.0*
 
 Binds node types: `string`, `concatenated_string`
 
@@ -609,3 +671,41 @@ features (identifiers/operators inside interpolations are invisible). This
 diverges from CPython 3.12+ tokenize (PEP 701), which tokenizes interpolation
 contents; the divergence vs the stdlib reference extractor is classified, and
 uniformity with Java strings is preferred.
+
+### TOK-PY-0002 — Python atomic tokens: strings are consumed whole; implicit concatenation is descended
+
+*language: python · status: active · since spec 1.1.0*
+
+Binds node types: `string`, `concatenated_string`
+
+`string` subtrees are consumed as single STRING tokens. F-string interpolation
+contents therefore do NOT contribute token-level features (identifiers and
+operators inside interpolations are invisible); this diverges from CPython
+3.12+ tokenize (PEP 701), the divergence vs the stdlib reference extractor is
+classified, and uniformity with Java strings is preferred. A
+`concatenated_string` (implicit concatenation) is NOT atomic: it is descended,
+so each string part is its own STRING token and a comment interleaved between
+parts is an ordinary COMMENT token — matching CPython tokenize. Supersedes
+TOK-PY-0001, which consumed `concatenated_string` whole and thereby silently
+swallowed interleaved comments (undercounting comment lines and counting
+comment-only lines inside the concatenation as code).
+
+Normative cases: `py-concat-string-001`, `py-multiline-string-001`
+
+### TOK-PY-0003 — Python `...` is an operator token
+
+*language: python · status: active · since spec 1.1.0*
+
+Binds node types: `ellipsis`
+
+The `...` literal (the grammar's named `ellipsis` leaf) lexes as an OPERATOR
+token. This matches CPython tokenize (which emits an OP token for `...`) and
+Java's varargs `...` (also OPERATOR), and keeps `...` visible to Halstead as
+an operator — consistent with Python's other singleton literals (None/True/
+False count as Halstead operators via keyword_leaf_types). Before 1.1.0 the
+named `ellipsis` leaf fell through to OTHER and was invisible to Halstead
+(systematically undercounting `.pyi` stub bodies, which are mostly `...`). BW
+token-family features are unaffected either way: `...` matches none of the
+counted operator spellings.
+
+Normative cases: `py-ellipsis-001`

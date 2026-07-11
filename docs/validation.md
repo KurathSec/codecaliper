@@ -20,4 +20,11 @@ re-run under the adopted rulings.
 
 ---
 
+*Reading the two reports together:* the faithfulness report's headline AUC
+(0.828, the final instrument run) and the arbitration report's adopted-cell
+AUC (0.827) are the **same configuration** — they differ by one ranked pair
+out of 2419 (≈ 0.0004) of feature-serialization precision, as the arbitration
+report's reconciliation note details. The arbitration re-runs end-to-end from
+pinned inputs (`derived/arbitration_inputs/`, see the validation README).
+
 --8<-- "validation/bw_faithfulness/derived/arbitration_report.md"

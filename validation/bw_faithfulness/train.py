@@ -26,7 +26,10 @@ DEVIATIONS FROM THE PAPER (stated here and in the report):
 
 Output is deterministic: sorted keys, floats quantized to 12 significant
 digits (codecaliper.canonical.qfloat), no timestamps. Byte-identity is scoped
-per platform (CORE-ALL-0004).
+per platform (CORE-ALL-0004) AND per ML stack: the AUC is sensitive at the
+single-ranked-pair level (~4e-4), so the scikit-learn/numpy versions are
+stamped into the output (protocol.environment) and the stack that produced
+the committed artifacts is pinned in constraints/retrain.txt.
 
 Missing data/deps => SKIP with a precise reason, exit 0 (anchor.py style).
 """
@@ -69,6 +72,20 @@ DEVIATION = (
     "reproduction uses ONE fixed-seed partitioning (random_state=0) for "
     "byte-reproducibility (ARCHITECTURE.md section 8.3)."
 )
+
+
+def _sklearn_version() -> str:
+    import sklearn
+
+    return str(sklearn.__version__)
+
+
+def _narwhals_version() -> str:
+    # part of scikit-learn's runtime closure (constraints/retrain.txt), so the
+    # stamp records the full stack the artifact was produced under
+    import narwhals
+
+    return str(narwhals.__version__)
 
 
 def _qfloat_deep(obj: Any) -> Any:
@@ -204,6 +221,11 @@ def main() -> int:
         },
         "protocol": {
             "classifier": "LogisticRegression(max_iter=1000)",
+            "environment": {
+                "narwhals": _narwhals_version(),
+                "numpy": np.__version__,
+                "scikit_learn": _sklearn_version(),
+            },
             "cv": "StratifiedKFold(n_splits=10, shuffle=True, random_state=0)",
             "auc_method": (
                 "roc_auc_score over cross_val_predict(method='decision_function') "

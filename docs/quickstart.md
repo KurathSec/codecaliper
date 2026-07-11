@@ -29,7 +29,7 @@ codecaliper path/to/file.py
   "diagnostics": [],
   "provenance": {
     "tool_version": "0.1.0.dev0",
-    "spec_version": "1.0.0",
+    "spec_version": "1.1.0",
     "language": "python",
     "grammar": {
       "language": "python",
@@ -39,7 +39,7 @@ codecaliper path/to/file.py
       "validated": true
     },
     "modes": { "cognitive": "whitepaper" },
-    "rulings_applied": ["BW-ALL-0001", "...", "MI-ALL-0001"]
+    "rulings_applied": ["BW-ALL-0001", "...", "TOK-PY-0002"]
   }
 }
 ```
@@ -50,7 +50,7 @@ Useful flags:
 |---|---|
 | `--bw-granularity {snippet,function,file}` | BW measurement unit; vectors outside the native snippet granularity are labelled `extrapolated: true` |
 | `--sonar-compat` | cognitive complexity in SonarSource-compatible mode (the mode differences are the `COG-*` ruling pairs in the [spec](spec/rulings.md)) |
-| `--explain` | per-increment attribution traces on cyclomatic/cognitive |
+| `--explain` | per-increment attribution traces on cyclomatic/cognitive/lloc |
 | `--strict` | error exit on parse errors instead of measure-and-label |
 | `--csv`, `-o FILE` | wide-format CSV, output file |
 
@@ -74,7 +74,7 @@ calibrated ones; `codecaliper cite` prints a methods-section template:
 ```console
 $ codecaliper cite
 Metrics were computed with codecaliper 0.1.0.dev0 under mapping specification
-1.0.0 (grammars: tree-sitter-python 0.25.0, tree-sitter-java 0.23.5);
+1.1.0 (grammars: tree-sitter-python 0.25.0, tree-sitter-java 0.23.5);
 cognitive complexity in whitepaper mode unless stated; readability vectors are
 the raw Buse-Weimer 2010 feature set, with granularity and extrapolation as
 labelled in the output.
@@ -88,7 +88,7 @@ from codecaliper import measure
 report = measure(source_text, language="python")
 
 report.parse_ok                     # False => measured anyway, labelled
-report.provenance.spec_version      # "1.0.0" — on every report
+report.provenance.spec_version      # "1.1.0" — on every report
 for m in report.file_metrics:
     print(m.metric, m.value, m.rulings)
 
@@ -121,9 +121,11 @@ All result types are frozen dataclasses — see the [API reference](api.md).
 
 Three fields matter more than the numbers:
 
-- `parse_ok` — on parse errors codecaliper still measures, attaches
-  `parse-error-recovered`, and (for BW token-family features) falls back to
-  the full lexical stream under ruling `BW-ALL-0007`;
+- `parse_ok` — on parse errors codecaliper still measures and attaches
+  `parse-error-recovered`; when the recovered ERROR region actually adds
+  tokens, BW token-family features fall back to the full lexical stream under
+  ruling `BW-ALL-0007` (labelled `bw-lexical-fallback`) — a MISSING-only
+  recovery that adds no tokens keeps the opaque stream and no fallback label;
 - `provenance` — quote `spec_version` + grammar versions in anything you
   publish;
 - per-value `diagnostics` — e.g. every MI value carries `mi-contains-cc`,

@@ -81,11 +81,33 @@ language = "all"
 title = "No recursion increment (sonar-compat mode)"
 mode = "sonar-compat"
 statement = """
-The deployed Sonar-lineage implementations (cognitive_complexity for Python,
-and SonarQube's own analyzers in common configurations) do not implement the
+SonarQube's own analyzers (sonar-python, sonar-java) do not implement the
 whitepaper's recursion increment; sonar-compat mode therefore omits it.
+(Editorial correction in spec 1.1.0: the original justification also named
+the cognitive_complexity Python package as omitting recursion — false; that
+package DOES implement the +1-per-recursive-call increment, as this repo's
+own differential lane classifies. The normative content of this ruling —
+sonar-compat omits the recursion increment — is unchanged.)
 """
 examples = ["py-recursion-001"]
+
+[[ruling]]
+id = "COG-JAVA-0001"
+metric = "cognitive"
+language = "java"
+title = "Labeled jumps are a fundamental increment: flat +1, both modes"
+since_spec = "1.1.0"
+statement = """
+A `break LABEL` or `continue LABEL` contributes a flat +1 regardless of
+nesting depth and does not deepen nesting (the whitepaper's fundamental
+increment list names goto LABEL / break LABEL / continue LABEL; sonar-java
+implements it identically, so both modes agree). A bare break/continue
+contributes nothing, and the label declaration itself (`LABEL: for ...`) is
+not separately counted. Cyclomatic is unaffected: a jump is not a decision
+point.
+"""
+node_types = ["break_statement", "continue_statement"]
+examples = ["java-labeled-jump-001"]
 
 [[ruling]]
 id = "COG-PY-0001"

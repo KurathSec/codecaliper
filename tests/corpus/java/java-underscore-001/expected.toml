@@ -1,0 +1,44 @@
+[case]
+id = "java-underscore-001"
+language = "java"
+rulings = ["TOK-JAVA-0002", "BW-JAVA-0001", "LOC-ALL-0004", "TOK-ALL-0005"]
+computed_by = "hand"
+notes = """
+TOK-JAVA-0002 (new in spec 1.1.0): `_` is an IDENTIFIER token in every
+position. Line 3 uses `_` as an unnamed variable declarator — the grammar
+yields an underscore_pattern node there (before 1.1.0 it lexed as OTHER,
+invisible to BW and Halstead); line 4 uses `_` as a lambda parameter, where
+the grammar already yields an identifier node. Both lex IDENTIFIER, so the
+same source token cannot change class with syntactic position. `_` stays out
+of the keyword table (BW-JAVA-0001).
+6 physical lines, 0 blank, 0 comments; every line has code tokens -> sloc 6.
+lloc = class_declaration + method_declaration + 2 local_variable_declaration
+(lines 3-4) = 4 (LOC-ALL-0004).
+CC = 1 (no decisions); cognitive = 0 both modes (the lambda is nesting-only).
+BW over 6 lines: identifiers L1: Bins = 1; L2: drain, java, util, function,
+IntSupplier, s = 6; L3: _, s, getAsInt = 3; L4: java, util, function,
+IntConsumer, c, _ = 6 -> sum 16, avg 16/6, max 6. Keywords L1: class = 1;
+L2: void = 1; L3: int = 1 -> avg 0.5, max 1.
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 6
+blank_lines = 0
+sloc = 6
+comment_lines = 0
+lloc = 4
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0
+
+[expect.functions.drain]
+cyclomatic = 1
+cognitive = 0
+
+[expect.bw]
+avg_identifiers = 2.6666666666666665
+max_identifiers = 6.0
+avg_keywords = 0.5
+max_keywords = 1.0

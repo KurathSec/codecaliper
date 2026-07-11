@@ -7,7 +7,7 @@ tree-sitter BW port (tests/test_bw_port_fidelity.py) and must never be imported
 from src/ (anti-salami boundary, ARCHITECTURE.md §1 invariant 3).
 
 Known, ruled divergences from the tree-sitter lane (do not "fix" them here):
-- TOK-PY-0001: on CPython 3.12+ tokenize (PEP 701) f-string interpolation
+- TOK-PY-0002: on CPython 3.12+ tokenize (PEP 701) f-string interpolation
   contents are tokenized; the tree-sitter lane consumes strings atomically.
   Fidelity tests therefore avoid f-strings with interpolations.
 - BW-PY-0001: soft keywords (match/case) are NAME tokens here and identifiers

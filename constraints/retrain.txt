@@ -1,0 +1,14 @@
+# The ML stack that produced the committed derived artifacts
+# (validation/bw_faithfulness/derived/train_results.json,
+#  arbitration_report.{json,md}). The AUC in those artifacts is sensitive at
+# the single-ranked-pair level (~4e-4), so their byte-reproducibility is
+# scoped to this stack (and the calibrated grammar pins in constraints/ci.txt,
+# which govern the re-derived features) as well as per platform — install with
+#   pip install -e ".[retrain]" -c constraints/ci.txt -c constraints/retrain.txt
+# Complete transitive closure of scikit-learn (pip freeze in a clean venv).
+joblib==1.5.3
+narwhals==2.23.0
+numpy==2.5.1
+scikit-learn==1.9.0
+scipy==1.18.0
+threadpoolctl==3.6.0

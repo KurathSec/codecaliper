@@ -1,0 +1,51 @@
+[case]
+id = "py-future-import-001"
+language = "python"
+rulings = ["TOK-ALL-0007", "LOC-ALL-0004", "BW-PY-0001", "TOK-ALL-0005"]
+computed_by = "hand"
+# The input's `type Alias = ...` is PEP 695 syntax (Python 3.12+). OUR
+# tree-sitter measurement is host-Python-independent, but the vendored
+# stdlib-ast crosscheck lane (py_ast_lane, ast.parse) raises SyntaxError on the
+# 3.10/3.11 CI matrix — a parser limit of the oracle, not a value divergence.
+# Excluded from every reference lane (all-or-nothing flag); the hand-computed
+# expectations below still gate the measurement on all supported interpreters.
+reference_comparable = false
+notes = """
+TOK-ALL-0007 (new in spec 1.1.0): `__future__` is a grammar-anonymous word
+token and classifies as an IDENTIFIER (tokenize yields NAME for it); before
+1.1.0 it fell through to OPERATOR. `type` is a soft keyword ->
+identifier (BW-PY-0001; the soft-keyword table is pinned to match the ruling
+across interpreters, so this holds on 3.10-3.14 alike).
+LOC-ALL-0004: future_import_statement and
+type_alias_statement are statements.
+7 physical lines, 3 blank; code tokens on lines 1,3,6,7 -> sloc 4.
+lloc = future_import + type_alias + def + return = 4.
+CC = 1 (no decisions); cognitive = 0, both modes.
+BW over 7 lines: identifiers L1: __future__, annotations = 2; L3: type,
+Alias, list, int = 4; L6: ident, x, Alias, Alias = 4; L7: x = 1 -> sum 11,
+avg 11/7, max 4. Keywords L1: from, import = 2; L6: def = 1; L7: return = 1
+-> avg 4/7, max 2.
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 7
+blank_lines = 3
+sloc = 4
+comment_lines = 0
+lloc = 4
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0
+
+[expect.functions.ident]
+cyclomatic = 1
+cognitive = 0
+
+[expect.bw]
+avg_identifiers = 1.5714285714285714
+max_identifiers = 4.0
+avg_keywords = 0.5714285714285714
+max_keywords = 2.0
+avg_numbers = 0.0

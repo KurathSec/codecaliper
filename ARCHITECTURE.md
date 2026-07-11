@@ -3,7 +3,7 @@
 > **Design thesis.** Every number codecaliper emits is *traceable* — to a spec version, to the
 > exact rulings that fired, to the exact grammar that parsed the source — and *reproducible* —
 > clock-free, hash-seed-free, order-stable. Where a scoreboard says "CC = 7", this instrument says
-> "CC = 7 *under spec 1.0.0, ruling CC-PY-0003, tree-sitter-python 0.25.0*".
+> "CC = 7 *under spec 1.1.0, ruling CC-PY-0003, tree-sitter-python 0.25.0*".
 > That sentence is the data model.
 >
 > This document is the synthesis of a three-way architecture study (instrument-purist,
@@ -44,7 +44,8 @@ codecaliper/
 ├── NOTICE                       # primitives descend from Spaghetti Architect (DOI 10.5281/zenodo.21033174)
 ├── CITATION.cff  README.md  ARCHITECTURE.md  CLAUDE.md
 ├── CONTRIBUTING.md  CODE_OF_CONDUCT.md
-├── constraints/ci.txt           # ★ exact grammar pins for CI/releases (install metadata uses ranges)
+├── constraints/                 # ★ pin files: ci.txt (exact grammar pins for CI/releases),
+│                                #   build.txt (PEP 517 closure), docs.txt, retrain.txt (ML stack)
 ├── src/codecaliper/
 │   ├── __init__.py              # public API re-exports; __version__
 │   ├── py.typed
@@ -68,16 +69,17 @@ codecaliper/
 │   │   │   ├── mi.toml          # MI-*
 │   │   │   ├── loc.toml         # LOC-*
 │   │   │   └── bw.toml          # BW-*: the 25 features' delimitation rulings
-│   │   ├── divergences/         # ★ classified known divergences vs oracles (TOML, shipped)
 │   │   └── validated_grammars.toml  # grammar versions this release is calibrated against
+│   │   # (classified divergences live TEST-side in tests/differential/divergences.toml;
+│   │   #  the published artifact is the generated docs/spec/divergences.md)
 │   ├── syntax/
 │   │   ├── _treesitter.py       # ★ the ONLY module importing tree_sitter: load/parse/walk/leaves
 │   │   │                        #   + version shims + Language.node_kind introspection
 │   │   ├── grammars.py          # GrammarInfo capture; validated flag (never refuses, always labels)
-│   │   └── tokens.py            # unified per-line LexicalToken stream (leaf walk + atomic tokens)
+│   │   └── tokens.py            # unified per-line LexicalToken stream + TokenKind enum (leaf walk + atomic tokens)
 │   ├── languages/
 │   │   ├── __init__.py          # plain dict registry; detect_language() for --lang auto
-│   │   ├── base.py              # LanguageAdapter protocol; NodeClass, TokenKind enums
+│   │   ├── base.py              # LanguageAdapter protocol; NodeClass enum
 │   │   ├── python.py            # classification dicts + named hook functions, every row cites rulings
 │   │   └── java.py
 │   ├── metrics/
@@ -98,7 +100,7 @@ codecaliper/
 │   ├── _reference/              # test-only verbatim ports (NOTICE-credited):
 │   │   ├── bw_stdlib.py         #   anchor.py::bw_readability_features (stdlib tokenize)
 │   │   └── py_ast_lane.py       #   eval/metrics.py cyclomatic/cognitive/halstead/MI (stdlib ast)
-│   ├── differential/            # oracle probes (SKIP pattern), wild/ pinned files, policies
+│   ├── differential/            # external-oracle lane: divergences.toml + per-oracle tests
 │   ├── test_consistency_corpus.py
 │   ├── test_spec_coverage.py    # rulings ⇄ code ⇄ corpus bidirectional coverage
 │   ├── test_spec_drift.py       # numbers may not change without a spec MAJOR bump
@@ -147,8 +149,10 @@ class Provenance:
     spec_version: str        # ★ on every report
     language: str
     grammar: GrammarInfo
-    modes: Mapping[str, str]           # {"cognitive": "whitepaper"}
-    rulings_applied: tuple[str, ...]   # sorted, deduped IDs that actually fired
+    modes: tuple[tuple[str, str], ...]  # (("cognitive", "whitepaper"),) — hashable, JSON-objectified
+    rulings_applied: tuple[str, ...]   # sorted, deduped IDs governing the emitted values
+                                       # (conditional rulings fire per-occurrence; structural/
+                                       #  convention rulings are cited whenever they govern)
 
 @dataclass(frozen=True, slots=True)
 class Diagnostic:
@@ -188,22 +192,27 @@ class FeatureVectorResult:
     values: tuple[float, ...]
     rulings: tuple[str, ...]
     diagnostics: tuple[Diagnostic, ...]
+    unit_name: str | None = None         # function name when granularity == "function"
+    span: Span | None = None
 
 @dataclass(frozen=True, slots=True)
 class FunctionReport:
     name: str; qualified_name: str; span: Span
-    metrics: Mapping[str, MetricValue]
+    metrics: tuple[MetricValue, ...]
 
 @dataclass(frozen=True, slots=True)
 class FileReport:
     path: str | None
     parse_ok: bool                       # False if ERROR/MISSING nodes present
-    file_metrics: Mapping[str, MetricValue]
+    file_metrics: tuple[MetricValue, ...]
     functions: tuple[FunctionReport, ...]
     readability: tuple[FeatureVectorResult, ...]   # plural: Scalabrino/Dorn add entries, not model breaks
     diagnostics: tuple[Diagnostic, ...]
-    provenance: Provenance
+    provenance: Provenance | None        # None only for hand-built reports; measure() always sets it
 ```
+
+Metric collections are order-stable tuples, not mappings — `model.metric_map(values)`
+is the keyed convenience view (`metric_map(report.file_metrics)["cyclomatic"]`).
 
 Honesty is encoded in types, not docs: MI always carries `mi-contains-cc` + typed `derived_from`;
 Halstead always carries `halstead-approximation`; `extrapolated` is a field that flows into
@@ -256,28 +265,31 @@ ctx.count(R_BOOLOP, node, delta=len(operands) - 1)
 `explain=True` — appends a `RulingTrace(ruling, span, delta)`. `codecaliper FILE --explain` thus
 gives per-increment attribution, which is what divergence triage and downstream audit actually
 need. `test_spec_coverage.py` asserts bidirectional coverage: every active ruling is referenced
-by code **and** exercised by ≥1 corpus case; every corpus citation and adapter table row points
-at a real ruling covering that node type. The spec, the code, and the corpus are one mutually
+by code **and** exercised by ≥1 corpus case; every corpus citation and every non-empty adapter
+table-row citation points at a real ruling covering that node type. The spec, the code, and the corpus are one mutually
 verifying artifact.
 
 ### 3.4 The known-divergence list is generated, complete by construction
 
-Classified divergences are TOML records:
+Classified divergences are TOML records in `tests/differential/divergences.toml` (a real one):
 
 ```toml
 [[divergence]]
-fingerprint = "radon:cyclomatic:py-cc-boolop-001"   # oracle:metric:case (wild: content-hash)
-oracle = "radon"
-oracle_versions = ">=5,<7"          # version bump out of range ⇒ auto re-surfaces for re-triage
-class = "spec-divergence"           # spec-divergence | oracle-bug | oracle-scope
-ruling = "CC-PY-0003"               # required for spec-divergence
-upstream = ""                       # issue URL required for oracle-bug
-explanation = "radon counts a BoolOp chain as one decision point; CC-PY-0003 counts operands−1."
+oracle = "cognitive_complexity"
+case = "py-nested-function-001"     # corpus case ID or "snippet:<probe-name>"
+unit = "outer"                      # codecaliper qualified function name
+metric = "cognitive"
+ours = 3                            # the value pinned by `ruling`
+theirs = 5                          # the installed oracle's value
+ruling = "CORE-ALL-0003"
+reason = "cognitive_complexity scores a function including its nested defs; CORE-ALL-0003 excludes nested named units, which get their own FunctionReports."
 ```
 
-The differential harness fails CI on any **unclassified** divergence — the maintainer either
-fixes the bug or authors a classification citing a ruling / filing an upstream issue. There is no
-third option, so the published `docs/spec/divergences.md` (generated, staleness-checked) is the
+The differential harness fails CI on any **unclassified** divergence (the failure prints a
+ready-to-paste stanza) and on any **stale** entry no longer observed — the table is complete by
+construction, in both directions. Oracle versions are pinned in `constraints/ci.txt` (a pin bump
+re-runs the whole lane, re-surfacing every entry for re-triage), and the published
+`docs/spec/divergences.md` (generated by `tools/gen_divergences.py`, staleness-checked) is the
 complete scholarly artifact the charter promises.
 
 ## 4. tree-sitter integration (`syntax/`)
@@ -308,8 +320,9 @@ the Query API entirely (cursor walks suffice), sidestepping the 0.24/0.25 `Query
 churn; if queries are ever needed, the shim lives here.
 
 Input normalization is itself ruled (TOK-ALL-\*): decode UTF-8 with replacement + diagnostic;
-strip a UTF-8 BOM (diagnostic); CRLF→LF before measurement; tab = 1 indentation character
-*initially, flagged for arbitration by the faithfulness pipeline* (§8.3). These change emitted
+strip a UTF-8 BOM (diagnostic); CRLF→LF before measurement; tab = 8 indentation characters
+(TOK-ALL-0006, adopted by the pre-registered arbitration at spec 1.0.0, superseding
+TOK-ALL-0004's provisional tab = 1 — §8.3/§14). These change emitted
 numbers, so they are spec, not implementation detail.
 
 ## 5. Language adapters (`languages/`)
@@ -320,7 +333,8 @@ Metric engines never see node-type strings — only this taxonomy:
 class NodeClass(Enum):
     BRANCH; ELIF_CONTINUATION; ELSE_CLAUSE; TERNARY; SWITCH; CASE_LABEL
     LOOP; CATCH; BOOL_OP; COMPREHENSION_GUARD; LAMBDA
-    FUNCTION_DEF; CLASS_DEF; NESTING_ONLY; STATEMENT; COMMENT; ERROR_OPAQUE
+    JUMP_LABEL  # labeled break/continue, COG-JAVA-0001
+    FUNCTION_DEF; CLASS_DEF; NESTING_ONLY
 
 class TokenKind(Enum):
     IDENTIFIER; KEYWORD; NUMBER; STRING; COMMENT; OPERATOR; PUNCT; OTHER
@@ -330,11 +344,14 @@ An adapter provides: `node_class_map: dict[str, tuple[NodeClass, tuple[ruling_id
 Python dicts — **no predicate DSL**; the three-way study showed a `when.*` mini-language costs an
 interpreter and hits expressiveness walls immediately), a small set of **named hook functions**
 for the contextual cases a table can't express (e.g. Python elif detection via the parent
-`if_statement`'s `alternative` field), each hook citing a ruling; `token_kind_map` +
-`atomic_types` + operator-class tables (arithmetic/comparison/assignment — BW and Halstead share
-them); `function_units()`; keyword list. `PythonAdapter`/`JavaAdapter` are thin; the behaviour is
-in the tables, and every table row cites a ruling validated by the coverage and
-grammar-integrity gates.
+`if_statement`'s `alternative` field), each hook citing a ruling; the token-classification frozensets (identifier / number / string /
+comment / keyword-leaf / operator-leaf node-type sets) + `atomic_types` + the operator-class tables
+(arithmetic/comparison/assignment — the BW-ALL-0006 operator-class features only; Halstead
+classifies by `TokenKind`, not these tables); `conditional_token_rulings`; `function_units()`;
+keyword list. `PythonAdapter`/`JavaAdapter` are thin; the behaviour is
+in the tables, and every increment-bearing row cites a ruling (the nesting-only rows carry an
+empty tuple by design — no increment, nothing to cite) — node-type strings validated by the
+grammar-integrity gate.
 
 **Adding language #3** (documented checklist, gated by existing meta-tests): new adapter module +
 tables, new `*-GO-*` rulings, corpus cases, oracle probe, grammar pin. Zero edits to `metrics/`,
@@ -357,12 +374,13 @@ through `ctx.count(ruling, node, delta)`. Each computes file-level and per-funct
 - **halstead** — **lexical** Halstead (HAL-ALL-0001): operators = OPERATOR + KEYWORD + PUNCT
   tokens per the adapter tables; operands = IDENTIFIER + NUMBER + STRING. Chosen over AST-harvesting for
   cross-language uniformity and lexer reuse; the divergence vs radon and vs the ported AST
-  reference is a *classified* divergence, and every value carries `halstead-approximation`
+  reference is *declared* (no Halstead differential lane runs), and every value carries `halstead-approximation`
   (absolute values are implementation-defined; only trends/ratios are stable).
 - **mi** — `clamp₀₋₁₀₀((171 − 5.2·ln V − 0.23·CC − 16.2·ln SLOC)·100/171)` (MI-ALL-0001 pins the
   variant: no comment term). Typed `derived_from` + standing `mi-contains-cc` diagnostic.
 - **loc** — physical / blank / comment (block comments count every spanned line, LOC-ALL-\*) /
-  sloc / lloc (STATEMENT classifications). The corpus contains multi-line-string cases that the
+  sloc / lloc (counted over the adapter's `statement_types` node-type table, LOC-ALL-0004). The
+  corpus contains multi-line-string cases that the
   old regex lane provably gets wrong — the reason tree-sitter won.
 
 **Nested-unit attribution is explicitly ruled** (CORE-ALL-\*, a gap all three designs missed and
@@ -373,7 +391,8 @@ get their own `FunctionReport`s; file-level values are one whole-file walk, *not
 functions. Corpus cases pin this per language.
 
 **Parse-error policy** (CORE-ALL-0002): tree-sitter always returns a tree; ERROR/MISSING subtrees
-classify as `ERROR_OPAQUE` (not descended into), `parse_ok=False`, warning diagnostic. `--strict`
+are skipped as opaque by every walker (`is_opaque`, not descended into), `parse_ok=False`, warning
+diagnostic. `--strict`
 upgrades to an error exit. No number is fabricated silently.
 
 ## 7. Buse–Weimer readability (`readability/`)
@@ -450,19 +469,22 @@ Probe/SKIP pattern inherited from `bench/anchor.py`. Two-sided honesty:
 
 - **Locally**: missing oracle ⇒ `SKIP` with a precise reason; a contributor's build never fails
   for a missing tool.
-- **In CI** (the `differential` job in `ci.yml`): all oracles installed at pinned versions,
-  and the job asserts `skips == EXPECTED_SKIPS` (normally empty) — absence can never mask a
-  regression.
+- **In CI** (the `differential` job in `ci.yml`): all oracles installed at `constraints/ci.txt`
+  pins, with a hard-import step (`python -c "import radon.complexity, lizard,
+  cognitive_complexity.api"`) before pytest — a missing oracle fails the job outright, so a
+  silent SKIP can never mask a regression.
 
 Oracle set: **per-PR, zero-install** — the two `tests/_reference/` ports (stdlib BW extractor;
 Python-AST lane) run on every PR as free differential witnesses. **Differential CI job** — radon,
 lizard, cognitive_complexity (pip; `cognitive_complexity` specifically witnesses
-`--sonar-compat`), **PMD** (pinned, checksummed CLI — the serious Java cyclomatic witness).
-**Scheduled job only** — rust-code-analysis (last release 2023; useful witness, not per-PR
-infrastructure). **SonarQube is excluded as an automated oracle** (server architecture); its
-whitepaper is a *spec source*, with cognitive_complexity and rust-code-analysis as Sonar-lineage
-witnesses. Inputs: the whole corpus + a small pinned set of permissively-licensed wild
-Python/Java files (content-hash fingerprinted) for breadth.
+`--sonar-compat`). **Staged, not yet wired** (§15 items 2 and 4, and README says the same): PMD (the
+serious second Java cyclomatic witness — until then Java cyclomatic is witnessed by lizard only,
+and Java cognitive complexity has NO external oracle, only the corpus and the spec, as the
+divergence-list preamble states), rust-code-analysis (last release 2023; a scheduled-job candidate,
+not per-PR infrastructure), and a pinned wild-file input set. **SonarQube is excluded as an
+automated oracle** (server architecture); its whitepaper is a *spec source*, with
+cognitive_complexity as the Sonar-lineage witness. Inputs today: the whole corpus + inline probe
+snippets in the per-oracle tests.
 
 ### 8.3 BW faithfulness reproduction (§6.3 — the make-or-break)
 
@@ -484,9 +506,12 @@ Python/Java files (content-hash fingerprinted) for breadth.
    BW-\*/TOK-\* ruling instead of one opaque number. Stats use the portable stdlib
    `spearman`/`ci95_bootstrap` from Spaghetti's `bench/grade.py` (NOTICE-credited).
 
-Per-PR offline guard: the 100 feature *vectors* (our derived data — license-safe) are snapshotted;
-any extractor change that invalidates them forces a pipeline rerun. CI: weekly / manual /
-release-tag; dataset unfetchable ⇒ neutral SKIP.
+The pipeline is **local and manual only — it never runs in CI** (§11, RELEASING.md): the
+dataset's license is UNVERIFIED, so fetching it stays a deliberate local action. What IS tracked
+are the derived artifacts (`derived/`: per-snippet feature vectors + aggregate reports), which
+make the extraction step diffable after the fact; there is no automated per-PR guard over them —
+an extractor change that would invalidate them shows up in the corpus/fidelity gates, and
+re-running the pipeline against a refreshed spec is a deliberate, documented act.
 
 ### 8.4 Determinism & performance
 
@@ -604,15 +629,15 @@ general-purpose measurement primitives.
 | Validation-first skeleton, lean core | Gate-maximalist instrument design | Unbuildable solo in 8 weeks; per-value provenance objects & tamper checks are speculative bloat |
 | Plain dict tables + named hooks in adapters | `when.*` predicate DSL in nodemap.toml | A DSL needs an interpreter, tests, and hits expressiveness walls immediately |
 | Plain dict registry | setuptools entry-point plugins | Speculative until a third-party adapter exists |
-| Lexical Halstead | AST-harvest Halstead | Cross-language uniformity; lexer reuse; the AST reference survives as a classified-divergence oracle |
+| Lexical Halstead | AST-harvest Halstead | Cross-language uniformity; lexer reuse; the divergence is declared via halstead-approximation (no Halstead differential lane wired) |
 | Range pins + CI lockfile + validated flag | Exact `==` grammar pins in install metadata | `==` fights pip resolution in shared envs; the flag keeps honesty without breaking installs |
 | Run-and-label on unvalidated grammars | Refuse to run | Provenance already records the truth; refusal punishes legitimate environments |
 | PMD in CI, rust-code-analysis scheduled-only | All oracles per-PR | PMD is the only serious Java witness; RCA is stale (2023) — witness value without treadmill |
 | ctx.count() + opt-in `--explain` traces | rulings-applied lists only | Divergence triage needs *where and how much*, not just *which* |
 | 12-sig-digit float quantization + per-platform byte claim | Cross-OS byte-identity claim | libm differences make the stronger claim false; honesty is the brand |
 | Indentation tab = 8 (TOK-ALL-0006, supersedes TOK-ALL-0004's tab = 1) | tab = 1 / tab = 4 | Pre-registered 32-cell arbitration: tab=1 zeroes the Fig. 9 indentation correlation; any tab>=2 fixes the sign, 8 won the pre-registered AUC tie-break (8-vs-4 is a stated convention pick within noise) |
-| BW token features see ERROR-region tokens (BW-ALL-0007) | Error-opaque BW (CORE-ALL-0002 everywhere) | The BW construct is lexical (the original tool was grammar-less); opacity zeroed 8/100 original snippets and depressed AUC 0.798 -> fallback 0.827; metrics stay opaque |
-| Java arithmetic-op class unchanged after arbitration (null result) | Adding ++/--/compound assignment | No variant changed any Fig. 9 sign in 32 cells; AUC spread <= 0.00124 is noise — a ruling is not changed on noise |
+| BW token features see ERROR-region tokens (BW-ALL-0007) | Error-opaque BW (CORE-ALL-0002 everywhere) | The BW construct is lexical (the original tool was grammar-less); opacity zeroed 8/100 original snippets and depressed AUC 0.798 -> fallback 0.827 (matrix cell; the final re-run's headline is 0.828 — same configuration, one ranked pair of serialization-precision difference, see the arbitration report); metrics stay opaque |
+| Java arithmetic-op class unchanged after arbitration (null result) | Adding ++/--/compound assignment | No variant changed any Fig. 9 sign in 32 cells; AUC spread <= 0.00125 is noise — a ruling is not changed on noise |
 
 ## 15. De-scoping ladder (cut order when — not if — W6 slips)
 

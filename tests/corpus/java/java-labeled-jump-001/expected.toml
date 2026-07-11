@@ -1,0 +1,40 @@
+[case]
+id = "java-labeled-jump-001"
+language = "java"
+rulings = ["COG-JAVA-0001", "COG-ALL-0001", "COG-ALL-0004", "CC-ALL-0001",
+           "CC-JAVA-0001", "CC-JAVA-0004", "LOC-ALL-0004", "BW-JAVA-0002"]
+computed_by = "hand"
+notes = """
+Labeled jumps (COG-JAVA-0001, new in spec 1.1.0): `break outer` and
+`continue outer` are flat +1 in BOTH modes; the `outer:` label declaration
+itself is not counted, and cyclomatic ignores jumps entirely.
+CC = 1 + for + for + if + if = 5 (== and < are comparisons, not decisions).
+Cognitive, both modes: outer for +1 (nesting 0 -> 1), inner for +2
+(nesting 1 -> 2), first if +3 (nesting 2), break outer +1 flat, second if +3
+(nesting 2), continue outer +1 flat = 11.
+15 physical lines, no blanks/comments, every line has code tokens -> sloc 15.
+lloc = class + method + labeled_statement + 2 for + 2 local_variable_decl
+(for-inits) + 2 if + break + continue + return = 12.
+BW over 15 lines: branch keywords = two `if` -> 2/15; loop keywords = two
+`for` -> 2/15; comparisons = `<` (x2 in for conditions) + `==` + `<` -> 4/15.
+"""
+
+[expect.file]
+cyclomatic = 5
+physical_lines = 15
+sloc = 15
+comment_lines = 0
+lloc = 12
+
+[expect.file.cognitive]
+whitepaper = 11
+sonar_compat = 11
+
+[expect.functions.find]
+cyclomatic = 5
+cognitive = 11
+
+[expect.bw]
+avg_branches = 0.13333333333333333
+avg_loops = 0.13333333333333333
+avg_comparison_ops = 0.26666666666666666

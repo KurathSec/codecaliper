@@ -24,9 +24,16 @@ jobs:
           pip install -e ".[dev]"
           pip install --upgrade --pre tree-sitter tree-sitter-python tree-sitter-java
           pip list | grep -i tree
-      - name: Drift + integrity against latest grammars
+      - name: Drift + node inventory against latest grammars
         id: probe
-        run: pytest tests/test_spec_drift.py tests/test_grammar_integrity.py tests/test_consistency_corpus.py
+        # test_grammar_is_calibrated is deliberately deselected: it asserts
+        # installed == pinned and would fail for EVERY newer wheel, alarm or
+        # not. The early-warning signals are numeric drift (spec drift +
+        # corpus values) and node-inventory breakage (adapter/ruling bindings).
+        run: >
+          pytest tests/test_spec_drift.py tests/test_grammar_integrity.py
+          tests/test_consistency_corpus.py
+          --deselect tests/test_grammar_integrity.py::test_grammar_is_calibrated
       - name: Open a calibration issue on drift
         if: failure()
         uses: actions/github-script@v9
@@ -35,7 +42,7 @@ jobs:
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `grammar-bump: latest grammars change calibrated numbers (${new Date().toISOString().slice(0,10)})`,
-              body: 'The weekly grammar early-warning run failed: the newest grammar wheels alter corpus numbers or node inventories. Follow the upgrade procedure in ARCHITECTURE.md §10 (branch, re-run suites, spec MAJOR if numbers changed). See the failed run for the diff.',
+              title: `grammar-bump: latest grammars break calibration (${new Date().toISOString().slice(0,10)})`,
+              body: 'The weekly grammar early-warning run failed: the newest grammar wheels alter corpus numbers or break node inventories (adapter tables / ruling bindings). Follow the upgrade procedure in ARCHITECTURE.md §10 (branch, re-run suites, spec MAJOR if numbers changed). See the failed run for the diff.',
               labels: ['calibration'],
             })

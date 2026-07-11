@@ -15,6 +15,9 @@ def test_parse_error_recovered_and_labelled() -> None:
     rep = measure("def broken(:\n    pass\n", language="python")
     assert not rep.parse_ok
     assert any(d.code == "parse-error-recovered" for d in rep.diagnostics)
+    # the diagnostic-cited ruling shaped every emitted number (error opacity),
+    # so provenance must report it
+    assert "CORE-ALL-0002" in rep.provenance.rulings_applied
 
 
 def test_error_subtrees_are_opaque() -> None:
@@ -127,6 +130,7 @@ def test_java_snippet_scaffold_engages_for_constructor() -> None:
         d.code == "snippet-scaffolded" and d.ruling == "CORE-JAVA-0001"
         for d in rep.diagnostics
     )
+    assert "CORE-JAVA-0001" in rep.provenance.rulings_applied
     rep_metrics_only = measure(snippet, language="java", granularity="snippet",
                                readability=())
     assert any(d.code == "snippet-scaffolded" for d in rep_metrics_only.diagnostics)
@@ -145,6 +149,13 @@ def test_java_snippet_scaffold_engages_for_constructor() -> None:
     cc = fm["cyclomatic"]
     if_trace = [t for t in cc.trace if t.ruling_id == "CC-JAVA-0001"]
     assert if_trace and if_trace[0].span.start_line == 2
+    # EVERY trace span (the root-counted CC-ALL-0001 base included) must lie
+    # inside the snippet's own line domain — scaffold coordinates may not leak
+    n = int(fm["physical_lines"].value)
+    for t in cc.trace:
+        assert 1 <= t.span.start_line <= t.span.end_line <= n, (
+            f"trace {t.ruling_id} span {t.span} outside the {n}-line snippet"
+        )
 
 
 def test_recursion_receiver_rule_java() -> None:
@@ -223,9 +234,19 @@ def test_explain_traces() -> None:
     rep = measure("if x and y:\n    pass\n", language="python", explain=True)
     cc = metric_map(rep.file_metrics)["cyclomatic"]
     assert cc.trace, "--explain must attach RulingTraces"
-    assert {t.ruling_id for t in cc.trace} == {"CC-PY-0001", "CC-PY-0003"}
+    assert {t.ruling_id for t in cc.trace} == {"CC-ALL-0001", "CC-PY-0001", "CC-PY-0003"}
+    assert sum(t.delta for t in cc.trace) == cc.value, (
+        "--explain increments (base included) must sum to the emitted value"
+    )
+    # the base is traced against the measured domain, never past the last line
+    base = [t for t in cc.trace if t.ruling_id == "CC-ALL-0001"][0]
+    assert base.span.start_line == 1 and base.span.end_line == 2
+    # lloc increments are traced too, and they sum to the emitted value
+    lloc = metric_map(rep.file_metrics)["lloc"]
+    assert lloc.trace and sum(t.delta for t in lloc.trace) == lloc.value
     rep_default = measure("if x and y:\n    pass\n", language="python")
     assert not metric_map(rep_default.file_metrics)["cyclomatic"].trace
+    assert not metric_map(rep_default.file_metrics)["lloc"].trace
 
 
 def test_bw_lexical_fallback_scoping() -> None:
@@ -266,3 +287,194 @@ def test_bw_lexical_fallback_scoping() -> None:
     by_name = {v.unit_name: v for v in rep_fn.readability}
     assert "BW-ALL-0007" not in by_name["clean"].rulings
     assert "BW-ALL-0007" in by_name["dirty"].rulings
+    # a unit DID engage, so the report-level diagnostic + provenance follow
+    assert any(d.code == "bw-lexical-fallback" for d in rep_fn.diagnostics)
+    assert "BW-ALL-0007" in rep_fn.provenance.rulings_applied
+
+    # at granularity="function", an ERROR region OUTSIDE every unit changes no
+    # emitted number: no report-level fallback claim, no fired BW-ALL-0007
+    src_out = "def clean(x):\n    return x + 1\n\n@@@ $garbage$ @@@\n"
+    rep_out = measure(src_out, language="python", granularity="function")
+    assert not rep_out.parse_ok
+    assert not any(d.code == "bw-lexical-fallback" for d in rep_out.diagnostics)
+    assert "BW-ALL-0007" not in rep_out.provenance.rulings_applied
+    assert all("BW-ALL-0007" not in v.rulings for v in rep_out.readability)
+
+
+def test_csv_vectors_join_by_span_not_name() -> None:
+    """Same-qualified-name units (Java overloads, Python redefinitions) must
+    each carry their OWN BW vector in CSV output — a name-keyed join silently
+    hands every row the last unit's numbers."""
+    import csv
+    import io
+
+    from codecaliper.canonical import to_csv
+
+    src = (
+        "class Over {\n"
+        "    int f(int a) {\n"
+        "        return a;\n"
+        "    }\n"
+        "    int f(String s, int b) {\n"
+        "        return b + b + b;\n"
+        "    }\n"
+        "}\n"
+    )
+    rep = measure(src, language="java", granularity="function")
+    rows = list(csv.DictReader(io.StringIO(to_csv([rep]))))
+    fn_rows = [r for r in rows if r["scope"] == "function"]
+    assert len(fn_rows) == 2 and all(r["name"] == "Over.f" for r in fn_rows)
+    by_span = {v.span.start_line: v for v in rep.readability if v.granularity == "function"}
+    for row in fn_rows:
+        vec = by_span[int(row["start_line"])]
+        expect = dict(zip(vec.names, vec.values, strict=True))
+        assert float(row["bw_avg_identifiers"]) == pytest.approx(
+            expect["avg_identifiers"], abs=1e-9
+        ), f"row at line {row['start_line']} carries another unit's vector"
+    # the two overloads genuinely differ, so the assertion above is not vacuous
+    vals = {float(r["bw_avg_identifiers"]) for r in fn_rows}
+    assert len(vals) == 2
+
+
+def test_ruling_citations_are_language_scoped_and_complete() -> None:
+    """Citation metadata honesty: a Java value may not cite a Python-scoped
+    ruling; provenance may not contradict the report's own diagnostics; and
+    the BW vector names the language-specific and tokenization rulings that
+    shaped its numbers (TOK-ALL-0006 was the headline spec-1.0.0 change)."""
+    rep_java = measure("class A {\n    void f() {}\n}\n", language="java")
+    cog = metric_map(rep_java.file_metrics)["cognitive"]
+    assert "COG-PY-0001" not in cog.rulings, "Java value citing a Python ruling"
+    assert "COG-JAVA-0001" in cog.rulings
+
+    rep_py = measure("def f():\n    pass\n", language="python")
+    cog_py = metric_map(rep_py.file_metrics)["cognitive"]
+    assert "COG-JAVA-0001" not in cog_py.rulings
+    assert "COG-PY-0001" in cog_py.rulings
+
+    # normalization rulings observably firing must reach rulings_applied
+    bom = measure("﻿x = 1\n".encode(), language="python")
+    assert any(d.code == "bom-stripped" for d in bom.diagnostics)
+    assert "TOK-ALL-0002" in bom.provenance.rulings_applied
+    crlf = measure(b"x = 1\r\ny = 2\r\n", language="python")
+    assert "TOK-ALL-0003" in crlf.provenance.rulings_applied
+    plain = measure("x = 1\n", language="python")
+    assert "TOK-ALL-0002" not in plain.provenance.rulings_applied
+    assert "TOK-ALL-0003" not in plain.provenance.rulings_applied
+    # the base increment backs every emitted cyclomatic value
+    assert "CC-ALL-0001" in plain.provenance.rulings_applied
+
+    vec = plain.readability[0]
+    for rid in ("BW-PY-0001", "BW-PY-0002", "TOK-ALL-0005", "TOK-ALL-0006", "TOK-PY-0002"):
+        assert rid in vec.rulings, f"BW vector missing governing ruling {rid}"
+    jvec = rep_java.readability[0]
+    assert "BW-JAVA-0001" in jvec.rulings and "BW-PY-0001" not in jvec.rulings
+    assert "TOK-JAVA-0001" in jvec.rulings and "TOK-PY-0002" not in jvec.rulings
+    # the atomic-token rulings govern every token-derived value
+    hal = metric_map(plain.file_metrics)["halstead.volume"]
+    assert "TOK-PY-0002" in hal.rulings
+    assert "TOK-PY-0002" in metric_map(plain.file_metrics)["sloc"].rulings
+
+
+def test_tok_all_0007_fires_only_when_engaged() -> None:
+    """TOK-ALL-0007 reclassified tokens on its own normative corpus inputs, so
+    the reports for those inputs must cite it — and a file without anonymous
+    word tokens must not."""
+    from conftest import CORPUS_DIR
+
+    fut = (CORPUS_DIR / "python" / "py-future-import-001" / "input.py").read_text()
+    rep = measure(fut, language="python")
+    assert "TOK-ALL-0007" in rep.provenance.rulings_applied
+    assert "TOK-ALL-0007" in rep.readability[0].rulings
+    assert "TOK-ALL-0007" in metric_map(rep.file_metrics)["halstead.volume"].rulings
+
+    ctx = (CORPUS_DIR / "java" / "java-contextual-001" / "input.java").read_text()
+    rep_j = measure(ctx, language="java")
+    assert "TOK-ALL-0007" in rep_j.provenance.rulings_applied
+    assert "TOK-ALL-0007" in rep_j.readability[0].rulings
+
+    plain = measure("x = 1\n", language="python")
+    assert "TOK-ALL-0007" not in plain.provenance.rulings_applied
+    assert "TOK-ALL-0007" not in plain.readability[0].rulings
+
+
+def test_conditional_token_rulings_are_per_unit() -> None:
+    """A construct-specific tokenization ruling (TOK-ALL-0007, TOK-JAVA-0002)
+    is cited on a per-function BW vector only when its token lies inside that
+    unit's own span — not file-globally."""
+    src = "from __future__ import annotations\n\ndef f(x):\n    return x + 1\n"
+    rep = measure(src, language="python", granularity="function")
+    fvec = next(v for v in rep.readability if (v.unit_name or "").endswith("f"))
+    assert "TOK-ALL-0007" not in fvec.rulings, (
+        "the __future__ token is outside unit f, so its vector must not cite it"
+    )
+    # but the file-level Halstead genuinely counted __future__, so provenance does
+    assert "TOK-ALL-0007" in rep.provenance.rulings_applied
+
+
+def test_tok_java_0002_is_conditional_not_static() -> None:
+    """TOK-JAVA-0002 (`_`) governs per-occurrence: a Java file with no `_` must
+    not cite it anywhere, while TOK-JAVA-0001 (string atomicity) is static."""
+    from codecaliper.model import metric_map
+
+    plain = measure("class A {\n    void f() { int x = 1; }\n}\n", language="java")
+    assert "TOK-JAVA-0002" not in plain.provenance.rulings_applied
+    assert "TOK-JAVA-0002" not in plain.readability[0].rulings
+    assert "TOK-JAVA-0001" in plain.provenance.rulings_applied  # static
+
+    us = "class B {\n    void g() { int _ = 1; }\n}\n"
+    rep = measure(us, language="java")
+    assert "TOK-JAVA-0002" in rep.provenance.rulings_applied
+    assert "TOK-JAVA-0002" in rep.readability[0].rulings
+    assert "TOK-JAVA-0002" in metric_map(rep.file_metrics)["halstead.volume"].rulings
+
+
+def test_soft_keyword_table_is_pinned_not_host_dependent() -> None:
+    """BW-PY-0001's soft-keyword set is pinned, so `type` (added to CPython's
+    softkwlist only in 3.12) classifies identically on every supported
+    interpreter — via the soft-keyword branch, never the TOK-ALL-0007
+    anonymous-word branch."""
+    from codecaliper.languages.python import PythonAdapter
+
+    assert PythonAdapter().soft_keywords == frozenset({"_", "case", "match", "type"})
+    rep = measure("type Alias = int\n", language="python")
+    assert "TOK-ALL-0007" not in rep.provenance.rulings_applied
+
+
+def test_session_rejects_invalid_mode_and_granularity() -> None:
+    """An invalid cognitive_mode would otherwise silently measure as
+    sonar-compat while stamping the bogus string into provenance.modes."""
+    from codecaliper import CodecaliperError, Session
+
+    with pytest.raises(CodecaliperError, match="cognitive mode"):
+        Session(cognitive_mode="bogus")  # type: ignore[arg-type]
+    with pytest.raises(CodecaliperError, match="granularity"):
+        Session(granularity="bogus")  # type: ignore[arg-type]
+
+
+def test_concatenated_string_comment_is_a_comment_token() -> None:
+    """TOK-PY-0002: a comment between implicitly concatenated string parts is
+    an ordinary COMMENT token — it counts as a comment line, not code, and the
+    string parts do not swallow its text."""
+    src = 'msg = ("part one "\n       # explains part two\n       "part two")\n'
+    rep = measure(src, language="python")
+    assert rep.parse_ok
+    fm = metric_map(rep.file_metrics)
+    assert fm["comment_lines"].value == 1
+    assert fm["sloc"].value == 2
+    feats = dict(zip(rep.readability[0].names, rep.readability[0].values, strict=True))
+    assert feats["avg_comments"] == pytest.approx(1 / 3)
+    assert "TOK-PY-0002" in rep.readability[0].rulings
+
+
+def test_encoding_diagnostic_only_on_actual_replacement() -> None:
+    """TOK-ALL-0001: valid UTF-8 that legitimately CONTAINS U+FFFD is not
+    'replaced' — the diagnostic fires only when undecodable bytes were hit."""
+    legit = 's = "\N{REPLACEMENT CHARACTER}"\n'.encode()
+    rep = measure(legit, language="python")
+    assert not any(d.code == "encoding-replaced" for d in rep.diagnostics)
+    assert "TOK-ALL-0001" not in rep.provenance.rulings_applied
+
+    broken = b's = "\xff\xfe"\n'
+    rep2 = measure(broken, language="python")
+    assert any(d.code == "encoding-replaced" for d in rep2.diagnostics)
+    assert "TOK-ALL-0001" in rep2.provenance.rulings_applied

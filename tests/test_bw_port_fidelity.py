@@ -2,8 +2,9 @@
 per feature (ARCHITECTURE.md §8.2 — the per-PR, zero-install differential
 witness for the crown jewel).
 
-Inputs avoid the RULED divergences: f-strings with interpolations (TOK-PY-0001
-vs PEP 701 tokenize) and match statements (soft keywords).
+Inputs avoid the RULED divergence: f-strings with interpolations (TOK-PY-0002
+vs PEP 701 tokenize). Match statements ARE comparable — both lanes classify
+the soft keywords as identifiers (BW-PY-0001) — and are exercised below.
 """
 
 from __future__ import annotations

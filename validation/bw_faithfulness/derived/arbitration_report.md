@@ -2,7 +2,8 @@
 
 Empirical-arbiter loop, ARCHITECTURE.md §8.3. Every cell runs the exact
 train.py protocol; the baseline cell reproduced the committed
-`derived/train_results.json` exactly before the rest of the matrix was trusted.
+pre-fallback training record (`derived/arbitration_inputs/`) exactly before
+the rest of the matrix was trusted.
 
 ## Pre-registered decision rule (verbatim)
 
@@ -10,8 +11,8 @@ train.py protocol; the baseline cell reproduced the committed
 
 ## Extraction modes
 
-- `fallback_off`: git show HEAD:validation/bw_faithfulness/derived/features.csv (pre-BW-ALL-0007 extraction, error-opaque token stream) — empty-token vectors 8/100.
-- `fallback_on`: extract.py re-run with BW-ALL-0007 implemented (full lexical stream on parse errors) — empty-token vectors 0/100 (parse_ok 29/100, BW-ALL-0007 gives the other snippets a full lexical stream).
+- `fallback_off`: derived/features_fallback_off.csv (pre-BW-ALL-0007 extraction, error-opaque token stream) — empty-token vectors 8/100.
+- `fallback_on`: derived/arbitration_inputs/features_fallback_on_tab1.csv (extract.py with BW-ALL-0007 implemented: full lexical stream on parse errors; tab=1, spec 0.1.0) — empty-token vectors 0/100 (parse_ok 29/100, BW-ALL-0007 gives the other snippets a full lexical stream).
 
 ## Ops variants (Java operator sets)
 
@@ -100,4 +101,5 @@ A1 ADOPTED: tab=8. Every tab>=2 fixes the avg_indentation sign disagreement in B
 - Ops dimension: avg_arithmetic_ops for V1-V3 was recomputed from a DIRECT parse of the raw snippet (lex(include_error_tokens=True) for fallback_on, plain lex() for fallback_off); the instrument itself may engage the CORE-JAVA-0001 scaffold at snippet granularity. V0_current cells keep the matrix's own column (the true instrument path); the 'approximation' block reports recomputed-V0 vs that column.
 - V3_compound counts compound assignments (+= -= *= /= %=) in avg_arithmetic_ops while avg_assignments (unchanged base column) still counts them too; adopting V3 in the instrument would additionally require a precedence decision in BW-ALL-0006.
 - Anti-circularity (README.md): these rulings are arbitrated on the same 100-snippet dataset whose reproduction accuracy is reported; the reproduction is evidence of faithful operationalization, not an independent validation of BW's construct.
-- The baseline cell (fallback_off, tab=1, V0_current) was asserted to reproduce the committed derived/train_results.json exactly (fold accuracies, CI, AUC, per-feature Spearman, sign table) before the rest of the matrix was computed.
+- The baseline cell (fallback_off, tab=1, V0_current) was asserted to reproduce the committed pre-fallback training record exactly (fold accuracies, CI, AUC, per-feature Spearman, sign table) before the rest of the matrix was computed.
+- Reconciliation with the final instrument run: the adopted cell's AUC (fallback_on/tab=8/V0, 0.827201322861) differs from the headline AUC of the final re-extraction (derived/train_results.json, 0.827614716825 — first produced under spec 1.0.0 and byte-identical on every number when re-stamped under spec 1.1.0) by exactly one ranked pair (1/2419 = 0.000413): the matrix splices full-precision recomputed indentation values into the feature array, while the instrument's train.py consumes the canonical 12-significant-digit features.csv. The feature VALUES agree under 12-significant-digit quantization for all 100 snippets — the gap is serialization precision flipping one near-tied AUC pair, not a semantic difference; 0.828 (the final run) is the instrument's number.

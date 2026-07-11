@@ -4,7 +4,7 @@
 > complexity measurement instrument** — not another metrics scoreboard.
 
 Where a scoreboard says *"CC = 7"*, codecaliper says *"CC = 7 under spec
-1.0.0, ruling CC-PY-0003, tree-sitter-python 0.25.0"*. Every
+1.1.0, ruling CC-PY-0003, tree-sitter-python 0.25.0"*. Every
 number it emits is:
 
 - **traceable** — to a versioned metric-to-syntax specification, to the exact
@@ -33,8 +33,8 @@ extractor in the literature. codecaliper's answer:
 
 1. a **versioned mapping specification** — rulings with immutable IDs,
    shipped as package data, stamped into every result;
-2. a **hand-computed consistency corpus** — every ruling is exercised by a
-   case with human-verified expected values;
+2. a **hand-computed consistency corpus** — every active ruling is exercised by
+   a case with human-verified expected values;
 3. **differential tests** against radon / lizard / cognitive_complexity with
    a published [known-divergence list](spec/divergences.md) — every
    divergence is classified against a ruling, in both directions;

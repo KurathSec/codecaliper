@@ -4,7 +4,8 @@ Deliberately uniform cross-language: operators are OPERATOR/KEYWORD/PUNCT
 tokens, operands are IDENTIFIER/NUMBER/STRING tokens. Absolute values are
 implementation-defined (only trends/ratios are stable); every emitted value
 carries the halstead-approximation diagnostic. The divergence vs AST-harvest
-implementations (radon, the stdlib reference lane) is classified.
+implementations (radon, the stdlib reference lane) is declared (no Halstead
+differential oracle runs; the label is the disclosure).
 """
 
 from __future__ import annotations

@@ -61,7 +61,7 @@ class Provenance:
     language: str
     grammar: GrammarInfo
     modes: tuple[tuple[str, str], ...]  # (("cognitive", "whitepaper"),) — sorted, hashable
-    rulings_applied: tuple[str, ...]  # sorted, deduped IDs that actually fired
+    rulings_applied: tuple[str, ...]  # sorted, deduped IDs governing the emitted values
 
 
 @dataclass(frozen=True, slots=True)

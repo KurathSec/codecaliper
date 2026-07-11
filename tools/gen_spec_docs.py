@@ -31,7 +31,10 @@ def main() -> int:
         for r in sorted(by_metric[metric], key=lambda r: r.id):
             mode = f" *(mode: {r.mode})*" if r.mode else ""
             lines += [f"### {r.id} — {r.title}{mode}", ""]
-            lines += [f"*language: {r.language} · status: {r.status} · "
+            status = r.status + (
+                f" (superseded by {r.superseded_by})" if r.superseded_by else ""
+            )
+            lines += [f"*language: {r.language} · status: {status} · "
                       f"since spec {r.since_spec}*", ""]
             if r.node_types:
                 lines += [f"Binds node types: `{'`, `'.join(r.node_types)}`", ""]

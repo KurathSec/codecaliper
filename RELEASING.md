@@ -28,10 +28,11 @@ Release + Zenodo DOI). The pipeline itself is `.github/workflows/release.yml`.
    *published* GitHub Release: the first one mints both a version DOI and the
    permanent concept DOI.
 4. **GitHub Pages** (docs site, `.github/workflows/docs.yml`): *Repo →
-   Settings → Pages → Source: GitHub Actions*. **Mandatory before the first
-   push of `docs.yml` to main** — automatic enablement needs an admin-scoped
-   token the workflow `GITHUB_TOKEN` can never hold, so until this switch is
-   flipped the `docs / deploy` job fails with a 403.
+   Settings → Pages → Source: GitHub Actions* (done 2026-07-10; the site is
+   live). This was mandatory before the first push of `docs.yml` to main —
+   automatic enablement needs an admin-scoped token the workflow
+   `GITHUB_TOKEN` can never hold; until the switch is flipped the
+   `docs / deploy` job fails with a 403.
 
 ## Per-release procedure
 

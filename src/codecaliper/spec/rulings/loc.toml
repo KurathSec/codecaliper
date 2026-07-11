@@ -10,7 +10,7 @@ physical_lines = number of lines of the normalized text (a trailing final
 newline does not create an extra empty line). blank_lines = lines whose content
 strips to empty.
 """
-examples = ["py-multiline-string-001"]
+examples = ["py-multiline-string-001", "py-blank-lines-001"]
 
 [[ruling]]
 id = "LOC-ALL-0002"

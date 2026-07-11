@@ -20,7 +20,8 @@ The Scalabrino replication page (dibt-research.unimol.it/report/readability)
 states no explicit data license for DatasetBW.zip (verified 2026-07-03), and no
 license could be verified for the original Buse-Weimer distribution either.
 Redistribution rights are therefore NOT assumed: the pipeline fetches at run
-time for local research use, commits only derived feature VECTORS
-(vectors.snapshot.json), and contacting the authors to clarify terms is a
+time for local research use, commits only derived feature vectors
+(derived/features.csv and the pinned copies under
+derived/arbitration_inputs/), and contacting the authors to clarify terms is a
 tracked pre-1.0 task.
 """

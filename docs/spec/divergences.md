@@ -1,4 +1,4 @@
-# Known divergences from external oracles (spec v1.0.0)
+# Known divergences from external oracles (spec v1.1.0)
 
 > Generated from `tests/differential/divergences.toml` by
 > `tools/gen_divergences.py` — do not edit by hand. The differential
@@ -16,6 +16,12 @@ inputs are consistency-corpus cases.
 
 Calibrated against the oracle versions pinned in `constraints/ci.txt`:
 `radon==6.0.1`, `lizard==1.23.0`, `cognitive-complexity==1.3.0`.
+
+**Known witnessing gap** (ARCHITECTURE.md §8.2/§15): Java cyclomatic
+is witnessed by lizard only, and Java cognitive complexity has NO
+external oracle — PMD and rust-code-analysis are staged, not yet
+wired. Until then, Java counting rests on the hand-computed corpus
+and the spec alone.
 
 ## cognitive_complexity
 

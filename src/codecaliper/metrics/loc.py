@@ -21,6 +21,7 @@ R_PHYSICAL = require("LOC-ALL-0001")
 R_SLOC = require("LOC-ALL-0002")
 R_CLOC = require("LOC-ALL-0003")
 R_LLOC = require("LOC-ALL-0004")
+R_TOK_LINES = require("TOK-ALL-0005")  # line attribution for sloc/comment coverage
 
 
 def loc_metrics(

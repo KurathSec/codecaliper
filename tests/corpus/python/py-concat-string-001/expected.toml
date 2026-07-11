@@ -1,0 +1,46 @@
+[case]
+id = "py-concat-string-001"
+language = "python"
+rulings = ["TOK-PY-0002", "LOC-ALL-0002", "LOC-ALL-0003", "BW-ALL-0003", "TOK-ALL-0005"]
+computed_by = "hand"
+notes = """
+TOK-PY-0002 (new in spec 1.1.0, supersedes TOK-PY-0001): a concatenated_string
+is descended, so the two string parts are separate STRING tokens and the
+comment between them is an ordinary COMMENT token (CPython tokenize agrees).
+Under the superseded ruling the whole construct was ONE string token embedding
+the comment text: line 3 counted as code (sloc 5, comment_lines 0,
+avg_comments 0).
+5 physical lines, 0 blank. Code tokens on lines 1,2,4,5 -> sloc 4
+(LOC-ALL-0002); the comment token covers line 3 -> comment_lines 1
+(LOC-ALL-0003).
+lloc = function_definition + expression_statement (assignment) +
+return_statement = 3.
+CC = 1 (no decisions); cognitive = 0, both modes.
+BW over 5 lines: identifiers L1: label, kind = 2; L2: msg = 1; L5: msg,
+kind = 2 -> sum 5, avg 1.0, max 2. Keywords L1: def = 1; L5: return = 1 ->
+avg 0.4, max 1. One comment token (BW-ALL-0003: counts once, on its start
+line) -> avg_comments 1/5 = 0.2.
+"""
+
+[expect.file]
+cyclomatic = 1
+physical_lines = 5
+blank_lines = 0
+sloc = 4
+comment_lines = 1
+lloc = 3
+
+[expect.file.cognitive]
+whitepaper = 0
+sonar_compat = 0
+
+[expect.functions.label]
+cyclomatic = 1
+cognitive = 0
+
+[expect.bw]
+avg_identifiers = 1.0
+max_identifiers = 2.0
+avg_keywords = 0.4
+max_keywords = 1.0
+avg_comments = 0.2

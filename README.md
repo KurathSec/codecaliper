@@ -11,7 +11,7 @@ codecaliper is built as an *instrument*: every number it emits is **traceable**
 — to a versioned metric-to-syntax specification, to the exact machine-readable
 rulings that fired, to the exact tree-sitter grammar that parsed the source —
 and **reproducible** — clock-free, hash-seed-free, order-stable. Where a
-scoreboard says "CC = 7", codecaliper says "CC = 7 *under spec 1.0.0, ruling
+scoreboard says "CC = 7", codecaliper says "CC = 7 *under spec 1.1.0, ruling
 CC-PY-0003, tree-sitter-python 0.25.0*".
 
 ## What it measures
@@ -38,8 +38,8 @@ extractor in the literature). codecaliper's answer:
 1. a **versioned mapping specification** — machine-readable rulings with
    immutable IDs (`CC-PY-0003`), shipped as package data, stamped into every
    result;
-2. a **hand-computed consistency corpus** — every ruling is exercised by a case
-   with human-verified expected values;
+2. a **hand-computed consistency corpus** — every active ruling is exercised by
+   a case with human-verified expected values;
 3. **differential tests** against radon / lizard / cognitive_complexity with
    a **published known-divergence list** — every disagreement is classified
    against a ruling, in both directions (an unclassified divergence fails CI,
@@ -89,7 +89,7 @@ print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 
 ## Status
 
-Spec **v1.0.0** (package 0.1.0.dev0 — the spec and package are versioned
+Spec **v1.1.0** (package 0.1.0.dev0 — the spec and package are versioned
 independently): Python + Java wired end-to-end; every active ruling is
 exercised by a hand-computed corpus case; mypy --strict and the differential
 oracle lane (radon/lizard/cognitive_complexity, classified divergence list)

@@ -42,7 +42,10 @@ Metrics operate on the source text as written — before any preprocessing or
 build-time transformation. The only normalization applied is the TOK-*
 layer: BOM stripping and undecodable-byte replacement each attach a
 diagnostic when they fire (`bom-stripped`, `encoding-replaced`);
-line-ending normalization to LF (TOK-ALL-0003) is unconditional and silent.
+line-ending normalization to LF (TOK-ALL-0003) is unconditional and attaches
+no diagnostic — but when a CR (lone or in CRLF) was actually normalized, the
+ruling is recorded in `provenance.rulings_applied`, so the normalization is
+never invisible in the output.
 
 ## Parse errors are measured, never hidden
 
@@ -53,8 +56,11 @@ govern what the numbers then mean:
 - **CORE-ALL-0002** — ERROR/MISSING subtrees are opaque to every *metric*:
   cyclomatic, cognitive, Halstead, LOC never count fragments of unparseable
   code.
-- **BW-ALL-0007** — BW **token-family features** instead use the full
-  lexical stream, ERROR regions included, labelled `bw-lexical-fallback`.
+- **BW-ALL-0007** — when the recovered ERROR region actually adds tokens, BW
+  **token-family features** use the full lexical stream, ERROR regions
+  included, labelled `bw-lexical-fallback` and cited in `rulings_applied`; a
+  MISSING-only recovery that adds no tokens keeps the opaque stream, and at
+  function granularity only units whose own span gained tokens are labelled.
   The BW construct is lexical (the original extractor never parsed), so
   error-opacity would misrepresent it — this was adopted by the
   pre-registered arbitration, not by taste (see [Validation](validation.md)).

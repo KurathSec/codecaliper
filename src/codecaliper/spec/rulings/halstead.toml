@@ -13,6 +13,8 @@ Absolute Halstead values are implementation-defined across all tools — only
 trends and ratios are stable — and every emitted value carries the
 halstead-approximation diagnostic (ARCHITECTURE.md §13). This lexical convention is
 deliberately uniform cross-language; its divergence from AST-harvest
-implementations (radon, the stdlib reference lane) is classified.
+implementations (radon, the stdlib reference lane) is declared, not classified
+against a differential oracle: every value carries the halstead-approximation
+diagnostic (there is no Halstead differential lane, unlike cyclomatic/cognitive).
 """
 examples = ["py-cc-boolop-001"]

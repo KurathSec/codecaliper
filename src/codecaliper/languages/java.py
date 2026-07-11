@@ -25,16 +25,21 @@ R_COG_STRUCT = require("COG-ALL-0001")
 R_COG_HYBRID = require("COG-ALL-0002")
 R_COG_BOOLSEQ = require("COG-ALL-0003")
 R_COG_NESTING = require("COG-ALL-0004")
+R_COG_JUMP = require("COG-JAVA-0001")
 R_NESTED_UNITS = require("CORE-ALL-0003")
+R_TOK_UNDERSCORE = require("TOK-JAVA-0002")
 
-# JLS reserved words + contextual `yield`; true/false/null arrive via
-# keyword_leaf_types (BW-JAVA-0001).
+# The JLS reserved words except `_`, which is ruled an identifier token
+# (TOK-JAVA-0002, mirroring Python's `_`); true/false/null arrive via
+# keyword_leaf_types (BW-JAVA-0001). Contextual keywords (record, sealed,
+# yield, ...) are identifiers, like every other non-reserved word token
+# (TOK-ALL-0007).
 _JAVA_KEYWORDS = frozenset(
     """abstract assert boolean break byte case catch char class const continue
     default do double else enum extends final finally float for goto if
     implements import instanceof int interface long native new package private
     protected public return short static strictfp super switch synchronized
-    this throw throws transient try void volatile while yield""".split()
+    this throw throws transient try void volatile while""".split()
 )
 
 _NODE_CLASS_MAP: dict[str, tuple[NodeClass, tuple[str, ...]]] = {
@@ -66,7 +71,15 @@ class JavaAdapter(LanguageAdapter):
             file_extensions=(".java",),
             keywords=_JAVA_KEYWORDS,
             keyword_leaf_types=frozenset({"true", "false", "null_literal"}),
-            identifier_types=frozenset({"identifier", "type_identifier"}),
+            # underscore_pattern: `_` as an unnamed variable declarator is the
+            # same identifier token as `_` in pattern/lambda positions
+            # (TOK-JAVA-0002)
+            identifier_types=frozenset(
+                {"identifier", "type_identifier", "underscore_pattern"}
+            ),
+            # TOK-JAVA-0002 governs only when an underscore_pattern actually
+            # lexes; cited per-occurrence, not statically (unlike TOK-JAVA-0001)
+            conditional_token_rulings={"underscore_pattern": R_TOK_UNDERSCORE},
             number_types=frozenset(
                 {
                     "decimal_integer_literal", "hex_integer_literal",
@@ -95,6 +108,15 @@ class JavaAdapter(LanguageAdapter):
                     "constructor_declaration", "class_declaration", "field_declaration",
                     "assert_statement", "yield_statement", "labeled_statement",
                     "synchronized_statement",
+                    # declarations (LOC-ALL-0004 covers declarations too)
+                    "package_declaration", "import_declaration", "interface_declaration",
+                    "enum_declaration", "record_declaration", "annotation_type_declaration",
+                    "annotation_type_element_declaration", "constant_declaration",
+                    "static_initializer", "compact_constructor_declaration",
+                    "explicit_constructor_invocation", "module_declaration",
+                    "requires_module_directive", "exports_module_directive",
+                    "opens_module_directive", "uses_module_directive",
+                    "provides_module_directive",
                 }
             ),
             function_def_types=frozenset(
@@ -147,6 +169,12 @@ class JavaAdapter(LanguageAdapter):
             first = node.children[0] if node.children else None
             if first is not None and first.type == "case":
                 return Classified(NodeClass.CASE_LABEL, (R_CC_CASE,))
+            return None
+        if t in ("break_statement", "continue_statement"):
+            # COG-JAVA-0001: only LABELED jumps increment (break LABEL /
+            # continue LABEL); a bare break/continue contributes nothing.
+            if any(child.type == "identifier" for child in node.children):
+                return Classified(NodeClass.JUMP_LABEL, (R_COG_JUMP,))
             return None
         return super().classify(node)
 

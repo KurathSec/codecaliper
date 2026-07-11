@@ -38,7 +38,9 @@ def cyclomatic(
     exclusion so a function node can be measured as a unit, CORE-ALL-0003)."""
     from codecaliper.syntax._treesitter import is_opaque
 
-    total = 1
+    # the base path is itself a counted increment: CC-ALL-0001 fires for every
+    # emitted cyclomatic value, so provenance and --explain carry it
+    total = int(ctx.count(R_BASE, root, 1, metric="cyclomatic"))
     stack = list(reversed(root.children))
     while stack:
         node = stack.pop()

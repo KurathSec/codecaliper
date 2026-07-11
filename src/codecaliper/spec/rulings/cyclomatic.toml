@@ -55,8 +55,10 @@ Each `if_clause` inside a comprehension/generator contributes one decision
 point (a guard is a branch). The `for_in_clause` itself does not (it is
 iteration syntax, not a decision). A case-clause guard `if_clause` is NOT
 separately counted — the guarded case_clause already counts under CC-PY-0008,
-and counting both would double-count one branch. Diverges from lizard
-(ignores comprehension guards).
+and counting both would double-count one branch. Diverges from lizard, which
+also counts the comprehension `for` clause as a loop (see divergences.toml,
+lizard/snippet:diff-comp-guard) — lizard counts the guard AND the for-clause;
+ours counts only the guard.
 """
 node_types = ["if_clause"]
 examples = ["py-comprehension-001"]

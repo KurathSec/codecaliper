@@ -29,6 +29,17 @@ R_COG_BOOLSEQ = require("COG-ALL-0003")
 R_COG_NESTING = require("COG-ALL-0004")
 R_COG_COMPREHENSION = require("COG-PY-0001")
 R_NESTED_UNITS = require("CORE-ALL-0003")
+R_TOK_ELLIPSIS = require("TOK-PY-0003")
+
+# BW-PY-0001's enumerated soft-keyword set (match/case/type/_), pinned so
+# classification is identical across the supported interpreters; asserted at
+# import time to be a superset of the running interpreter's softkwlist so a
+# future CPython addition can't drift silently past this table.
+_SOFT_KEYWORDS = frozenset({"_", "case", "match", "type"})
+assert _SOFT_KEYWORDS >= frozenset(keyword.softkwlist), (
+    f"host softkwlist {keyword.softkwlist} exceeds the pinned BW-PY-0001 set "
+    f"{sorted(_SOFT_KEYWORDS)} — reconcile the ruling before shipping"
+)
 
 _NODE_CLASS_MAP: dict[str, tuple[NodeClass, tuple[str, ...]]] = {
     "if_statement": (NodeClass.BRANCH, (R_CC_IF, R_COG_STRUCT)),
@@ -55,14 +66,24 @@ class PythonAdapter(LanguageAdapter):
             file_extensions=(".py", ".pyi"),
             # BW-PY-0001: kwlist (True/False/None included; soft keywords are identifiers)
             keywords=frozenset(keyword.kwlist),
-            # BW-PY-0001: soft keywords are identifiers, matching tokenize NAME
-            soft_keywords=frozenset(keyword.softkwlist),
+            # BW-PY-0001: soft keywords are identifiers, matching tokenize NAME.
+            # PINNED to the spec's enumerated set rather than the running
+            # interpreter's keyword.softkwlist — `type` (PEP 695) is absent from
+            # softkwlist before 3.12, which would make provenance for a `type`
+            # alias differ across the supported 3.10-3.14 interpreters.
+            soft_keywords=_SOFT_KEYWORDS,
             keyword_leaf_types=frozenset({"true", "false", "none"}),
             identifier_types=frozenset({"identifier"}),
+            # TOK-PY-0003: `...` (named `ellipsis` leaf) is an OPERATOR token,
+            # matching CPython tokenize's OP and Java's varargs `...`; otherwise
+            # it falls through to OTHER and vanishes from Halstead
+            operator_leaf_types=frozenset({"ellipsis"}),
             number_types=frozenset({"integer", "float"}),
-            string_types=frozenset({"string", "concatenated_string"}),
+            string_types=frozenset({"string"}),
             comment_types=frozenset({"comment"}),
-            atomic_types=frozenset({"string", "concatenated_string"}),  # TOK-PY-0001
+            # TOK-PY-0002: `string` is atomic; `concatenated_string` is
+            # descended so interleaved comments lex as COMMENT tokens
+            atomic_types=frozenset({"string"}),
             # BW-ALL-0006 operator classes (spellings mirror the reference extractor)
             arithmetic_ops=frozenset({"+", "-", "*", "/", "//", "%", "**", "@"}),
             comparison_ops=frozenset({"==", "!=", "<", ">", "<=", ">=", "<>"}),
@@ -77,15 +98,21 @@ class PythonAdapter(LanguageAdapter):
                 {
                     "expression_statement", "return_statement", "pass_statement",
                     "break_statement", "continue_statement", "import_statement",
-                    "import_from_statement", "raise_statement", "assert_statement",
+                    "import_from_statement", "future_import_statement",
+                    "raise_statement", "assert_statement",
                     "delete_statement", "global_statement", "nonlocal_statement",
                     "if_statement", "for_statement", "while_statement", "try_statement",
                     "with_statement", "function_definition", "class_definition",
-                    "match_statement",
+                    "match_statement", "type_alias_statement",
+                    # legacy py2 syntax the grammar still recognizes
+                    "print_statement", "exec_statement",
                 }
             ),
             function_def_types=frozenset({"function_definition"}),
             class_def_types=frozenset({"class_definition"}),
+            # TOK-PY-0003 governs only when an `...` actually lexes; cited
+            # per-occurrence, not statically
+            conditional_token_rulings={"ellipsis": R_TOK_ELLIPSIS},
         )
 
     def classify(self, node: Node) -> Classified | None:

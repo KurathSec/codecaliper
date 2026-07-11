@@ -77,6 +77,14 @@ def cognitive(
             elif k is NodeClass.BOOL_OP:
                 if c.new_sequence and ctx.in_range(node):
                     total += int(ctx.count(R_BOOLSEQ, node, 1, metric="cognitive"))
+            elif k is NodeClass.JUMP_LABEL:
+                # labeled jumps: flat +1, both modes, no nesting effect
+                # (whitepaper B1 fundamental increment; sonar-java implements it)
+                if ctx.in_range(node):
+                    for r in c.rulings:
+                        if r.startswith("COG-"):
+                            total += int(ctx.count(r, node, 1, metric="cognitive"))
+                            break
             elif k in (NodeClass.FUNCTION_DEF, NodeClass.LAMBDA):
                 if exclude_nested_units and k is NodeClass.FUNCTION_DEF:
                     continue  # CORE-ALL-0003: nested units get their own reports

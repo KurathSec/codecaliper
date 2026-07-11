@@ -11,7 +11,11 @@ from codecaliper.readability.bw2010 import (
     CALIBRATED_LINE_RANGE,
     bw_features,
 )
-from codecaliper.syntax.tokens import LexicalToken
+from codecaliper.spec import require
+from codecaliper.syntax.tokens import LexicalToken, lang_tokenization_rulings
+
+R_TOK_LINE = require("TOK-ALL-0005")  # token line attribution
+R_TOK_TAB = require("TOK-ALL-0006")   # tab = 8 indentation characters
 
 JAVA_SNIPPET_PREFIX = "class __CC__ {\nvoid __cc__() {\n"
 JAVA_SNIPPET_SUFFIX = "\n}\n}\n"
@@ -60,6 +64,34 @@ def rebase_tokens(
     ]
 
 
+def _bw_vector_rulings(
+    adapter: LanguageAdapter, lexical_fallback: bool, cond_rulings: tuple[str, ...]
+) -> tuple[str, ...]:
+    """The governing set for an emitted BW vector: the six BW-ALL requires,
+    the language-specific bw2010 rulings (keyword/branch-keyword delimitation),
+    and the tokenization rulings that shape the features (TOK-ALL-0005 line
+    attribution, TOK-ALL-0006 tab=8 indentation, the language's static
+    atomic-string rulings). ``cond_rulings`` are the construct-specific
+    tokenization rulings (TOK-ALL-0007 anonymous words, TOK-JAVA-0002 `_`) that
+    actually engaged inside THIS vector's line span; BW-ALL-0007 stays strictly
+    conditional on the lexical fallback actually engaging."""
+    from codecaliper.spec import iter_rulings
+
+    lang_specific = tuple(sorted(
+        r.id
+        for r in iter_rulings(metric="bw2010", language=adapter.name)
+        if r.id not in BW_RULINGS and r.id != "BW-ALL-0007"
+    ))
+    return (
+        BW_RULINGS
+        + lang_specific
+        + (R_TOK_LINE, R_TOK_TAB)
+        + lang_tokenization_rulings(adapter)
+        + tuple(sorted(cond_rulings))
+        + (("BW-ALL-0007",) if lexical_fallback else ())
+    )
+
+
 def vector(
     lines: list[str],
     tokens: list[LexicalToken],
@@ -70,6 +102,7 @@ def vector(
     span: Span | None = None,
     scaffolded: bool = False,
     lexical_fallback: bool = False,
+    cond_rulings: tuple[str, ...] = (),
 ) -> FeatureVectorResult:
     features = bw_features(lines, tokens, adapter)
     diags: list[Diagnostic] = []
@@ -121,11 +154,18 @@ def vector(
         extrapolated=extrapolated,
         names=BW_FEATURE_NAMES,
         values=tuple(features[n] for n in BW_FEATURE_NAMES),
-        rulings=BW_RULINGS + (("BW-ALL-0007",) if lexical_fallback else ()),
+        rulings=_bw_vector_rulings(adapter, lexical_fallback, cond_rulings),
         diagnostics=tuple(diags),
         unit_name=unit_name,
         span=span,
     )
+
+
+def cond_in_range(cond_lines: dict[str, set[int]], lo: int, hi: int) -> tuple[str, ...]:
+    """Conditional tokenization rulings that engaged on a line within [lo, hi]."""
+    return tuple(sorted(
+        rid for rid, lns in cond_lines.items() if any(lo <= ln <= hi for ln in lns)
+    ))
 
 
 def function_vectors(
@@ -134,12 +174,17 @@ def function_vectors(
     adapter: LanguageAdapter,
     units: list[FunctionUnit],
     opaque_tokens: list[LexicalToken] | None = None,
+    cond_opaque: dict[str, set[int]] | None = None,
+    cond_full: dict[str, set[int]] | None = None,
 ) -> list[FeatureVectorResult]:
     """Per-unit vectors. ``opaque_tokens`` is the error-opaque stream, passed
     only when the file-level BW lexical fallback engaged (BW-ALL-0007): a
     unit's vector is flagged only when its OWN span gained ERROR-region tokens
     — the opaque stream is a subsequence of the full one, so equal slice
-    lengths imply identical slices."""
+    lengths imply identical slices. ``cond_opaque``/``cond_full`` map each
+    conditional tokenization ruling to the lines it engaged on in the
+    respective stream; a unit cites one only when it engaged inside the unit's
+    OWN span (in the stream that unit actually used)."""
     out = []
     for unit in units:
         s, e = unit.span.start_line, unit.span.end_line
@@ -148,6 +193,8 @@ def function_vectors(
             opaque_tokens is not None
             and len(unit_tokens) != len(rebase_tokens(opaque_tokens, s, e))
         )
+        cond_src = cond_full if unit_fallback else cond_opaque
+        cond_rulings = cond_in_range(cond_src, s, e) if cond_src is not None else ()
         out.append(
             vector(
                 lines[s - 1 : e],
@@ -157,6 +204,7 @@ def function_vectors(
                 unit_name=unit.qualified_name,
                 span=unit.span,
                 lexical_fallback=unit_fallback,
+                cond_rulings=cond_rulings,
             )
         )
     return out

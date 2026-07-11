@@ -57,7 +57,7 @@ Isolation seams (enforced, not conventional):
 - Metric engines (`metrics/`) and readability (`readability/`) never see tree-sitter node-type
   strings — only the `NodeClass`/`TokenKind` enums. All per-language knowledge lives in
   `languages/python.py` / `languages/java.py` as plain dict tables + small named hook methods,
-  every row citing a ruling. Adding a language touches zero core code (checklist in
+  every increment-bearing row citing a ruling. Adding a language touches zero core code (checklist in
   CONTRIBUTING.md).
 - `tests/_reference/` holds verbatim ports from Spaghetti Architect (the stdlib BW extractor and
   the Python-AST lane) used as per-PR differential oracles. They must NEVER be imported from
@@ -71,7 +71,7 @@ authoritative whitepaper-vs-Sonar diff.
 
 Known ruled divergences to not "fix": the tree-sitter lane counts ternaries/match-case in CC, the
 `tests/_reference` lane does not (`test_python_lane_crosscheck.py` asserts the divergence
-exactly); f-string interpolation contents are invisible to token-level BW features (TOK-PY-0001).
+exactly); f-string interpolation contents are invisible to token-level BW features (TOK-PY-0002).
 
 ## Honesty invariants (encoded in types — keep them that way)
 
@@ -93,13 +93,21 @@ from ruling `examples`.
 
 ## Current status / next milestones
 
-Spec v1.0.0 (first calibrated evolution: TOK-ALL-0006 tab=8 supersedes TOK-ALL-0004,
-BW-ALL-0007 lexical fallback added, ops arbitration null — all via the pre-registered
-experiment in `validation/bw_faithfulness/derived/arbitration_report.md`), W1–6 done:
+Spec v1.1.0 (MINOR on top of the 1.0.0 arbitration: COG-JAVA-0001 labeled jumps,
+TOK-ALL-0007 anonymous word tokens = identifiers, TOK-PY-0002 supersedes TOK-PY-0001
+(concatenated_string descended: interleaved comments are COMMENT tokens), TOK-JAVA-0002
+(`_` = identifier in every position), TOK-PY-0003 (`...` = operator token),
+lloc tables completed, corpus 26 cases —
+no existing corpus value changed; 1.0.0 itself was the first calibrated evolution:
+TOK-ALL-0006 tab=8 supersedes TOK-ALL-0004, BW-ALL-0007 lexical fallback, ops arbitration
+null, via the pre-registered experiment in
+`validation/bw_faithfulness/derived/arbitration_report.md`, now re-runnable from pinned
+inputs in `derived/arbitration_inputs/`), W1–6 done:
 skeleton + tree-sitter + BW port (W1–3); UNCOVERED list EMPTY — every
 active ruling has a corpus case — and mypy --strict is a hard CI gate (W4–5); BW faithfulness
-reproduction ran end-to-end (W6, paper's Fig. 5 cutoff 3.14; under spec 1.0.0's arbitrated
-rulings: 10-fold logistic accuracy 0.820, bootstrap 95% CI [0.770, 0.870] overlapping the
+reproduction ran end-to-end (W6, paper's Fig. 5 cutoff 3.14; under the arbitrated rulings,
+re-stamped spec 1.1.0 with dataset numbers byte-identical:
+10-fold logistic accuracy 0.820, bootstrap 95% CI [0.770, 0.870] overlapping the
 paper's ~0.80, AUC 0.828, sign agreement 21/24; deviations documented in the report — see
 `validation/bw_faithfulness/derived/bw_faithfulness_report.md`; dataset license is UNVERIFIED,
 dataset content stays in gitignored `cache/`, only aggregates/feature vectors live in tracked

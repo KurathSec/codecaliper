@@ -215,6 +215,11 @@
     "classifier": "LogisticRegression(max_iter=1000)",
     "cv": "StratifiedKFold(n_splits=10, shuffle=True, random_state=0)",
     "deviation_from_paper": "(1) The paper evaluated a battery of classifiers (Bayesian classifier, logistic regression, multilayer perceptron, ...) under 10-fold cross-validation; its ~0.80 accuracy summarizes that setting. This reproduction runs logistic regression ONLY (LogisticRegression(max_iter=1000), raw unscaled features). (2) The paper repeats the entire 10-fold validation 10 times over fresh random partitionings and averages across runs; this reproduction uses ONE fixed-seed partitioning (random_state=0) for byte-reproducibility (ARCHITECTURE.md section 8.3).",
+    "environment": {
+      "narwhals": "2.23.0",
+      "numpy": "2.5.1",
+      "scikit_learn": "1.9.0"
+    },
     "features": "raw (unscaled) 25-feature vectors from derived/features.csv"
   },
   "results": {
@@ -258,7 +263,7 @@
       "validated": true,
       "version": "0.23.5"
     },
-    "spec_version": "1.0.0",
+    "spec_version": "1.1.0",
     "tool_version": "0.1.0.dev0"
   },
   "title": "BW 2010 faithfulness reproduction (ARCHITECTURE.md §8.3)"

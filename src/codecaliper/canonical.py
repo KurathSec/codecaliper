@@ -98,13 +98,19 @@ def to_csv(reports: list[FileReport]) -> str:
             row += ["" for _ in bw_names] + ["", ""]
         row += prov_cells
         w.writerow(row)
-        fn_vecs = {v.unit_name: v for v in rep.readability if v.granularity == "function"}
+        # keyed by (name, span): qualified names alone are not unique (Java
+        # overloads, Python redefinitions) and would misattribute vectors
+        fn_vecs = {
+            (v.unit_name, v.span.start_line, v.span.end_line): v
+            for v in rep.readability
+            if v.granularity == "function" and v.span is not None
+        }
         for fn in rep.functions:
             fm = {mv.metric: mv.value for mv in fn.metrics}
             row = [rep.path or "", "function", fn.qualified_name,
                    fn.span.start_line, fn.span.end_line]
             row += [_cell(fm.get(m)) for m in metric_names]
-            vec = fn_vecs.get(fn.qualified_name)
+            vec = fn_vecs.get((fn.qualified_name, fn.span.start_line, fn.span.end_line))
             if vec is not None:
                 fv = dict(zip(vec.names, vec.values, strict=True))
                 row += [_cell(fv.get(n)) for n in bw_names]

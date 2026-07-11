@@ -79,6 +79,23 @@ def test_all_ruling_ids_in_src_resolve() -> None:
             ruling(rid)
 
 
+def test_supersession_chain_is_consistent() -> None:
+    """A superseded ruling must name a resolvable, ACTIVE successor, and a
+    superseded_by pointer may only appear on superseded rulings — the chain is
+    registry data the CLI and generated docs surface, so it may not dangle."""
+    for r in iter_rulings():
+        if r.status == "superseded":
+            assert r.superseded_by, f"{r.id} is superseded but names no successor"
+            successor = ruling(r.superseded_by)  # raises SpecError if phantom
+            assert successor.status == "active", (
+                f"{r.id} is superseded by {successor.id}, which is not active"
+            )
+        else:
+            assert not r.superseded_by, (
+                f"{r.id} has superseded_by={r.superseded_by!r} but status={r.status!r}"
+            )
+
+
 def test_src_never_imports_test_oracles() -> None:
     """Anti-salami boundary (ARCHITECTURE.md §1 invariant 3)."""
     banned = ("tests._reference", "_reference.bw_stdlib", "_reference.py_ast_lane",

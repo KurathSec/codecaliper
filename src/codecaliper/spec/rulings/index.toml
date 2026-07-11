@@ -4,7 +4,35 @@
 #   major = any change that alters a number for any existing corpus case
 #           (including a grammar pin bump that does so).
 [spec]
-version = "1.0.0"
+version = "1.1.0"
+
+[[changelog]]
+version = "1.1.0"
+summary = """
+Completions, no existing corpus value changes (MINOR): COG-JAVA-0001 added
+(labeled break/continue = flat +1 in both modes — the whitepaper's fundamental
+increment was silently missing for Java); TOK-ALL-0007 added (anonymous
+word tokens outside the keyword table are identifiers — Python `__future__`
+and Java contextual keywords previously fell through to OPERATOR, except
+`yield`, which the Java keyword table wrongly reserved, contradicting
+BW-JAVA-0001, so it lexed as KEYWORD); TOK-PY-0002 supersedes TOK-PY-0001
+(`concatenated_string` is descended: implicit-concatenation parts are separate
+STRING tokens and an interleaved comment is a COMMENT token — the superseded
+ruling swallowed such comments into one string token, undercounting comment
+lines); TOK-JAVA-0002 added (Java `_` is an IDENTIFIER token in every
+position — `underscore_pattern` declarator uses previously lexed as OTHER,
+while pattern/lambda uses already lexed as identifiers); TOK-PY-0003 added
+(Python `...`, the named `ellipsis` leaf, lexes as an OPERATOR token and is
+therefore visible to Halstead — previously it fell through to OTHER,
+undercounting `.pyi`-shaped stub bodies); the lloc statement
+tables were completed to match LOC-ALL-0004's stated scope (Python:
+future_import_statement, type_alias_statement, legacy print/exec; Java:
+package/import/interface/enum/record/annotation-type/constant declarations,
+static initializers, compact constructors, explicit constructor invocations,
+module declarations and directives). Numeric changes on inputs containing
+those constructs only (including a Halstead change on `...`-bearing inputs);
+every new ruling ships with its corpus case.
+"""
 
 [[changelog]]
 version = "1.0.0"

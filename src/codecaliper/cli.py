@@ -43,8 +43,9 @@ def _measure_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("files", nargs="+", metavar="FILE")
     p.add_argument("--lang", default="auto", choices=["auto", "python", "java"])
-    p.add_argument("--json", action="store_true", help="JSON output (default)")
-    p.add_argument("--csv", action="store_true", help="wide-format CSV output")
+    fmt = p.add_mutually_exclusive_group()
+    fmt.add_argument("--json", action="store_true", help="JSON output (default)")
+    fmt.add_argument("--csv", action="store_true", help="wide-format CSV output")
     p.add_argument("--metrics", default=",".join(
         ("cyclomatic", "cognitive", "halstead", "maintainability_index", "loc")))
     p.add_argument("--no-readability", action="store_true")
@@ -104,8 +105,12 @@ def _cmd_measure(argv: list[str]) -> int:
     else:
         out = "".join(canonical.to_json(r) for r in reports)
     if opts.output:
-        with open(opts.output, "w", encoding="utf-8") as f:
-            f.write(out)
+        try:
+            with open(opts.output, "w", encoding="utf-8") as f:
+                f.write(out)
+        except OSError as exc:
+            print(f"codecaliper: error: {exc}", file=sys.stderr)
+            return 1
     else:
         sys.stdout.write(out)
     return 2 if had_error_diag else 0
@@ -150,6 +155,8 @@ def _cmd_spec(argv: list[str]) -> int:
         print(f"{r.id} — {r.title}")
         print(f"metric: {r.metric}   language: {r.language}   status: {r.status}"
               + (f"   mode: {r.mode}" if r.mode else ""))
+        if r.superseded_by:
+            print(f"superseded by: {r.superseded_by}")
         print(f"since spec: {r.since_spec}")
         if r.node_types:
             print(f"node types: {', '.join(r.node_types)}")

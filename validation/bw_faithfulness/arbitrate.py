@@ -24,7 +24,8 @@ random_state=0), fold accuracies + seeded bootstrap CI, AUC via
 cross_val_predict decision_function, per-feature Spearman + Fig. 9 sign
 table). The protocol code is a copy of train.py's; before any other cell is
 trusted, the baseline cell (fallback_off, tab=1, V0_current) is asserted to
-reproduce the committed derived/train_results.json EXACTLY.
+reproduce the committed pre-fallback training record EXACTLY
+(derived/arbitration_inputs/train_results_fallback_off.json).
 
 PRE-REGISTERED DECISION RULE (written before any matrix cell was computed):
 
@@ -104,12 +105,18 @@ HERE = Path(__file__).resolve().parent
 CACHE = HERE / "cache"
 DERIVED = HERE / "derived"
 ARCHIVE = CACHE / "DatasetBW.zip"
-FEATURES_ON = DERIVED / "features.csv"                   # post-BW-ALL-0007 extraction
-FEATURES_OFF = DERIVED / "features_fallback_off.csv"     # git show HEAD: pre-fallback copy
+# The experiment's inputs are PINNED tracked copies (derived/arbitration_inputs/),
+# not the live derived/ files: after spec 1.0.0 adopted the arbitrated rulings,
+# the live features.csv / train_results.json / extract_meta.json moved on to the
+# post-adoption state, which the baseline and tab=1 gates below correctly reject.
+# See README.md "Reproducing the arbitration" for the input contract.
+PINNED = DERIVED / "arbitration_inputs"
+FEATURES_ON = PINNED / "features_fallback_on_tab1.csv"   # fallback_on, tab=1 (spec 0.1.0)
+FEATURES_OFF = DERIVED / "features_fallback_off.csv"     # pre-BW-ALL-0007 extraction
 SCORES = CACHE / "scores.csv"
 SIGNS = HERE / "fig9_signs.toml"
-BASELINE = DERIVED / "train_results.json"                # committed fallback_off training
-META_ON = DERIVED / "extract_meta.json"
+BASELINE = PINNED / "train_results_fallback_off.json"    # pre-fallback training record
+META_ON = PINNED / "extract_meta_fallback_on_tab1.json"
 OUT_JSON = DERIVED / "arbitration_report.json"
 OUT_MD = DERIVED / "arbitration_report.md"
 
@@ -292,15 +299,16 @@ def run_protocol(
 
 
 def _assert_baseline(result: dict[str, Any]) -> None:
-    """The copied protocol must reproduce the committed derived/train_results.json
+    """The copied protocol must reproduce the pinned pre-fallback training record
     for the baseline cell (fallback_off, tab=1, V0_current) EXACTLY (qfloat)."""
     from codecaliper.canonical import qfloat
 
     committed = json.loads(BASELINE.read_text(encoding="utf-8"))
     if committed.get("extraction", {}).get("empty_token_vector_count") != 8:
         raise SystemExit(
-            "ERROR: derived/train_results.json is not the committed fallback_off "
-            "training (expected extraction.empty_token_vector_count == 8) — the "
+            "ERROR: the pinned baseline (arbitration_inputs/train_results_fallback_off"
+            ".json) is not the pre-fallback training record "
+            "(expected extraction.empty_token_vector_count == 8) — the "
             "baseline assertion has no valid reference."
         )
     want = committed["results"]
@@ -340,7 +348,8 @@ def _md(report: dict[str, Any], variant_names: list[str]) -> str:
     add("")
     add("Empirical-arbiter loop, ARCHITECTURE.md §8.3. Every cell runs the exact")
     add("train.py protocol; the baseline cell reproduced the committed")
-    add("`derived/train_results.json` exactly before the rest of the matrix was trusted.")
+    add("pre-fallback training record (`derived/arbitration_inputs/`) exactly before")
+    add("the rest of the matrix was trusted.")
     add("")
     add("## Pre-registered decision rule (verbatim)")
     add("")
@@ -427,10 +436,11 @@ def _md(report: dict[str, Any], variant_names: list[str]) -> str:
 def main() -> int:  # noqa: PLR0915 - one linear experiment script
     for path, hint in (
         (ARCHIVE, "run fetch.py first"),
-        (FEATURES_OFF, "git show HEAD:validation/bw_faithfulness/derived/features.csv"),
-        (FEATURES_ON, "run extract.py (BW-ALL-0007 build)"),
+        (FEATURES_OFF, "tracked pinned input — restore from git"),
+        (FEATURES_ON, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
         (SCORES, "run extract.py"),
-        (BASELINE, "run train.py on the committed fallback_off matrix"),
+        (BASELINE, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
+        (META_ON, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
     ):
         if not path.exists():
             print(f"SKIP: {path.relative_to(HERE)} missing — {hint}.")
@@ -469,14 +479,14 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     col = {name: i for i, name in enumerate(BW_FEATURE_NAMES)}
 
     # --- baseline reproduction gate: the copied protocol must reproduce the
-    # committed train_results.json EXACTLY before anything else is computed.
+    # pinned pre-fallback training record EXACTLY before anything else runs.
     def as_array(mode: str) -> Any:
         return np.array([matrices[mode][i] for i in snippet_ids])
 
     baseline = run_protocol(as_array("fallback_off"), mean_scores, signs, BW_FEATURE_NAMES)
     _assert_baseline(baseline)
-    print("baseline cell (fallback_off, tab=1, V0_current) reproduces the committed "
-          "train_results.json exactly — protocol copy validated.")
+    print("baseline cell (fallback_off, tab=1, V0_current) reproduces the pinned "
+          "pre-fallback training record exactly — protocol copy validated.")
 
     # --- ops variants, built from the adapter table so V0 is literally "as-is"
     v0 = frozenset(get_adapter("java").arithmetic_ops)
@@ -672,7 +682,10 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         on_c["n_sign_agree"] >= off_c["n_sign_agree"]
         and on_c["auc"] >= off_c["auc"] - MATERIAL_AUC_DROP
     )
-    ext_on = json.loads(META_ON.read_text(encoding="utf-8")) if META_ON.exists() else {}
+    # META_ON existence is gated in main(): a missing pinned record must SKIP,
+    # never degrade into a report with null extraction stamps or a rationale
+    # quoting a hardcoded default masquerading as data
+    ext_on = json.loads(META_ON.read_text(encoding="utf-8"))
     fallback_note = (
         f"at the adopted setting, fallback_on has {on_c['n_sign_agree']}/24 sign agreements "
         f"vs {off_c['n_sign_agree']}/24 and AUC {qfloat(on_c['auc'])} vs "
@@ -681,7 +694,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
             "no material reduction, so BW-ALL-0007 is ADOPTED — its independent "
             "justification is construct fidelity (the original BW instrument was "
             "grammar-less) and coverage (empty-token vectors 8 -> "
-            f"{ext_on.get('empty_token_vector_count', 0)}, full token streams "
+            f"{ext_on['empty_token_vector_count']}, full token streams "
             "29/100 -> 100/100)."
             if fallback_ok
             else "a material reduction, so BW-ALL-0007 is REJECTED by the pre-registered rule "
@@ -734,15 +747,37 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         "dataset whose reproduction accuracy is reported; the reproduction is evidence of "
         "faithful operationalization, not an independent validation of BW's construct.",
         "The baseline cell (fallback_off, tab=1, V0_current) was asserted to reproduce the "
-        "committed derived/train_results.json exactly (fold accuracies, CI, AUC, per-feature "
+        "committed pre-fallback training record exactly (fold accuracies, CI, AUC, per-feature "
         "Spearman, sign table) before the rest of the matrix was computed.",
+        "Reconciliation with the final instrument run: the adopted cell's AUC "
+        "(fallback_on/tab=8/V0, 0.827201322861) differs from the headline AUC of the "
+        "final re-extraction (derived/train_results.json, 0.827614716825 — first "
+        "produced under spec 1.0.0 and byte-identical on every number when re-stamped "
+        "under spec 1.1.0) "
+        "by exactly one ranked pair (1/2419 = 0.000413): the matrix splices full-precision "
+        "recomputed indentation values into the feature array, while the instrument's "
+        "train.py consumes the canonical 12-significant-digit features.csv. The feature "
+        "VALUES agree under 12-significant-digit quantization for all 100 snippets — the "
+        "gap is serialization precision flipping one near-tied AUC pair, not a semantic "
+        "difference; 0.828 (the final run) is the instrument's number.",
     ]
+
+    import narwhals
+    import sklearn
 
     report: dict[str, Any] = {
         "decision_rule": DECISION_RULE,
+        "environment": {
+            "narwhals": narwhals.__version__,
+            "numpy": np.__version__,
+            "scikit_learn": sklearn.__version__,
+            "note": "the AUC is sensitive at the single-ranked-pair level (0.0004), "
+                    "so byte-reproducibility of this report is scoped to this ML stack "
+                    "(constraints/retrain.txt) as well as per platform",
+        },
         "extraction": {
             "fallback_off": {
-                "source": "git show HEAD:validation/bw_faithfulness/derived/features.csv "
+                "source": "derived/features_fallback_off.csv "
                           "(pre-BW-ALL-0007 extraction, error-opaque token stream)",
                 "empty_token_vector_count": sum(
                     1
@@ -752,13 +787,14 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
                 ),
             },
             "fallback_on": {
-                "source": "extract.py re-run with BW-ALL-0007 implemented "
-                          "(full lexical stream on parse errors)",
-                "empty_token_vector_count": ext_on.get("empty_token_vector_count"),
-                "parse_ok_count": ext_on.get("parse_ok_count"),
-                "scaffolded_count": ext_on.get("scaffolded_count"),
-                "spec_version": ext_on.get("spec_version"),
-                "grammar": ext_on.get("grammar"),
+                "source": "derived/arbitration_inputs/features_fallback_on_tab1.csv "
+                          "(extract.py with BW-ALL-0007 implemented: full lexical "
+                          "stream on parse errors; tab=1, spec 0.1.0)",
+                "empty_token_vector_count": ext_on["empty_token_vector_count"],
+                "parse_ok_count": ext_on["parse_ok_count"],
+                "scaffolded_count": ext_on["scaffolded_count"],
+                "spec_version": ext_on["spec_version"],
+                "grammar": ext_on["grammar"],
             },
         },
         "ops_variants": {name: sorted(ops) for name, ops in variants.items()},

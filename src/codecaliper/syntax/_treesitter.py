@@ -77,7 +77,7 @@ def is_opaque(node: Node) -> bool:
 def leaves(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
     """Terminal-token stream: descend to leaves, but consume node types in
     ``atomic_types`` (e.g. Python ``string`` with its start/content/end
-    children) as single opaque tokens (TOK-PY-0001 / TOK-JAVA-0001).
+    children) as single opaque tokens (TOK-PY-0002 / TOK-JAVA-0001).
 
     ERROR/MISSING subtrees yield nothing and are not descended into
     (CORE-ALL-0002): their tokens must not feed Halstead/LOC or (on clean

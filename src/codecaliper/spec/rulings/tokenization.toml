@@ -64,6 +64,8 @@ id = "TOK-PY-0001"
 metric = "tokenization"
 language = "python"
 title = "Python atomic tokens: strings are consumed whole"
+status = "superseded"
+superseded_by = "TOK-PY-0002"
 statement = """
 `string` and `concatenated_string` subtrees are consumed as single STRING
 tokens. F-string interpolation contents therefore do NOT contribute token-level
@@ -75,6 +77,48 @@ uniformity with Java strings is preferred.
 node_types = ["string", "concatenated_string"]
 
 [[ruling]]
+id = "TOK-PY-0002"
+metric = "tokenization"
+language = "python"
+title = "Python atomic tokens: strings are consumed whole; implicit concatenation is descended"
+since_spec = "1.1.0"
+statement = """
+`string` subtrees are consumed as single STRING tokens. F-string interpolation
+contents therefore do NOT contribute token-level features (identifiers and
+operators inside interpolations are invisible); this diverges from CPython
+3.12+ tokenize (PEP 701), the divergence vs the stdlib reference extractor is
+classified, and uniformity with Java strings is preferred. A
+`concatenated_string` (implicit concatenation) is NOT atomic: it is descended,
+so each string part is its own STRING token and a comment interleaved between
+parts is an ordinary COMMENT token — matching CPython tokenize. Supersedes
+TOK-PY-0001, which consumed `concatenated_string` whole and thereby silently
+swallowed interleaved comments (undercounting comment lines and counting
+comment-only lines inside the concatenation as code).
+"""
+node_types = ["string", "concatenated_string"]
+examples = ["py-concat-string-001", "py-multiline-string-001"]
+
+[[ruling]]
+id = "TOK-PY-0003"
+metric = "tokenization"
+language = "python"
+title = "Python `...` is an operator token"
+since_spec = "1.1.0"
+statement = """
+The `...` literal (the grammar's named `ellipsis` leaf) lexes as an OPERATOR
+token. This matches CPython tokenize (which emits an OP token for `...`) and
+Java's varargs `...` (also OPERATOR), and keeps `...` visible to Halstead as
+an operator — consistent with Python's other singleton literals (None/True/
+False count as Halstead operators via keyword_leaf_types). Before 1.1.0 the
+named `ellipsis` leaf fell through to OTHER and was invisible to Halstead
+(systematically undercounting `.pyi` stub bodies, which are mostly `...`). BW
+token-family features are unaffected either way: `...` matches none of the
+counted operator spellings.
+"""
+node_types = ["ellipsis"]
+examples = ["py-ellipsis-001"]
+
+[[ruling]]
 id = "TOK-JAVA-0001"
 metric = "tokenization"
 language = "java"
@@ -84,6 +128,45 @@ statement = """
 tokens (text blocks included).
 """
 node_types = ["string_literal", "character_literal"]
+
+[[ruling]]
+id = "TOK-JAVA-0002"
+metric = "tokenization"
+language = "java"
+title = "Java `_` is an identifier token in every position"
+since_spec = "1.1.0"
+statement = """
+The reserved word `_` (JLS §3.9, reserved since SE 9) lexes as an IDENTIFIER
+token in every syntactic position. The grammar already yields `identifier`
+nodes for `_` in switch patterns and lambda parameters; the
+`underscore_pattern` node it yields for unnamed variable declarators is
+classified identically, so the same source token cannot silently change token
+class with syntactic position (before 1.1.0 it lexed as OTHER there —
+invisible to BW token-family features and Halstead). Mirrors BW-PY-0001,
+which counts Python's soft-keyword `_` as an identifier. BW-JAVA-0001's
+keyword table deliberately omits `_`.
+"""
+node_types = ["underscore_pattern"]
+examples = ["java-underscore-001"]
+
+[[ruling]]
+id = "TOK-ALL-0007"
+metric = "tokenization"
+language = "all"
+title = "Anonymous word tokens outside the keyword table are identifiers"
+since_spec = "1.1.0"
+statement = """
+A grammar-anonymous leaf token whose text is word-shaped (letter/underscore
+start, word characters, internal hyphens allowed) and not in the language's
+keyword table is an IDENTIFIER token: Python's `__future__`, Java's contextual
+keywords (record, sealed, non-sealed, permits, when, yield, module directives).
+This matches the reference tokenizers, which yield NAME for all of them, and
+keeps the keyword tables exactly the reserved-word sets (BW-PY-0001,
+BW-JAVA-0001). Before 1.1.0 these tokens fell through to OPERATOR — except
+Java's `yield`, which was wrongly in the keyword table (contradicting
+BW-JAVA-0001's stated set) and lexed as KEYWORD.
+"""
+examples = ["py-future-import-001", "java-contextual-001"]
 
 [[ruling]]
 id = "TOK-ALL-0006"

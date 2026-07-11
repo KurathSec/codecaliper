@@ -1,0 +1,45 @@
+[case]
+id = "java-contextual-001"
+language = "java"
+rulings = ["TOK-ALL-0007", "BW-JAVA-0001", "LOC-ALL-0004", "CC-JAVA-0006"]
+computed_by = "hand"
+notes = """
+TOK-ALL-0007 (new in spec 1.1.0): Java contextual keywords are IDENTIFIER
+tokens — `record` (line 1) and `yield` (line 6) are not JLS reserved words,
+so they are outside the keyword table (BW-JAVA-0001) and classify as
+word-shaped anonymous tokens; before 1.1.0 `record` fell through to OPERATOR,
+while `yield` was wrongly in the keyword table (contradicting BW-JAVA-0001's
+stated set) and lexed as KEYWORD.
+CC = 1 + case = 2 (`default` does not count, CC-JAVA-0006).
+Cognitive = switch +1 (nesting 0), both modes; case labels contribute nothing.
+10 physical lines, no blanks/comments, every line has code tokens -> sloc 10.
+lloc = record_declaration + method + return + switch_expression +
+expression_statement (the `0;` arrow body) + yield_statement = 6.
+BW over 10 lines: identifiers L1: record, Point, x, y = 4; L2: quadrant = 1;
+L3: x = 1; L6: yield = 1 -> sum 7, avg 0.7, max 4. Keywords L1: int, int = 2;
+L2: int = 1; L3: return, switch = 2; L4: case = 1; L5: default = 1 -> sum 7,
+avg 0.7, max 2. Numbers L4: 0, 0 = 2; L6: 1 = 1 -> avg 0.3, max 2.
+"""
+
+[expect.file]
+cyclomatic = 2
+physical_lines = 10
+sloc = 10
+comment_lines = 0
+lloc = 6
+
+[expect.file.cognitive]
+whitepaper = 1
+sonar_compat = 1
+
+[expect.functions.quadrant]
+cyclomatic = 2
+cognitive = 1
+
+[expect.bw]
+avg_identifiers = 0.7
+max_identifiers = 4.0
+avg_keywords = 0.7
+max_keywords = 2.0
+avg_numbers = 0.3
+max_numbers = 2.0

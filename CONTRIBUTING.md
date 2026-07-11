@@ -36,7 +36,8 @@ ruff check src tests tools
    `constraints/ci.txt`, calibrated version in
    `src/codecaliper/spec/validated_grammars.toml`).
 2. Write `src/codecaliper/languages/<lang>.py`: token tables, node-class map,
-   hooks — every row citing a ruling. `tests/test_grammar_integrity.py` will
+   hooks — every increment-bearing row citing a ruling (nesting-only rows
+   carry an empty tuple). `tests/test_grammar_integrity.py` will
    hold your tables to the compiled grammar.
 3. Add `*-<LANG>-*` rulings for every language-specific decision.
 4. Add corpus cases with hand-computed expectations.

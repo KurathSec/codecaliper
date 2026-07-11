@@ -77,4 +77,9 @@ def is_reference_comparable(case: dict) -> bool:
         c.get("parse_ok", True)
         and c.get("input") != "bytes"
         and c.get("granularity") is None
+        # a case may opt out when it exercises a construct an external oracle
+        # cannot parse at all (e.g. lizard sees no functions in a single-line
+        # `...`-body stub) — the mismatch is the oracle's limit, not a value
+        # divergence, and the case's own hand-computed expectations still gate it
+        and c.get("reference_comparable", True)
     )

@@ -31,6 +31,8 @@ from codecaliper.syntax import tokens as tok_mod
 
 DEFAULT_METRICS = ("cyclomatic", "cognitive", "halstead", "maintainability_index", "loc")
 _FEATURE_SETS = ("bw2010",)
+_GRANULARITIES = ("snippet", "function", "file")
+_COGNITIVE_MODES = ("whitepaper", "sonar-compat")
 
 CognitiveMode = Literal["whitepaper", "sonar-compat"]
 
@@ -61,6 +63,19 @@ class Session:
             raise CodecaliperError(
                 f"unknown readability feature set(s) {unknown_fs!r}; "
                 f"available: {', '.join(_FEATURE_SETS)}"
+            )
+        # Literal types only protect type-checked callers; an invalid mode
+        # would otherwise silently measure as sonar-compat and stamp an
+        # internally inconsistent provenance.
+        if granularity not in _GRANULARITIES:
+            raise CodecaliperError(
+                f"unknown granularity {granularity!r}; "
+                f"available: {', '.join(_GRANULARITIES)}"
+            )
+        if cognitive_mode not in _COGNITIVE_MODES:
+            raise CodecaliperError(
+                f"unknown cognitive mode {cognitive_mode!r}; "
+                f"available: {', '.join(_COGNITIVE_MODES)}"
             )
         self.granularity: Granularity = granularity
         self.cognitive_mode: CognitiveMode = cognitive_mode
@@ -189,15 +204,33 @@ def _measure(
             )
         )
 
+    domain = (1, max(len(lines), 1))  # emitted traces may not point outside it
     ctx = MetricContext(
         cognitive_mode=cognitive_mode, explain=explain,
-        line_range=line_range, line_offset=line_offset,
+        line_range=line_range, line_offset=line_offset, domain=domain,
     )
-    all_tokens = tok_mod.lex(tree, source_bytes, adapter)
+    # TOK-ALL-0003 attaches no diagnostic by design, so its firing is detected
+    # from the raw input directly (every diagnostic-cited ruling is harvested
+    # into rulings_applied just before Provenance is built).
+    had_cr = b"\r" in source if isinstance(source, bytes) else "\r" in source
+    if had_cr:
+        ctx.fired.add("TOK-ALL-0003")
+    # cond_opaque/cond_full record, per conditional tokenization ruling, the
+    # physical lines it engaged on in the error-opaque (metrics) stream and the
+    # ERROR-inclusive (BW fallback) stream respectively, so each value cites
+    # them only over the span it was actually computed on.
+    cond_opaque: dict[str, set[int]] = {}
+    all_tokens = tok_mod.lex(tree, source_bytes, adapter, cond_lines=cond_opaque)
     if line_range is not None:
         tokens = gran_mod.rebase_tokens(all_tokens, line_range[0], line_range[1])
     else:
         tokens = all_tokens
+    # The language's static atomic-string rulings govern every token-derived
+    # value; construct-specific classification rulings (TOK-ALL-0007,
+    # TOK-JAVA-0002) are cited only over ranges where they actually engaged.
+    tok_lang_rulings = tok_mod.lang_tokenization_rulings(adapter)
+    measured_lo, measured_hi = line_range if line_range is not None else domain
+    file_cond = gran_mod.cond_in_range(cond_opaque, measured_lo, measured_hi)
 
     # --- file-level metrics. cc/loc are also MI inputs; when their own metric
     # is not requested they are computed under a SCRATCH context so
@@ -207,7 +240,7 @@ def _measure(
 
     def _scratch() -> MetricContext:
         return MetricContext(cognitive_mode=cognitive_mode, line_range=line_range,
-                             line_offset=line_offset)
+                             line_offset=line_offset, domain=domain)
 
     need_cc = "cyclomatic" in metrics or "maintainability_index" in metrics
     need_loc = "loc" in metrics or "maintainability_index" in metrics
@@ -229,17 +262,23 @@ def _measure(
     if "cognitive" in metrics:
         cog_value = cog_mod.cognitive(root, adapter, ctx)
         file_metrics.append(
-            MetricValue("cognitive", cog_value, rulings=_cog_rulings(cognitive_mode),
+            MetricValue("cognitive", cog_value,
+                        rulings=_cog_rulings(adapter, cognitive_mode),
                         trace=ctx.trace_for("cognitive"))
         )
     hal_values: dict[str, float] = {}
     if "halstead" in metrics or "maintainability_index" in metrics:
         hal_values = hal_mod.halstead(tokens)
     if "halstead" in metrics:
-        ctx.fired.add(hal_mod.R_LEXICAL)
+        # atomicity + word-token classification shape the operator/operand split;
+        # Halstead is computed over the whole (opaque) file stream, so it cites
+        # the conditional rulings that engaged anywhere in the measured range
+        hal_rulings = (hal_mod.R_LEXICAL,) + tok_lang_rulings + file_cond
+        for r in hal_rulings:
+            ctx.fired.add(r)
         for name, value in hal_values.items():
             file_metrics.append(
-                MetricValue(name, value, rulings=(hal_mod.R_LEXICAL,),
+                MetricValue(name, value, rulings=hal_rulings,
                             diagnostics=(hal_mod.APPROX_DIAGNOSTIC,))
             )
     if "maintainability_index" in metrics:
@@ -255,11 +294,18 @@ def _measure(
             )
         )
     if "loc" in metrics:
-        loc_rulings = (loc_mod.R_PHYSICAL, loc_mod.R_SLOC, loc_mod.R_CLOC, loc_mod.R_LLOC)
+        # TOK-ALL-0005 governs the line attribution sloc/comment_lines count
+        # over; the atomic-token rulings govern which spans exist to attribute
+        loc_rulings = ((loc_mod.R_PHYSICAL, loc_mod.R_SLOC, loc_mod.R_CLOC,
+                        loc_mod.R_LLOC, loc_mod.R_TOK_LINES)
+                       + tok_lang_rulings + file_cond)
         for r in loc_rulings:
             ctx.fired.add(r)
         for name, ivalue in loc_values.items():
-            file_metrics.append(MetricValue(name, ivalue, rulings=loc_rulings))
+            file_metrics.append(
+                MetricValue(name, ivalue, rulings=loc_rulings,
+                            trace=ctx.trace_for("lloc") if name == "lloc" else ())
+            )
 
     # --- per-function metrics (cyclomatic + cognitive; CORE-ALL-0003 exclusion)
     units = adapter.function_units(tree)
@@ -284,7 +330,8 @@ def _measure(
                 initial_function_names=(unit.name,),
             )
             fn_metrics.append(
-                MetricValue("cognitive", fn_cog, rulings=_cog_rulings(cognitive_mode))
+                MetricValue("cognitive", fn_cog,
+                            rulings=_cog_rulings(adapter, cognitive_mode))
             )
         functions.append(
             FunctionReport(unit.name, unit.qualified_name, unit.span, tuple(fn_metrics))
@@ -298,35 +345,58 @@ def _measure(
         # included. Every metric above stays error-opaque (CORE-ALL-0002).
         bw_tokens = tokens
         lexical_fallback = False
+        cond_full: dict[str, set[int]] = {}
         if not parse_ok:
-            full = tok_mod.lex(tree, source_bytes, adapter, include_error_tokens=True)
+            full = tok_mod.lex(tree, source_bytes, adapter,
+                               include_error_tokens=True, cond_lines=cond_full)
             if line_range is not None:
                 full = gran_mod.rebase_tokens(full, line_range[0], line_range[1])
             lexical_fallback = len(full) != len(tokens)
             if lexical_fallback:
                 bw_tokens = full
-                diagnostics.append(
-                    Diagnostic(
-                        "info", "bw-lexical-fallback",
-                        "parse errors present; bw2010 token-family features were "
-                        "computed over the full lexical stream, ERROR regions "
-                        "included (BW-ALL-0007)",
-                        ruling="BW-ALL-0007",
-                    )
-                )
         if granularity == "function":
             vectors = gran_mod.function_vectors(
                 lines, bw_tokens, adapter, units,
                 opaque_tokens=tokens if lexical_fallback else None,
+                cond_opaque=cond_opaque,
+                cond_full=cond_full,
             )
         else:
+            # single file/snippet vector over the whole measured range, on
+            # whichever stream it used
+            vec_cond = gran_mod.cond_in_range(
+                cond_full if lexical_fallback else cond_opaque,
+                measured_lo, measured_hi,
+            )
             vectors = [
                 gran_mod.vector(lines, bw_tokens, adapter, granularity,
-                                scaffolded=scaffolded, lexical_fallback=lexical_fallback)
+                                scaffolded=scaffolded, lexical_fallback=lexical_fallback,
+                                cond_rulings=vec_cond)
             ]
         for v in vectors:
             ctx.fired.update(v.rulings)
+        # The report-level trace appears only when an EMITTED vector actually
+        # engaged the fallback: at granularity="function" an ERROR region
+        # outside every unit changes no emitted number, so a report-level
+        # BW-ALL-0007 claim would be false.
+        if any("BW-ALL-0007" in v.rulings for v in vectors):
+            diagnostics.append(
+                Diagnostic(
+                    "info", "bw-lexical-fallback",
+                    "parse errors present; bw2010 token-family features were "
+                    "computed over the full lexical stream, ERROR regions "
+                    "included (BW-ALL-0007)",
+                    ruling="BW-ALL-0007",
+                )
+            )
 
+    # Provenance must not contradict the report's own diagnostics: every
+    # diagnostic-cited ruling observably shaped the run (TOK-ALL-0001/0002
+    # normalization, CORE-ALL-0002 error opacity, CORE-JAVA-0001 scaffolding,
+    # BW-ALL-0007 fallback), so it belongs in rulings_applied.
+    for d in diagnostics:
+        if d.ruling:
+            ctx.fired.add(d.ruling)
     provenance = Provenance(
         tool_version=__version__,
         spec_version=spec_version(),
@@ -364,13 +434,13 @@ def _cc_rulings(adapter: LanguageAdapter) -> tuple[str, ...]:
     )
 
 
-def _cog_rulings(mode: str) -> tuple[str, ...]:
+def _cog_rulings(adapter: LanguageAdapter, mode: str) -> tuple[str, ...]:
     from codecaliper.spec import iter_rulings
 
     return tuple(
         sorted(
             r.id
-            for r in iter_rulings(metric="cognitive")
+            for r in iter_rulings(metric="cognitive", language=adapter.name)
             if r.mode in ("", mode)
         )
     )
