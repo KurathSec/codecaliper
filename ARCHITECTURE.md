@@ -506,8 +506,9 @@ snippets in the per-oracle tests.
    BW-\*/TOK-\* ruling instead of one opaque number. Stats use the portable stdlib
    `spearman`/`ci95_bootstrap` from Spaghetti's `bench/grade.py` (NOTICE-credited).
 
-The pipeline is **local and manual only — it never runs in CI** (§11, RELEASING.md): the
-dataset's license is UNVERIFIED, so fetching it stays a deliberate local action. What IS tracked
+The pipeline is **local and manual only — it never runs in CI** (§11, RELEASING.md): an author
+granted redistribution by email (2026-07-12, dataset.toml), but fetching stays a deliberate local
+action and only aggregates are tracked, by repo-focus choice. What IS tracked
 are the derived artifacts (`derived/`: per-snippet feature vectors + aggregate reports), which
 make the extraction step diffable after the fact; there is no automated per-PR guard over them —
 an extractor change that would invalidate them shows up in the corpus/fidelity gates, and
@@ -587,8 +588,8 @@ a guess. Diagnostics → stderr, data → stdout; exit codes 0/1/2.
   zero unclassified divergences, stale entries fail; plus a spec-docs staleness job);
   `docs.yml` (mkdocs build --strict, Pages deploy); `grammar-bump.yml` (weekly early warning);
   `release.yml` (gate + build in parallel → PyPI trusted publishing → GitHub Release → Zenodo
-  webhook; RELEASING.md). Deliberately NO bw-faithfulness workflow: the dataset license is
-  UNVERIFIED, so fetching it stays a local action (RELEASING.md "What deliberately does NOT
+  webhook; RELEASING.md). Deliberately NO bw-faithfulness workflow: fetching the dataset stays a
+  local action by repo-focus choice (RELEASING.md "What deliberately does NOT
   happen here").
 - Docs (mkdocs-material): quickstart, typed API, **generated** spec tables + divergence list, the
   honesty page, adding-a-language. Paper sources (ACM format, MSR tool track) live in a local,

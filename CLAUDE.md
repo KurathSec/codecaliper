@@ -109,7 +109,7 @@ reproduction ran end-to-end (W6, paper's Fig. 5 cutoff 3.14; under the arbitrate
 re-stamped spec 1.1.0 with dataset numbers byte-identical:
 10-fold logistic accuracy 0.820, bootstrap 95% CI [0.770, 0.870] overlapping the
 paper's ~0.80, AUC 0.828, sign agreement 21/24; deviations documented in the report — see
-`validation/bw_faithfulness/derived/bw_faithfulness_report.md`; dataset license is UNVERIFIED,
+`validation/bw_faithfulness/derived/bw_faithfulness_report.md`; dataset redistribution granted by an author (email 2026-07-12),
 dataset content stays in gitignored `cache/`, only aggregates/feature vectors live in tracked
 `derived/`), plus the external-oracle differential lane (`tests/differential/` vs
 radon/lizard/cognitive_complexity; every divergence classified against a ruling in

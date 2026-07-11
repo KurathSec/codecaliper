@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Fetch the original BW dataset (never committed; license UNVERIFIED — local
-research use only). Honest SKIP on unavailability, anchor.py style."""
+"""Fetch the original BW dataset (not committed by repo-focus choice; an author
+granted redistribution by email 2026-07-12, dataset.toml). Honest SKIP on
+unavailability, anchor.py style."""
 
 from __future__ import annotations
 
@@ -45,8 +46,9 @@ def main() -> int:
               file=sys.stderr)
         return 1
     print(f"ok: {dest} ({dest.stat().st_size} bytes)")
-    print("REMINDER: license status is UNVERIFIED (dataset.toml) — local research "
-          "use only; never commit or redistribute the data.")
+    print("NOTE: an author granted redistribution + derived publication by email "
+          "2026-07-12 (dataset.toml); the repo tracks derived aggregates only by "
+          "focus choice, not license.")
     return 0
 
 

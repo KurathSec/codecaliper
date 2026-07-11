@@ -168,8 +168,9 @@ def main() -> int:
         f"{tr['dataset']['n_annotators_in_archive']} annotator rows in the archive vs "
         f"{tr['dataset']['n_annotators_in_paper']} in the paper — "
         "reported as-is, never reconciled silently.",
-        "- License status UNVERIFIED (dataset.toml): data fetched for local research "
-        "use only, never committed; this report contains aggregates only.",
+        "- License: an author of the dataset (W. Weimer) granted redistribution and "
+        "derived-data publication by email 2026-07-12 (dataset.toml); the pipeline "
+        "still tracks derived aggregates only, by repo-focus choice, not license.",
         "",
         "## Anti-circularity",
         "",

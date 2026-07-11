@@ -14,14 +14,18 @@ sha256 = "27eb445ba407b2ae5582d63e6072ad00072bfb96365562769b0724fa14485ece"
 # rows, not the paper's "120 annotators" — reported as-is, not reconciled.
 
 [license]
-status = "UNVERIFIED"
+status = "REDISTRIBUTION_GRANTED_BY_AUTHOR"
 note = """
-The Scalabrino replication page (dibt-research.unimol.it/report/readability)
-states no explicit data license for DatasetBW.zip (verified 2026-07-03), and no
-license could be verified for the original Buse-Weimer distribution either.
-Redistribution rights are therefore NOT assumed: the pipeline fetches at run
-time for local research use, commits only derived feature vectors
-(derived/features.csv and the pinned copies under
-derived/arbitration_inputs/), and contacting the authors to clarify terms is a
-tracked pre-1.0 task.
+No explicit data license is published for DatasetBW.zip on the Scalabrino
+replication page (dibt-research.unimol.it/report/readability, verified
+2026-07-03). The original author Westley Weimer granted, by email on
+2026-07-12, permission to (1) redistribute the raw snippets and annotator
+scores as part of an archived research artifact and (2) publish data derived
+from the snippets. Requested citation, to be included wherever the data is
+used: Buse & Weimer, "Learning a Metric for Code Readability", IEEE TSE
+36(4):546-558, 2010; and Buse & Weimer, "A Metric for Software Readability",
+ISSTA 2008:121-130. The grant is preserved in paper/license-inquiry-email.txt
+(local). The pipeline still fetches at run time and commits only derived
+vectors by default (repo focus, not license); bundling the raw data is now
+permitted if desired.
 """
