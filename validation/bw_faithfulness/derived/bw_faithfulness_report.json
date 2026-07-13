@@ -1,6 +1,6 @@
 {
   "dataset": {
-    "annotator_count_note": "the archive's oracle.csv holds 121 annotator rows, not the paper's 120 — reported as-is, never reconciled silently",
+    "annotator_count_note": "the archive's oracle.csv holds 121 annotator rows, not the paper's 120; reported as-is, never reconciled silently",
     "id": "bw2010-original-100java",
     "n_annotators_in_archive": 121,
     "n_annotators_in_paper": 120,
@@ -22,10 +22,10 @@
     "threshold_paper_fig5": 3.14
   },
   "notes": {
-    "annotator_count": "the archive's oracle.csv holds 121 annotator rows, not the paper's 120 — reported as-is, never reconciled silently",
-    "anti_circularity": "Anti-circularity note (stated in the paper too): ambiguity rulings are arbitrated on the same 100-snippet dataset whose reproduction accuracy we report. The reproduction is evidence of faithful operationalization of the published feature definitions — not an independent validation of BW's construct (ARCHITECTURE.md §8.3).",
+    "annotator_count": "the archive's oracle.csv holds 121 annotator rows, not the paper's 120; reported as-is, never reconciled silently",
+    "anti_circularity": "Anti-circularity note (stated in the paper too): ambiguity rulings are arbitrated on the same 100-snippet dataset whose reproduction accuracy we report. The reproduction is evidence of faithful operationalization of the published feature definitions, not an independent validation of BW's construct (ARCHITECTURE.md §8.3).",
     "deviation_from_paper": "(1) The paper evaluated a battery of classifiers (Bayesian classifier, logistic regression, multilayer perceptron, ...) under 10-fold cross-validation; its ~0.80 accuracy summarizes that setting. This reproduction runs logistic regression ONLY (LogisticRegression(max_iter=1000), raw unscaled features). (2) The paper repeats the entire 10-fold validation 10 times over fresh random partitionings and averages across runs; this reproduction uses ONE fixed-seed partitioning (random_state=0) for byte-reproducibility (ARCHITECTURE.md section 8.3).",
-    "extraction_quality": "parse_ok 29/100 snippets, 10 scaffolded (CORE-JAVA-0001), 0 with an EMPTY token vector — on parse errors BW token-family features are computed over the full lexical stream, ERROR subtrees included (BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this count is zero; metrics remain error-opaque per CORE-ALL-0002. Measured extractor behaviour on bare snippets — an arbitration outcome (see arbitration_report.md), never tuned away.",
+    "extraction_quality": "parse_ok 29/100 snippets, 10 scaffolded (CORE-JAVA-0001), 0 with an EMPTY token vector. On parse errors BW token-family features are computed over the full lexical stream, ERROR subtrees included (BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this count is zero; metrics remain error-opaque per CORE-ALL-0002. This is measured extractor behaviour on bare snippets, an arbitration outcome (see arbitration_report.md), never tuned away.",
     "sign_disagreements_are_arbitration_inputs": "each sign disagreement localizes a candidate tokenization/feature divergence to a specific BW-*/TOK-* ruling; resolution goes through the empirical-arbiter loop (supersede with a new ruling ID, experiment cited), never through silent refitting"
   },
   "paper": {
@@ -268,7 +268,7 @@
       "version": "0.23.5"
     },
     "spec_version": "1.1.0",
-    "tool_version": "0.1.0.dev0"
+    "tool_version": "0.1.1.dev0"
   },
   "title": "BW 2010 faithfulness reproduction (ARCHITECTURE.md §8.3)"
 }

@@ -1,6 +1,6 @@
 """Pure-stdlib statistics for the faithfulness report.
 
-Ported from Spaghetti Architect bench/grade.py (MIT, same author — NOTICE;
+Ported from Spaghetti Architect bench/grade.py (MIT, same author; see NOTICE,
 DOI 10.5281/zenodo.21033174). Deterministic: the bootstrap is seeded.
 """
 

@@ -1,6 +1,6 @@
 {
   "dataset": {
-    "annotator_count_note": "the archive's oracle.csv holds 121 annotator rows, not the paper's 120 — reported as-is, never reconciled silently",
+    "annotator_count_note": "the archive's oracle.csv holds 121 annotator rows, not the paper's 120; reported as-is, never reconciled silently",
     "id": "bw2010-original-100java",
     "n_annotators_in_archive": 121,
     "n_annotators_in_paper": 120,
@@ -22,7 +22,7 @@
     "parse_ok_count": 29,
     "scaffolded_count": 10,
     "spec_version": "1.1.0",
-    "tool_version": "0.1.0.dev0"
+    "tool_version": "0.1.1.dev0"
   },
   "labels": {
     "n_high": 59,

@@ -4,14 +4,22 @@
 Measures every Java snippet of the Buse-Weimer (2010), Scalabrino et al. (2018)
 and Dorn (2012) corpora through the PUBLIC API (`codecaliper.api.measure`,
 language="java") and reports, per corpus: how many snippets parse cleanly, how
-many are tab-indented, and — for the failures — how many have unbalanced braces
+many are tab-indented, and, for the failures, how many have unbalanced braces
 plus the median/max ERROR-node count of the recovered parse.
 
-The archives live in the gitignored `validation/bw_faithfulness/cache/` and are
-fetched at run time by `validation/bw_faithfulness/fetch.py --all` (URLs,
-checksums and per-corpus licence status: `validation/bw_faithfulness/dataset.toml`).
-No corpus content is ever committed; the recorded output of this script is
-`results.txt`, which is.
+This script reads all three corpora from their ARCHIVES, which live in the
+gitignored `validation/bw_faithfulness/cache/` and are fetched at run time by
+`validation/bw_faithfulness/fetch.py --all` (URLs, checksums and per-corpus
+licence status: `validation/bw_faithfulness/dataset.toml`). So `fetch.py --all` is
+a prerequisite HERE, unlike the faithfulness lane, whose raw inputs are tracked
+pins and which therefore needs no network.
+
+No corpus content is committed by THIS lane. Repository-wide, the only tracked
+dataset content is the Buse-Weimer raw input under
+`validation/bw_faithfulness/derived/arbitration_inputs/`, redistributed under an
+author's explicit grant (PERMISSIONS.md). The Scalabrino 2018 and Dorn 2012
+corpora carry no permission of any kind: they are measured here and never
+redistributed, and only the aggregate rates in `results.txt` are published.
 
 The three corpora are measured together or not at all: the reported rates are a
 statement about all three, so a missing archive is a hard error (stderr, exit 1),
@@ -62,7 +70,7 @@ def errcount(rep: Any) -> int:
 def main() -> int:
     missing = [zf for zf, _ in CORPORA.values() if not (CACHE / zf).exists()]
     if missing:
-        print(f"error: {', '.join(missing)} missing from {CACHE} — run "
+        print(f"error: {', '.join(missing)} missing from {CACHE}; run "
               "`python validation/bw_faithfulness/fetch.py --all` first; nothing measured.",
               file=sys.stderr)
         return 1

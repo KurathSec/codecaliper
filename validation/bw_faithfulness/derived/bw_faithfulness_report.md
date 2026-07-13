@@ -11,7 +11,7 @@ An author of the dataset asked that the work be cited as **both** papers; this p
 
 ## Headline numbers
 
-- **10-fold accuracy**: 0.820 (bootstrap 95% CI [0.770, 0.870]) vs the paper's ~0.80 — CI OVERLAPS the paper's figure
+- **10-fold accuracy**: 0.820 (bootstrap 95% CI [0.770, 0.870]) vs the paper's ~0.80; CI OVERLAPS the paper's figure
 - **AUC**: 0.828
 - fold accuracies: 0.90, 0.70, 0.80, 0.70, 0.90, 0.80, 0.80, 0.80, 1.00, 0.80
 - convergence warnings during fitting: 0
@@ -26,7 +26,7 @@ An author of the dataset asked that the work be cited as **both** papers; this p
 
 ## Per-feature Spearman vs Fig. 9 directionality
 
-Spearman rho of each feature against the snippet mean score; expected sign is the Fig. 9 direction of correlation with HIGH readability. A disagreement localizes a candidate divergence to a specific BW-*/TOK-* ruling — it is an empirical-arbiter input (ARCHITECTURE.md §8.3), not a failure to hide.
+Spearman rho of each feature against the snippet mean score; expected sign is the Fig. 9 direction of correlation with HIGH readability. A disagreement localizes a candidate divergence to a specific BW-*/TOK-* ruling. It is an empirical-arbiter input (ARCHITECTURE.md §8.3), not a failure to hide.
 
 | feature | Spearman rho | expected sign (Fig. 9) | rel. power | agree |
 |---|---:|:---:|---:|:---:|
@@ -58,19 +58,19 @@ Spearman rho of each feature against the snippet mean score; expected sign is th
 
 ## Extraction quality (reported, not tuned away)
 
-- parse_ok 29/100 snippets, 10 scaffolded (CORE-JAVA-0001), 0 with an EMPTY token vector — on parse errors BW token-family features are computed over the full lexical stream, ERROR subtrees included (BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this count is zero; metrics remain error-opaque per CORE-ALL-0002. Measured extractor behaviour on bare snippets — an arbitration outcome (see arbitration_report.md), never tuned away.
+- parse_ok 29/100 snippets, 10 scaffolded (CORE-JAVA-0001), 0 with an EMPTY token vector. On parse errors BW token-family features are computed over the full lexical stream, ERROR subtrees included (BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this count is zero; metrics remain error-opaque per CORE-ALL-0002. This is measured extractor behaviour on bare snippets, an arbitration outcome (see arbitration_report.md), never tuned away.
 
 ## Dataset
 
-- 100 snippets; 121 annotator rows in the archive vs 120 in the paper — reported as-is, never reconciled silently.
-- License: an author of the dataset (W. Weimer) granted redistribution and derived-data publication by email 2026-07-11 (PERMISSIONS.md, dataset.toml). The repository tracks derived aggregates plus the per-snippet mean ratings the arbitration consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself is fetched at run time, a repo-focus choice rather than a licence constraint.
+- 100 snippets; 121 annotator rows in the archive vs 120 in the paper, reported as-is, never reconciled silently.
+- Permission (a grant, not a licence): an author of the dataset (W. Weimer) granted redistribution and derived-data publication by email 2026-07-11 (PERMISSIONS.md, dataset.toml). Under that grant the repository tracks the raw inputs this lane consumes: the 100 snippets, the per-annotator score matrix (oracle.csv) and the per-snippet mean ratings (scores.csv), all under derived/arbitration_inputs/. Every number reported here therefore regenerates from pinned tracked inputs with no network and no cache/. Re-downloading the archive is an optional byte-for-byte cross-check, never a prerequisite. This grant covers the Buse-Weimer corpus alone; the other readability corpora this project measures carry no permission and are never redistributed.
 
 ## Anti-circularity
 
-> Anti-circularity note (stated in the paper too): ambiguity rulings are arbitrated on the same 100-snippet dataset whose reproduction accuracy we report. The reproduction is evidence of faithful operationalization of the published feature definitions — not an independent validation of BW's construct (ARCHITECTURE.md §8.3).
+> Anti-circularity note (stated in the paper too): ambiguity rulings are arbitrated on the same 100-snippet dataset whose reproduction accuracy we report. The reproduction is evidence of faithful operationalization of the published feature definitions, not an independent validation of BW's construct (ARCHITECTURE.md §8.3).
 
 ## Provenance
 
-- codecaliper 0.1.0.dev0, spec 1.1.0
+- codecaliper 0.1.1.dev0, spec 1.1.0
 - grammar: tree-sitter-java 0.23.5 (ABI 14, validated=True)
 - BW feature-order sha256: 8adae3992539a4eb2cf8d3b2386558612c77ad8e2e850f5bab940bbf430ad56d

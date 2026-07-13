@@ -46,12 +46,25 @@ is used, in this file, in `NOTICE`, in `dataset.toml`, in the generated reports 
 issued, and the citation request is a request, not a condition. It covers the original
 Buse-Weimer data only.
 
-**What this repository actually ships under it.** One file:
-`validation/bw_faithfulness/derived/arbitration_inputs/scores.csv`, the 100 per-snippet mean
-ratings that the pre-registered arbitration consumes, tracked so that the arbitration re-runs
-from a pinned input rather than a third-party download. The snippet archive itself is still
-fetched at run time into the gitignored `cache/`. That is a repository-focus choice, not a
-licence constraint: the grant would permit shipping it.
+**What this repository actually ships under it.** Every raw input the Buse-Weimer lane consumes,
+tracked under `validation/bw_faithfulness/derived/arbitration_inputs/`:
+
+| tracked path | what it is | size |
+|---|---|---|
+| `snippets/1.jsnp` … `snippets/100.jsnp` | the 100 rated Java snippets, byte-for-byte as they appear in `DatasetBW.zip` | 27,898 B |
+| `oracle.csv` | the raw per-annotator score matrix (121 rows: id, cohort, 100 scores) | 27,162 B |
+| `scores.csv` | the 100 per-snippet mean ratings, re-derived from `oracle.csv` | 2,108 B |
+
+That is 102 files and 57,168 bytes, and it is the **only** dataset content in the tracked tree. It
+is tracked because the grant permits it and because tracking it removes the download from the
+reproduction path: the faithfulness reproduction and the pre-registered arbitration both re-run from
+the git tree alone, offline, with no `cache/`, so neither can be broken by a dead URL or a silently
+re-uploaded archive. Re-fetching `DatasetBW.zip` is an optional byte-for-byte cross-check of the
+pins, never a prerequisite.
+
+Derived material is published alongside them under `validation/bw_faithfulness/derived/`:
+per-snippet feature vectors, training and arbitration results, and the generated reports. That is
+covered by the second answer of the grant.
 
 **Why the original is not in this repository.** It is a third party's private e-mail. The
 sha256 above binds this public record to the retained original: anyone who receives the `.eml`
@@ -59,18 +72,21 @@ can confirm it is the message this record describes, and its DKIM signature can 
 against `umich.edu` independently of anything asserted here. The original is available on
 request.
 
-## Scalabrino et al. (2018), 200 Java methods: NO permission sought
+## Scalabrino et al. (2018) and Dorn (2012): NO permission sought
 
-## Dorn (2012), 121 Java snippets: NO permission sought
+Two further corpora are measured by `validation/breadth/`: the Scalabrino et al. 200 Java methods
+and the Dorn 121 Java snippets. Neither publishes an explicit data licence, and no permission has
+been sought or granted for either. Both are publicly downloadable from their authors' replication
+page (`dibt-research.unimol.it/report/readability`), and this project treats them accordingly:
 
-Neither corpus publishes an explicit data licence, and no permission has been sought or
-granted for either. Both are publicly downloadable from their authors' replication page
-(`dibt-research.unimol.it/report/readability`), and this project treats them accordingly:
-
-- fetched at run time into the gitignored `cache/`, never committed, never redistributed;
+- fetched at run time into the gitignored `cache/`, never committed, never redistributed. Not one
+  byte of either corpus enters the tracked tree;
 - only aggregate and derived results are published, specifically the cross-corpus parse rates
   recorded in [`validation/breadth/results.txt`](validation/breadth/results.txt);
 - nothing here should be read as a claim that either corpus may be redistributed.
+
+That is why `validation/breadth/` needs a network fetch and always will, while the Buse-Weimer lane
+does not. Any prose implying that this project as a whole reproduces offline is wrong.
 
 Their citations:
 

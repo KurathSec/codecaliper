@@ -2,11 +2,11 @@
 # ("Relative power of features as determined by a singleton (one-feature-at-a-
 # time) analysis. The direction of correlation for each is also indicated."),
 # keyed by codecaliper's canonical feature names (BW_FEATURE_NAMES,
-# src/codecaliper/readability/bw2010.py — Fig. 6 order).
+# src/codecaliper/readability/bw2010.py, Fig. 6 order).
 #
 # sign = "+"  : positively correlated with HIGH readability (dark bar)
 # sign = "-"  : negatively correlated with HIGH readability (light bar)
-# sign = "unclear": no direction stated in the paper — EXCLUDED from the
+# sign = "unclear": no direction stated in the paper. EXCLUDED from the
 #                   sign-agreement gate; train.py reports the excluded count.
 #
 # Provenance: preprint PDF (weimerw/p/weimer-tse2010-readability-preprint.pdf).
@@ -17,7 +17,7 @@
 # relative_power is the bar length read off Figure 9 (approximate).
 #
 # Caveats carried into the report:
-# - Fig. 9's parentheses bar is labelled "avg '(' '{'" — it also counts the
+# - Fig. 9's parentheses bar is labelled "avg '(' '{'", so it also counts the
 #   open brace; our avg_parentheses counts '(' and ')' only (BW-ALL-0006).
 # - avg_arithmetic_ops is positive per bar color but has near-zero power
 #   (~0.07) and no prose discussion of its direction.

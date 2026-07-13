@@ -31,16 +31,24 @@ anti-pattern machinery (anti-salami boundary, see ARCHITECTURE.md §12).
 Data attribution: the Buse-Weimer readability corpus
 -----------------------------------------------------
 
-validation/bw_faithfulness/derived/ contains data derived from the Buse-Weimer
-code-readability corpus (100 Java snippets and their annotator ratings): feature
-vectors, training and arbitration results, and — in
-derived/arbitration_inputs/scores.csv — the per-snippet mean ratings. This
-material is used with the permission of an author of the dataset (W. Weimer,
-personal communication, 2026-07-11), who granted redistribution of the raw data
-and publication of derived results. The permission is recorded in PERMISSIONS.md,
-which carries the message's date, its DKIM authentication result, and the sha256
-of the retained original. It is NOT covered by this project's MIT licence; the
-corpus and everything derived from it remain the work of its authors.
+This repository redistributes the Buse-Weimer code-readability corpus and
+publishes data derived from it. Under validation/bw_faithfulness/derived/:
+
+- arbitration_inputs/snippets/1.jsnp .. 100.jsnp: the 100 rated Java snippets,
+  verbatim;
+- arbitration_inputs/oracle.csv: the raw per-annotator score matrix (121 rows);
+- arbitration_inputs/scores.csv: the per-snippet mean ratings derived from it;
+- the derived material: feature vectors, training and arbitration results, and
+  the generated reports.
+
+Those are every raw input the reproduction consumes, so it re-runs from the git
+tree alone, with no download. This material is used with the permission of an
+author of the dataset (W. Weimer, personal communication, 2026-07-11), who
+granted redistribution of the raw data and publication of derived results. The
+permission is recorded in PERMISSIONS.md, which carries the message's date, its
+DKIM authentication result, and the sha256 of the retained original. It is NOT
+covered by this project's MIT licence; the corpus and everything derived from it
+remain the work of its authors.
 
 The author asked that the work be cited as both of the following, and this
 project does so:
@@ -52,11 +60,9 @@ project does so:
   Raymond P. L. Buse and Westley Weimer. A Metric for Software Readability.
   ISSTA 2008, 121-130. https://doi.org/10.1145/1390630.1390647
 
-Two further corpora are MEASURED but never redistributed: the Scalabrino et al.
-(2018) 200-method dataset and the Dorn (2012) multi-language dataset. No
-permission has been sought or granted for either; they are publicly downloadable
-from their authors' replication pages, this project fetches them at run time into
-a gitignored cache, and only aggregate/derived results (parse rates) are
-published. PERMISSIONS.md states the terms of all three corpora in prose;
+The Buse-Weimer corpus is the ONLY dataset content in this repository. Two
+further corpora, Scalabrino et al. (2018) and Dorn (2012), are MEASURED but
+never redistributed, and no permission has been sought or granted for either.
+PERMISSIONS.md states the terms of all three corpora in prose;
 validation/bw_faithfulness/dataset.toml carries the same facts in the
 machine-readable form that fetch.py enforces, with URLs and checksums.

@@ -1,21 +1,26 @@
 #!/usr/bin/env python3
 """Assemble derived/bw_faithfulness_report.{json,md} from train_results.json:
 accuracy with bootstrap CI vs the paper's ~0.80, AUC, and the per-feature
-Spearman sign-agreement table against BW Fig. 9 directionality (the sharp
-instrument — a sign disagreement localizes a tokenization error to a specific
-BW-*/TOK-* ruling and is an EMPIRICAL-ARBITER INPUT, not a failure to hide).
+Spearman sign-agreement table against BW Fig. 9 directionality. That table is
+the sharp instrument: a sign disagreement localizes a tokenization error to a
+specific BW-*/TOK-* ruling and is an EMPIRICAL-ARBITER INPUT, not a failure to
+hide.
 
 The report contains no dataset content (aggregates only), so it lives in the
 tracked derived/ directory and is committed as part of the scholarly artifact.
 Deterministic: sorted JSON keys, no timestamps (CORE-ALL-0004 float policy is
 already applied by train.py).
 
-Missing train_results.json => SKIP with a precise reason, exit 0.
+A missing train_results.json is a HARD ERROR (stderr, exit 1), never a SKIP:
+the lane regenerates it from the tracked pinned inputs (pinned.py) with no
+network and no cache/, so absence means the pipeline was not run, not that the
+data is unavailable.
 """
 
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -37,12 +42,12 @@ CITATION_ISSTA = (
     "ISSTA 2008:121-130, DOI 10.1145/1390630.1390647"
 )
 CITATIONS = (CITATION, CITATION_ISSTA)
-# Verbatim from README.md (anti-circularity note) — keep the wording in sync.
+# Verbatim from README.md (anti-circularity note); keep the wording in sync.
 ANTI_CIRCULARITY = (
     "Anti-circularity note (stated in the paper too): ambiguity rulings are "
     "arbitrated on the same 100-snippet dataset whose reproduction accuracy we "
     "report. The reproduction is evidence of faithful operationalization of the "
-    "published feature definitions — not an independent validation of BW's "
+    "published feature definitions, not an independent validation of BW's "
     "construct (ARCHITECTURE.md §8.3)."
 )
 
@@ -64,9 +69,10 @@ def _md_table(per_feature: list[dict[str, Any]]) -> list[str]:
 
 def main() -> int:
     if not RESULTS.exists():
-        print("SKIP: derived/train_results.json missing — run train.py first "
-              "(it SKIPs itself if the dataset was never fetched; see README.md).")
-        return 0
+        print("ERROR: derived/train_results.json missing. Run train.py first "
+              "(it regenerates from the tracked pinned inputs; see README.md).",
+              file=sys.stderr)
+        return 1
 
     tr = json.loads(RESULTS.read_text(encoding="utf-8"))
     res = tr["results"]
@@ -111,12 +117,12 @@ def main() -> int:
                 f"parse_ok {extraction.get('parse_ok_count')}/{extraction.get('n_snippets')} "
                 f"snippets, {extraction.get('scaffolded_count')} scaffolded "
                 f"(CORE-JAVA-0001), {extraction.get('empty_token_vector_count')} with an "
-                "EMPTY token vector — on parse errors BW token-family features are "
+                "EMPTY token vector. On parse errors BW token-family features are "
                 "computed over the full lexical stream, ERROR subtrees included "
                 "(BW-ALL-0007, bw-lexical-fallback diagnostic), which is why this "
                 "count is zero; metrics remain error-opaque per CORE-ALL-0002. "
-                "Measured extractor behaviour on bare snippets — an arbitration "
-                "outcome (see arbitration_report.md), never tuned away."
+                "This is measured extractor behaviour on bare snippets, an "
+                "arbitration outcome (see arbitration_report.md), never tuned away."
             ),
             "sign_disagreements_are_arbitration_inputs": (
                 "each sign disagreement localizes a candidate tokenization/feature "
@@ -149,8 +155,8 @@ def main() -> int:
         "## Headline numbers",
         "",
         f"- **10-fold accuracy**: {res['accuracy_mean']:.3f} "
-        f"(bootstrap 95% CI [{ci[0]:.3f}, {ci[1]:.3f}]) vs the paper's ~{PAPER_ACCURACY:.2f} "
-        f"— CI {'OVERLAPS' if ci_overlaps else 'DOES NOT overlap'} the paper's figure",
+        f"(bootstrap 95% CI [{ci[0]:.3f}, {ci[1]:.3f}]) vs the paper's ~{PAPER_ACCURACY:.2f}; "
+        f"CI {'OVERLAPS' if ci_overlaps else 'DOES NOT overlap'} the paper's figure",
         f"- **AUC**: {res['auc']:.3f}",
         f"- fold accuracies: {fold_accs}",
         f"- convergence warnings during fitting: {res['convergence_warnings']}",
@@ -171,7 +177,7 @@ def main() -> int:
         "",
         "Spearman rho of each feature against the snippet mean score; expected sign "
         "is the Fig. 9 direction of correlation with HIGH readability. A disagreement "
-        "localizes a candidate divergence to a specific BW-*/TOK-* ruling — it is an "
+        "localizes a candidate divergence to a specific BW-*/TOK-* ruling. It is an "
         "empirical-arbiter input (ARCHITECTURE.md §8.3), not a failure to hide.",
         "",
         *_md_table(tr["per_feature"]),
@@ -184,14 +190,18 @@ def main() -> int:
         "",
         f"- {tr['dataset']['n_snippets']} snippets; "
         f"{tr['dataset']['n_annotators_in_archive']} annotator rows in the archive vs "
-        f"{tr['dataset']['n_annotators_in_paper']} in the paper — "
+        f"{tr['dataset']['n_annotators_in_paper']} in the paper, "
         "reported as-is, never reconciled silently.",
-        "- License: an author of the dataset (W. Weimer) granted redistribution and "
-        "derived-data publication by email 2026-07-11 (PERMISSIONS.md, dataset.toml). "
-        "The repository "
-        "tracks derived aggregates plus the per-snippet mean ratings the arbitration "
-        "consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself "
-        "is fetched at run time, a repo-focus choice rather than a licence constraint.",
+        "- Permission (a grant, not a licence): an author of the dataset (W. Weimer) "
+        "granted redistribution and derived-data publication by email 2026-07-11 "
+        "(PERMISSIONS.md, dataset.toml). Under that grant the repository tracks the raw "
+        "inputs this lane consumes: the 100 snippets, the per-annotator score matrix "
+        "(oracle.csv) and the per-snippet mean ratings (scores.csv), all under "
+        "derived/arbitration_inputs/. Every number reported here therefore regenerates "
+        "from pinned tracked inputs with no network and no cache/. Re-downloading the "
+        "archive is an optional byte-for-byte cross-check, never a prerequisite. This "
+        "grant covers the Buse-Weimer corpus alone; the other readability corpora this "
+        "project measures carry no permission and are never redistributed.",
         "",
         "## Anti-circularity",
         "",

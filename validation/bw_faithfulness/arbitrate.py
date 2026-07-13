@@ -33,10 +33,10 @@ PRE-REGISTERED DECISION RULE (written before any matrix cell was computed):
   Fig. 9 features (fig9_signs.toml; avg_identifier_length is "unclear" and
   excluded). Tie-break: AUC. A winner must hold under BOTH extraction modes
   to be adopted for the instrument. The lexical fallback is adopted iff it
-  does not reduce sign agreements or AUC materially (its independent
-  justification is construct fidelity — the original BW instrument was
-  grammar-less and saw every token of every snippet — plus coverage:
-  29/100 -> 100/100 snippets with a full token stream).
+  does not reduce sign agreements or AUC materially. Its independent
+  justification is construct fidelity (the original BW instrument was
+  grammar-less and saw every token of every snippet) plus coverage:
+  29/100 -> 100/100 snippets with a full token stream.
 
   Operationalization (fixed together with the rule, before any result):
   - Within each extraction mode the 16 (tab_width, ops_variant) cells are
@@ -60,7 +60,7 @@ DISCLOSED DEVIATION (added AFTER the matrix was computed; the pre-registered
 rule above is preserved verbatim): the joint (tab, ops) preference chain put
 summed AUC before parsimony, which would let a dimension with zero
 primary-criterion evidence (identical sign agreements in every cell) be
-changed on ~4e-4 summed-AUC noise — contradicting the rule's own "ties keep
+changed on ~4e-4 summed-AUC noise, contradicting the rule's own "ties keep
 the current ruling / a spec change requires positive evidence" clause. The
 implemented decision therefore evaluates each dimension MARGINALLY (the other
 dimension held at its current/adopted setting) under the same bar; the joint
@@ -71,7 +71,7 @@ Scoping (stated up front, repeated in the report):
   the raw snippet text (instrument conventions replicated exactly: CRLF
   normalization, source_lines final-newline rule, leading-whitespace count
   with a tab counted as N characters). avg_line_length / max_line_length /
-  avg_spaces stay raw character counts — a possible future arbitration.
+  avg_spaces stay raw character counts, a possible future arbitration.
 - The ops dimension re-derives ONLY avg_arithmetic_ops, from a DIRECT parse
   of the raw snippet (lex(include_error_tokens=True) for fallback_on, plain
   lex() for fallback_off). The instrument itself may engage the CORE-JAVA-0001
@@ -83,7 +83,13 @@ Scoping (stated up front, repeated in the report):
 
 Outputs: derived/arbitration_report.json + derived/arbitration_report.md.
 Deterministic: sorted keys, qfloat floats, no timestamps (CORE-ALL-0004).
-Missing data/deps => SKIP with a precise reason, exit 0 (anchor.py style).
+
+INPUTS: TRACKED PINNED files only (pinned.py): the raw snippets and the ratings
+under derived/arbitration_inputs/, plus the pinned matrices/baseline. No cache/,
+no network: the experiment that justified spec 1.0.0 re-runs from the git tree
+alone. A missing tracked input is a HARD ERROR (stderr, exit 1), never a SKIP.
+cache/DatasetBW.zip, when present, is an OPTIONAL byte-for-byte cross-check of
+the pins (any difference is a hard error, never a silent re-pin).
 """
 
 from __future__ import annotations
@@ -92,9 +98,10 @@ import csv
 import json
 import sys
 import warnings
-import zipfile
 from pathlib import Path
 from typing import Any
+
+import pinned
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -102,9 +109,7 @@ else:  # pragma: no cover
     import tomli as tomllib
 
 HERE = Path(__file__).resolve().parent
-CACHE = HERE / "cache"
 DERIVED = HERE / "derived"
-ARCHIVE = CACHE / "DatasetBW.zip"
 # The experiment's inputs are PINNED tracked copies (derived/arbitration_inputs/),
 # not the live derived/ files: after spec 1.0.0 adopted the arbitrated rulings,
 # the live features.csv / train_results.json / extract_meta.json moved on to the
@@ -113,15 +118,13 @@ ARCHIVE = CACHE / "DatasetBW.zip"
 PINNED = DERIVED / "arbitration_inputs"
 FEATURES_ON = PINNED / "features_fallback_on_tab1.csv"   # fallback_on, tab=1 (spec 0.1.0)
 FEATURES_OFF = DERIVED / "features_fallback_off.csv"     # pre-BW-ALL-0007 extraction
-# The human ratings the matrix scores against. The TRACKED copy is authoritative,
-# so the arbitration is re-runnable without a third-party download (an author
-# granted redistribution of the Buse-Weimer data — dataset.toml [datasets.bw2010];
-# this is the only raw-dataset-derived file in the tracked tree, and it covers the
-# Buse-Weimer ratings ONLY). The extract.py output in cache/ is the fallback, and
-# the two are asserted byte-identical whenever both exist.
-SCORES_TRACKED = PINNED / "scores.csv"                   # snippet_id,mean_score,n_ratings
-SCORES_FETCHED = CACHE / "scores.csv"                    # extract.py output (gitignored)
-SCORES = SCORES_TRACKED if SCORES_TRACKED.exists() else SCORES_FETCHED
+# The human ratings the matrix scores against, and the raw snippets the tab/ops
+# dimensions are recomputed from: TRACKED pins (pinned.py), so the arbitration is
+# re-runnable with no download at all. An author granted redistribution of the
+# Buse-Weimer snippets and annotator scores (dataset.toml [datasets.bw2010],
+# PERMISSIONS.md); these are the ONLY dataset files in the tracked tree, and they
+# are Buse-Weimer ONLY: no Scalabrino or Dorn byte is ever tracked.
+SCORES = pinned.SCORES                                   # snippet_id,mean_score,n_ratings
 SIGNS = HERE / "fig9_signs.toml"
 BASELINE = PINNED / "train_results_fallback_off.json"    # pre-fallback training record
 META_ON = PINNED / "extract_meta_fallback_on_tab1.json"
@@ -203,9 +206,11 @@ def _snippet_lines(raw: bytes) -> list[str]:
 
 
 def _indentation(lines: list[str], tab_width: int) -> tuple[float, float]:
-    """(avg, max) indentation with a tab counted as tab_width characters —
-    bw_features' leading-whitespace convention (len(line) - len(line.lstrip()))
-    generalized so that tab_width=1 is bit-identical to the instrument."""
+    """(avg, max) indentation with a tab counted as tab_width characters.
+
+    This is bw_features' leading-whitespace convention
+    (len(line) - len(line.lstrip())) generalized so that tab_width=1 is
+    bit-identical to the instrument."""
     indents: list[int] = []
     for line in lines:
         prefix = line[: len(line) - len(line.lstrip())]
@@ -326,7 +331,7 @@ def _assert_baseline(result: dict[str, Any]) -> None:
         raise SystemExit(
             "ERROR: the pinned baseline (arbitration_inputs/train_results_fallback_off"
             ".json) is not the pre-fallback training record "
-            "(expected extraction.empty_token_vector_count == 8) — the "
+            "(expected extraction.empty_token_vector_count == 8), so the "
             "baseline assertion has no valid reference."
         )
     want = committed["results"]
@@ -385,9 +390,9 @@ def _md(report: dict[str, Any], variant_names: list[str]) -> str:
     add("## Extraction modes")
     add("")
     ext = report["extraction"]
-    add(f"- `fallback_off`: {ext['fallback_off']['source']} — empty-token vectors "
+    add(f"- `fallback_off`: {ext['fallback_off']['source']}; empty-token vectors "
         f"{ext['fallback_off']['empty_token_vector_count']}/100.")
-    add(f"- `fallback_on`: {ext['fallback_on']['source']} — empty-token vectors "
+    add(f"- `fallback_on`: {ext['fallback_on']['source']}; empty-token vectors "
         f"{ext['fallback_on']['empty_token_vector_count']}/100 "
         f"(parse_ok {ext['fallback_on']['parse_ok_count']}/100, BW-ALL-0007 gives the other "
         "snippets a full lexical stream).")
@@ -461,29 +466,27 @@ def _md(report: dict[str, Any], variant_names: list[str]) -> str:
 # --------------------------------------------------------------------------
 
 def main() -> int:  # noqa: PLR0915 - one linear experiment script
-    for path, hint in (
-        (ARCHIVE, "run fetch.py first"),
-        (FEATURES_OFF, "tracked pinned input — restore from git"),
-        (FEATURES_ON, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
-        (SCORES, "tracked pinned input (derived/arbitration_inputs/scores.csv) — restore "
-                 "from git, or regenerate the cache/ fallback with extract.py"),
-        (BASELINE, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
-        (META_ON, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
-    ):
+    # Tracked pins are the primary source; a missing one is a hard error (exit 1).
+    pinned.require_inputs()
+    for path in (FEATURES_OFF, FEATURES_ON, BASELINE, META_ON):
         if not path.exists():
-            print(f"SKIP: {path.relative_to(HERE)} missing — {hint}.")
-            return 0
+            print(f"ERROR: {path.relative_to(HERE)} missing. It is a tracked pinned "
+                  "input; restore it from git. The arbitration runs from the pins, NOT "
+                  "from cache/: absence is a failure, not a SKIP.", file=sys.stderr)
+            return 1
     try:
         import numpy as np
-    except ImportError:
-        print("SKIP: scikit-learn/numpy not installed — pip install -e '.[retrain]'")
-        return 0
+    except ImportError as exc:
+        print(f"ERROR: scikit-learn/numpy not importable ({exc}). "
+              "pip install -e '.[retrain]' -c constraints/retrain.txt", file=sys.stderr)
+        return 1
     try:
         from codecaliper.languages import get_adapter
         from codecaliper.readability.bw2010 import BW_FEATURE_NAMES
-    except ImportError:
-        print("SKIP: codecaliper not importable — pip install -e '.[dev]'")
-        return 0
+    except ImportError as exc:
+        print(f"ERROR: codecaliper not importable ({exc}). pip install -e '.[dev]'",
+              file=sys.stderr)
+        return 1
 
     from codecaliper.canonical import qfloat
 
@@ -492,18 +495,17 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     n_clear = sum(1 for s in signs.values() if s["sign"] != "unclear")
     assert n_clear == 24, f"expected 24 clear-signed Fig. 9 features, found {n_clear}"
 
-    # Integrity gate: if extract.py has also written the cache/ copy, the tracked
-    # ratings must be byte-identical to it — the tracked file is a pin, not a fork.
-    if SCORES_TRACKED.exists() and SCORES_FETCHED.exists():
-        if SCORES_TRACKED.read_bytes() != SCORES_FETCHED.read_bytes():
-            raise SystemExit(
-                "ERROR: derived/arbitration_inputs/scores.csv differs from the "
-                "extract.py output in cache/scores.csv — the tracked ratings are a "
-                "pin of the dataset, so a difference means the archive or the "
-                "averaging changed. Investigate; do not silently update the pin."
-            )
-        print("ratings integrity: tracked derived/arbitration_inputs/scores.csv is "
-              "byte-identical to the freshly extracted cache/scores.csv.")
+    # Integrity gates, in order: (a) if the archive happens to be cached, every
+    # tracked pin must be byte-identical to it; (b) the tracked ratings must be
+    # exactly the per-snippet means of the tracked annotator matrix. The pins are
+    # pins, never forks: a difference is a hard error, never a silent re-pin.
+    snippets = pinned.load_snippets()
+    oracle_raw = pinned.load_oracle()
+    pinned.crosscheck_archive()
+    pinned.verify_scores_pin(oracle_raw)
+    print("ratings integrity: tracked derived/arbitration_inputs/scores.csv is "
+          "byte-identical to the means re-derived from the tracked oracle.csv "
+          f"({pinned.n_annotators(oracle_raw)} annotator rows).")
 
     with SCORES.open(newline="", encoding="utf-8") as f:
         score_rows = {int(r["snippet_id"]): r for r in csv.DictReader(f)}
@@ -527,7 +529,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     baseline = run_protocol(as_array("fallback_off"), mean_scores, signs, BW_FEATURE_NAMES)
     _assert_baseline(baseline)
     print("baseline cell (fallback_off, tab=1, V0_current) reproduces the pinned "
-          "pre-fallback training record exactly — protocol copy validated.")
+          "pre-fallback training record exactly; protocol copy validated.")
 
     # --- ops variants, built from the adapter table so V0 is literally "as-is"
     v0 = frozenset(get_adapter("java").arithmetic_ops)
@@ -539,15 +541,14 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     }
     variant_names = list(variants)
 
-    # --- per-snippet recomputations from the raw archive snippets
+    # --- per-snippet recomputations from the TRACKED raw snippets
     indent: dict[int, dict[int, tuple[float, float]]] = {}
     arith: dict[int, dict[str, dict[str, float]]] = {}
-    with zipfile.ZipFile(ARCHIVE) as zf:
-        for i in snippet_ids:
-            raw = zf.read(f"snippets/{i}.jsnp")
-            lines = _snippet_lines(raw)
-            indent[i] = {tw: _indentation(lines, tw) for tw in TAB_WIDTHS}
-            arith[i] = _arith_counts(raw, variants)
+    for i in snippet_ids:
+        raw = snippets[i]
+        lines = _snippet_lines(raw)
+        indent[i] = {tw: _indentation(lines, tw) for tw in TAB_WIDTHS}
+        arith[i] = _arith_counts(raw, variants)
 
     # tab=1 must be bit-identical to the instrument's own columns (both modes:
     # indentation is a raw-line family, independent of the token stream).
@@ -558,7 +559,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
             if qfloat(avg1) != vec[col["avg_indentation"]] or max1 != vec[col["max_indentation"]]:
                 raise SystemExit(
                     f"ERROR: tab=1 indentation recomputation diverges from the {mode} "
-                    f"matrix on snippet {i} — convention drift."
+                    f"matrix on snippet {i}. Convention drift."
                 )
 
     # direct-parse approximation size: recomputed V0 vs the instrument column
@@ -615,7 +616,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     # itself is unchanged): the joint (tab, ops) preference chain put summed
     # AUC before parsimony, which would let a dimension with ZERO
     # primary-criterion evidence (identical sign agreements in every cell) be
-    # changed on ~4e-4 summed-AUC noise — contradicting the rule's own "a spec
+    # changed on ~4e-4 summed-AUC noise, contradicting the rule's own "a spec
     # change requires positive evidence / ties keep the current ruling"
     # clause. Each dimension is therefore evaluated MARGINALLY (the other
     # dimension held at its current/adopted setting), and the joint chain's
@@ -712,7 +713,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
             "A2 NULL RESULT: no ops variant changes ANY Fig. 9 sign in any of the 32 "
             "cells (avg_arithmetic_ops disagrees with the paper's near-zero-power "
             f"positive bar everywhere), and the AUC spread across variants within any "
-            f"(mode, tab) row is <= {qfloat(ops_auc_spread)} — within noise. The current "
+            f"(mode, tab) row is <= {qfloat(ops_auc_spread)}, within noise. The current "
             "ruling stands (BW-ALL-0006, Java arithmetic_ops as-is)."
         )
 
@@ -723,8 +724,8 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         on_c["n_sign_agree"] >= off_c["n_sign_agree"]
         and on_c["auc"] >= off_c["auc"] - MATERIAL_AUC_DROP
     )
-    # META_ON existence is gated in main(): a missing pinned record must SKIP,
-    # never degrade into a report with null extraction stamps or a rationale
+    # META_ON existence is gated in main(): a missing pinned record is a hard
+    # error, never a degraded report with null extraction stamps or a rationale
     # quoting a hardcoded default masquerading as data
     ext_on = json.loads(META_ON.read_text(encoding="utf-8"))
     fallback_note = (
@@ -732,7 +733,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         f"vs {off_c['n_sign_agree']}/24 and AUC {qfloat(on_c['auc'])} vs "
         f"{qfloat(off_c['auc'])}: "
         + (
-            "no material reduction, so BW-ALL-0007 is ADOPTED — its independent "
+            "no material reduction, so BW-ALL-0007 is ADOPTED. Its independent "
             "justification is construct fidelity (the original BW instrument was "
             "grammar-less) and coverage (empty-token vectors 8 -> "
             f"{ext_on['empty_token_vector_count']}, full token streams "
@@ -775,7 +776,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     scoping_notes = [
         "Tab dimension: only avg_indentation/max_indentation were re-derived; "
         "avg_line_length, max_line_length and avg_spaces remain raw character counts "
-        "(a tab is 1 character there) — a possible future arbitration.",
+        "(a tab is 1 character there), a possible future arbitration.",
         "Ops dimension: avg_arithmetic_ops for V1-V3 was recomputed from a DIRECT parse "
         "of the raw snippet (lex(include_error_tokens=True) for fallback_on, plain lex() "
         "for fallback_off); the instrument itself may engage the CORE-JAVA-0001 scaffold "
@@ -792,15 +793,15 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         "Spearman, sign table) before the rest of the matrix was computed.",
         "Reconciliation with the final instrument run: the adopted cell's AUC "
         "(fallback_on/tab=8/V0, 0.827201322861) differs from the headline AUC of the "
-        "final re-extraction (derived/train_results.json, 0.827614716825 — first "
+        "final re-extraction (derived/train_results.json, 0.827614716825, first "
         "produced under spec 1.0.0 and byte-identical on every number when re-stamped "
         "under spec 1.1.0) "
         "by exactly one ranked pair (1/2419 = 0.000413): the matrix splices full-precision "
         "recomputed indentation values into the feature array, while the instrument's "
         "train.py consumes the canonical 12-significant-digit features.csv. The feature "
-        "VALUES agree under 12-significant-digit quantization for all 100 snippets — the "
+        "VALUES agree under 12-significant-digit quantization for all 100 snippets: the "
         "gap is serialization precision flipping one near-tied AUC pair, not a semantic "
-        "difference; 0.828 (the final run) is the instrument's number.",
+        "difference. 0.828 (the final run) is the instrument's number.",
     ]
 
     import narwhals
@@ -842,7 +843,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         "ops_variants": {name: sorted(ops) for name, ops in variants.items()},
         "ops_direct_parse_approximation": approximation,
         "protocol": (
-            "per cell: exact train.py protocol — label = mean score >= 3.14, "
+            "per cell: the exact train.py protocol. Label = mean score >= 3.14, "
             "LogisticRegression(max_iter=1000), StratifiedKFold(n_splits=10, shuffle=True, "
             "random_state=0), fold accuracies + stats.ci95_bootstrap(seed=0), AUC via "
             "cross_val_predict(method='decision_function') on the same folds, per-feature "

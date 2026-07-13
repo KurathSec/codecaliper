@@ -1,13 +1,19 @@
 # Provenance of the readability corpora this repository measures
 # (ARCHITECTURE.md §8.3). NO CORPUS ARCHIVE IS EVER COMMITTED: fetch.py downloads
 # each archive into cache/ (gitignored) and verifies its sha256 against this file.
+# The bw2010 ARCHIVE is not committed either, but its CONTENT is: the raw inputs
+# the lane consumes are tracked as pins (see [datasets.bw2010.license]).
 #
-# Three corpora, three DIFFERENT licence postures — see [datasets.*.license],
-# and PERMISSIONS.md at the repository root for the same terms in prose plus the
-# authentication record of the Buse-Weimer grant:
-#   bw2010          redistribution granted by an author (email 2026-07-11)
-#   scalabrino2018  NO permission sought or granted — fetched at run time, aggregates only
-#   dorn2012        NO permission sought or granted — fetched at run time, aggregates only
+# Three corpora, three DIFFERENT licence postures. See [datasets.*.license], and
+# PERMISSIONS.md at the repository root for the same terms in prose plus the
+# authentication record of the Buse-Weimer grant.
+#   bw2010          redistribution granted by an author (email 2026-07-11):
+#                   raw snippets + annotator scores TRACKED under
+#                   derived/arbitration_inputs/; the only dataset content in the tree
+#   scalabrino2018  NO permission sought or granted; fetched at run time, aggregates only,
+#                   never a tracked byte
+#   dorn2012        NO permission sought or granted; fetched at run time, aggregates only,
+#                   never a tracked byte
 #
 # bw2010 drives the faithfulness reproduction and the arbitration
 # (extract.py / train.py / arbitrate.py / report.py). All three drive the
@@ -25,7 +31,7 @@ size_bytes = 32783
 # Layout confirmed against that archive: snippets/1.jsnp .. snippets/100.jsnp
 # (Java fragments) + oracle.csv (one row per annotator: id, cohort, then 100
 # scores 1-5 in snippet order 1..100). NOTE: the archive holds 121 annotator
-# rows, not the paper's "120 annotators" — reported as-is, not reconciled.
+# rows, not the paper's "120 annotators". Reported as-is, not reconciled.
 layout = "snippets/{1..100}.jsnp + oracle.csv (121 annotator rows x 100 scores)"
 citation = [
   "Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Code Readability', IEEE Transactions on Software Engineering 36(4):546-558, 2010, DOI 10.1109/TSE.2009.70",
@@ -44,10 +50,14 @@ to (1) redistribute the raw snippets and annotator scores as part of an archived
 research artifact and (2) publish data derived from the snippets. He asked that
 the work be cited as BOTH entries in `citation` above (the TSE 2010 paper AND
 the ISSTA 2008 paper); this project honours that requested citation form.
-Under that grant, derived/arbitration_inputs/scores.csv (the per-snippet mean
-ratings the arbitration consumes) is tracked, so the arbitration is re-runnable
-without a third-party download. The snippet archive itself is still fetched at
-run time — a repo-focus choice, no longer a licence constraint.
+Under that grant, every raw input this lane consumes is TRACKED as a pin under
+derived/arbitration_inputs/: snippets/1.jsnp..100.jsnp (the 100 rated snippets,
+verbatim), oracle.csv (the 121-row annotator matrix) and scores.csv (the
+per-snippet means re-derived from it). The faithfulness reproduction and the
+pre-registered arbitration therefore re-run from the git tree alone, with no
+download and no cache/. Re-fetching this archive is an OPTIONAL byte-for-byte
+cross-check of the pins (pinned.py), never a prerequisite. This is the only
+corpus whose content is tracked here.
 """
 
 [datasets.scalabrino2018]

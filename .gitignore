@@ -18,22 +18,34 @@ venv/
 coverage.xml
 htmlcov/
 
-# Readability-corpus cache — NO CORPUS ARCHIVE IS EVER COMMITTED (ARCHITECTURE.md
+# Readability-corpus cache. NO CORPUS ARCHIVE IS EVER COMMITTED (ARCHITECTURE.md
 # §8.3). cache/ holds the fetched archives (Buse-Weimer, Scalabrino 2018, Dorn 2012)
-# and anything extracted from them. The Scalabrino and Dorn corpora have NO
-# redistribution permission at all (dataset.toml) — never track a byte of them.
-# The committable outputs live in the TRACKED sibling
-# validation/bw_faithfulness/derived/ — do not add ignore rules for derived/. The
-# one dataset-derived file that is tracked, under the Buse-Weimer author's explicit
-# grant, is derived/arbitration_inputs/scores.csv (the per-snippet mean ratings the
-# arbitration consumes); nothing else from any corpus may join it.
+# and anything extracted from them, and stays ignored.
+#
+# THE SCALABRINO 2018 AND DORN 2012 CORPORA HAVE NO PERMISSION OF ANY KIND
+# (dataset.toml): not one byte of either may EVER enter the tracked tree. They are
+# fetched at run time into cache/ and only aggregates are published. Non-negotiable.
+#
+# The Buse-Weimer RAW INPUTS ARE TRACKED, under the author's explicit grant
+# (W. Weimer, email 2026-07-11; PERMISSIONS.md records redistribution of the raw
+# snippets and the annotator scores, plus publication of derived data), because a
+# measurement instrument whose own headline result cannot be regenerated from pinned
+# inputs is exactly the failure it exists to expose. They live in
+# validation/bw_faithfulness/derived/arbitration_inputs/:
+#   snippets/{1..100}.jsnp  the 100 rated Java snippets
+#   oracle.csv              the per-annotator score matrix (121 rows)
+#   scores.csv              the per-snippet mean ratings derived from oracle.csv
+# The lane reads THOSE (pinned.py); cache/ is only an optional byte-for-byte
+# cross-check. That is the ONLY dataset content in this repository, and nothing else
+# from any corpus may join it. Do not add ignore rules for derived/, which also
+# holds the committable computed outputs (feature vectors, stamps, reports).
 validation/bw_faithfulness/cache/
 validation/bw_faithfulness/*.zip
 
 # mkdocs build output (deployed by .github/workflows/docs.yml, never committed)
 site/
 
-# MSR paper sources — submission material, kept local until publication
+# MSR paper sources: submission material, kept local until publication
 # (pyproject.toml excludes it from the sdist and release.yml asserts that,
 # as defense in depth should this rule ever be dropped)
 paper/
