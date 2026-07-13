@@ -8,8 +8,11 @@ Outputs (directory contract, ARCHITECTURE.md §8.3):
 - derived/features.csv      — the 25-feature vector per snippet (committable).
 - derived/extract_meta.json — spec/grammar/tool stamps + extraction stats
   (no dataset content; committable; deterministic, no timestamps).
-- cache/scores.csv          — snippet_id,mean_score,n_ratings. Dataset-DERIVED
-  content, so it lives in cache/ and is NEVER committed.
+- cache/scores.csv          — snippet_id,mean_score,n_ratings. Dataset-derived
+  content; the arbitration needs it, so a pinned copy is tracked at
+  derived/arbitration_inputs/scores.csv under the author's redistribution grant
+  (dataset.toml), and arbitrate.py asserts the two are byte-identical. Refresh
+  the pin only deliberately, never silently.
 - cache/oracle.csv          — verbatim pass-through of the per-annotator score
   matrix from the archive (one row per annotator: id, cohort, 100 scores in
   snippet order 1..100), so train.py and future analyses can read it without

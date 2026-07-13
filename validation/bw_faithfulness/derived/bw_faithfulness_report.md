@@ -1,6 +1,13 @@
 # BW 2010 faithfulness reproduction
 
-Reproduction of Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Code Readability', IEEE Transactions on Software Engineering 36(4):546-558, 2010, DOI 10.1109/TSE.2009.70 with codecaliper's public snippet-granularity extractor (ARCHITECTURE.md §8.3).
+Reproduction of the Buse-Weimer readability study with codecaliper's public snippet-granularity extractor (ARCHITECTURE.md §8.3).
+
+## Citing the original work
+
+An author of the dataset asked that the work be cited as **both** papers; this project honours that requested citation form:
+
+- Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Code Readability', IEEE Transactions on Software Engineering 36(4):546-558, 2010, DOI 10.1109/TSE.2009.70
+- Raymond P. L. Buse and Westley Weimer, 'A Metric for Software Readability', ISSTA 2008:121-130, DOI 10.1145/1390630.1390647
 
 ## Headline numbers
 
@@ -56,7 +63,7 @@ Spearman rho of each feature against the snippet mean score; expected sign is th
 ## Dataset
 
 - 100 snippets; 121 annotator rows in the archive vs 120 in the paper — reported as-is, never reconciled silently.
-- License: an author of the dataset (W. Weimer) granted redistribution and derived-data publication by email 2026-07-12 (dataset.toml); the pipeline still tracks derived aggregates only, by repo-focus choice, not license.
+- License: an author of the dataset (W. Weimer) granted redistribution and derived-data publication by email 2026-07-12 (dataset.toml). The repository tracks derived aggregates plus the per-snippet mean ratings the arbitration consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself is fetched at run time, a repo-focus choice rather than a licence constraint.
 
 ## Anti-circularity
 

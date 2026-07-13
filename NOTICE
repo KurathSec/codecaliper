@@ -20,10 +20,40 @@ Architect (MIT, same author) and are reused here with attribution:
 
 Please cite Spaghetti Architect via its concept DOI:
 
-  Ji, Yuxiang. Spaghetti Architect: A Contamination-Resistant,
-  By-Construction-Labelled, Multi-Language Code Dataset Generator.
+  Ji, Yuxiang. Spaghetti Architect: an anti-optimization transpiler with a
+  compile-run oracle. Zenodo, 2026.
   https://doi.org/10.5281/zenodo.21033174
 
 codecaliper is a general-purpose measurement instrument for arbitrary user
 source code; it does not ingest Spaghetti Architect's IR, dataset, or
 anti-pattern machinery (anti-salami boundary, see ARCHITECTURE.md §12).
+
+Data attribution: the Buse-Weimer readability corpus
+-----------------------------------------------------
+
+validation/bw_faithfulness/derived/ contains data derived from the Buse-Weimer
+code-readability corpus (100 Java snippets and their annotator ratings): feature
+vectors, training and arbitration results, and — in
+derived/arbitration_inputs/scores.csv — the per-snippet mean ratings. This
+material is used with the permission of an author of the dataset (W. Weimer,
+personal communication, 2026), who granted redistribution of the raw data and
+publication of derived results. It is NOT covered by this project's MIT licence;
+the corpus and everything derived from it remain the work of its authors.
+
+The author asked that the work be cited as both of the following, and this
+project does so:
+
+  Raymond P. L. Buse and Westley Weimer. Learning a Metric for Code Readability.
+  IEEE Transactions on Software Engineering 36(4):546-558, 2010.
+  https://doi.org/10.1109/TSE.2009.70
+
+  Raymond P. L. Buse and Westley Weimer. A Metric for Software Readability.
+  ISSTA 2008, 121-130. https://doi.org/10.1145/1390630.1390647
+
+Two further corpora are MEASURED but never redistributed: the Scalabrino et al.
+(2018) 200-method dataset and the Dorn (2012) multi-language dataset. No
+permission has been sought or granted for either; they are publicly downloadable
+from their authors' replication pages, this project fetches them at run time into
+a gitignored cache, and only aggregate/derived results (parse rates) are
+published. See validation/bw_faithfulness/dataset.toml for URLs, checksums and
+the licence status of each corpus.

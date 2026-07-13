@@ -1,0 +1,3 @@
+Buse-Weimer    N=100 clean= 27 (27.0%) tabbed= 32 (32.0%) fail= 73 brace_imbalance= 69 err_med=1 err_max=10
+Scalabrino     N=200 clean=190 (95.0%) tabbed=151 (75.5%) fail= 10 brace_imbalance=  0 err_med=2 err_max=3
+Dorn           N=121 clean= 19 (15.7%) tabbed=108 (89.3%) fail=102 brace_imbalance= 76 err_med=2 err_max=6

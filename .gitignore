@@ -18,10 +18,15 @@ venv/
 coverage.xml
 htmlcov/
 
-# BW faithfulness dataset cache — the license-UNVERIFIED data is NEVER committed
-# (ARCHITECTURE.md §8.3). cache/ holds the fetched archive and anything extracted
-# from it; the committable extractor outputs live in the TRACKED sibling
-# validation/bw_faithfulness/derived/ — do not add ignore rules for derived/.
+# Readability-corpus cache — NO CORPUS ARCHIVE IS EVER COMMITTED (ARCHITECTURE.md
+# §8.3). cache/ holds the fetched archives (Buse-Weimer, Scalabrino 2018, Dorn 2012)
+# and anything extracted from them. The Scalabrino and Dorn corpora have NO
+# redistribution permission at all (dataset.toml) — never track a byte of them.
+# The committable outputs live in the TRACKED sibling
+# validation/bw_faithfulness/derived/ — do not add ignore rules for derived/. The
+# one dataset-derived file that is tracked, under the Buse-Weimer author's explicit
+# grant, is derived/arbitration_inputs/scores.csv (the per-snippet mean ratings the
+# arbitration consumes); nothing else from any corpus may join it.
 validation/bw_faithfulness/cache/
 validation/bw_faithfulness/*.zip
 

@@ -1,31 +1,105 @@
-# Provenance of the original Buse-Weimer dataset (ARCHITECTURE.md §8.3).
-# THE DATA IS NEVER COMMITTED OR REDISTRIBUTED — fetch.py downloads it to
-# cache/ (gitignored) and verifies the checksum.
-[dataset]
+# Provenance of the readability corpora this repository measures
+# (ARCHITECTURE.md §8.3). NO CORPUS ARCHIVE IS EVER COMMITTED: fetch.py downloads
+# each archive into cache/ (gitignored) and verifies its sha256 against this file.
+#
+# Three corpora, three DIFFERENT licence postures — see [datasets.*.license]:
+#   bw2010          redistribution granted by an author (email 2026-07-12)
+#   scalabrino2018  NO permission sought or granted — fetched at run time, aggregates only
+#   dorn2012        NO permission sought or granted — fetched at run time, aggregates only
+#
+# bw2010 drives the faithfulness reproduction and the arbitration
+# (extract.py / train.py / arbitrate.py / report.py). All three drive the
+# cross-corpus parse anatomy in validation/breadth/.
+
+[datasets.bw2010]
 id = "bw2010-original-100java"
-description = "100 Java snippets rated 1-5 by 120 annotators (Buse & Weimer, TSE 2010)"
+archive = "DatasetBW.zip"
+description = "100 Java snippets rated 1-5 by 121 annotator rows (Buse & Weimer, TSE 2010 / ISSTA 2008)"
 url = "https://dibt-research.unimol.it/report/readability/files/DatasetBW.zip"
 # sha256 of the archive as first fetched (TOFU-anchored 2026-07-04); fetch.py
 # verifies against this and refuses a mismatching download.
 sha256 = "27eb445ba407b2ae5582d63e6072ad00072bfb96365562769b0724fa14485ece"
+size_bytes = 32783
 # Layout confirmed against that archive: snippets/1.jsnp .. snippets/100.jsnp
 # (Java fragments) + oracle.csv (one row per annotator: id, cohort, then 100
 # scores 1-5 in snippet order 1..100). NOTE: the archive holds 121 annotator
 # rows, not the paper's "120 annotators" — reported as-is, not reconciled.
+layout = "snippets/{1..100}.jsnp + oracle.csv (121 annotator rows x 100 scores)"
+citation = [
+  "Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Code Readability', IEEE Transactions on Software Engineering 36(4):546-558, 2010, DOI 10.1109/TSE.2009.70",
+  "Raymond P. L. Buse and Westley Weimer, 'A Metric for Software Readability', ISSTA 2008:121-130, DOI 10.1145/1390630.1390647",
+]
 
-[license]
+[datasets.bw2010.license]
 status = "REDISTRIBUTION_GRANTED_BY_AUTHOR"
+redistributable = true
 note = """
-No explicit data license is published for DatasetBW.zip on the Scalabrino
-replication page (dibt-research.unimol.it/report/readability, verified
-2026-07-03). The original author Westley Weimer granted, by email on
-2026-07-12, permission to (1) redistribute the raw snippets and annotator
-scores as part of an archived research artifact and (2) publish data derived
-from the snippets. Requested citation, to be included wherever the data is
-used: Buse & Weimer, "Learning a Metric for Code Readability", IEEE TSE
-36(4):546-558, 2010; and Buse & Weimer, "A Metric for Software Readability",
-ISSTA 2008:121-130. The grant is preserved in paper/license-inquiry-email.txt
-(local). The pipeline still fetches at run time and commits only derived
-vectors by default (repo focus, not license); bundling the raw data is now
-permitted if desired.
+No explicit data license is published for DatasetBW.zip on the replication page
+that hosts it (dibt-research.unimol.it/report/readability, verified 2026-07-03).
+The original author Westley Weimer granted, by email on 2026-07-12, permission
+to (1) redistribute the raw snippets and annotator scores as part of an archived
+research artifact and (2) publish data derived from the snippets. He asked that
+the work be cited as BOTH entries in `citation` above (the TSE 2010 paper AND
+the ISSTA 2008 paper); this project honours that requested citation form.
+Under that grant, derived/arbitration_inputs/scores.csv (the per-snippet mean
+ratings the arbitration consumes) is tracked, so the arbitration is re-runnable
+without a third-party download. The snippet archive itself is still fetched at
+run time — a repo-focus choice, no longer a licence constraint.
+"""
+
+[datasets.scalabrino2018]
+id = "scalabrino2018-200java-methods"
+archive = "Dataset.zip"
+description = "200 Java methods rated for readability (Scalabrino, Linares-Vasquez, Oliveto & Poshyvanyk, JSEP 2018)"
+url = "https://dibt-research.unimol.it/report/readability/files/Dataset.zip"
+# TOFU-anchored 2026-07-12 against the archive fetched from the URL above; the
+# URL was re-confirmed by HTTP HEAD on 2026-07-13 (200, Content-Length 103236).
+sha256 = "8239ee0809cb9e95182bb019401b105ebd566b0dedfa707309753058d817d7ed"
+size_bytes = 103236
+layout = "Dataset/Snippets/{1..200}.jsnp + Dataset/scores.csv"
+citation = [
+  "Simone Scalabrino, Mario Linares-Vasquez, Rocco Oliveto and Denys Poshyvanyk, 'A comprehensive model for code readability', Journal of Software: Evolution and Process 30(6):e1958, 2018, DOI 10.1002/smr.1958",
+]
+
+[datasets.scalabrino2018.license]
+status = "NO_PERMISSION_SOUGHT"
+redistributable = false
+note = """
+No permission has been sought or granted for this corpus, and no explicit data
+license is published for it. It is publicly downloadable from its authors'
+replication page (the `url` above). This project therefore only FETCHES it at
+run time into the gitignored cache/ and publishes AGGREGATE / DERIVED results
+(the cross-corpus parse rates recorded in validation/breadth/results.txt). Not
+one byte of it is redistributed here, and nothing in this repository should be
+read as a claim that it may be.
+"""
+
+[datasets.dorn2012]
+id = "dorn2012-multilang-snippets"
+archive = "DatasetDorn.zip"
+description = "Dorn's multi-language readability corpus: 121 Java + 121 CUDA + 120 Python snippets with per-language scores (Dorn, 2012)"
+url = "https://dibt-research.unimol.it/report/readability/files/DatasetDorn.zip"
+# TOFU-anchored 2026-07-12 against the archive fetched from the URL above; the
+# URL was re-confirmed by HTTP HEAD on 2026-07-13 (200, Content-Length 329256).
+sha256 = "56df86ae823f2a8953b84e5dd143d0058a1239ce4cfac7764efd48ba8e439346"
+size_bytes = 329256
+# Only the 121 Java snippets are measured, under the Java grammar; measuring the
+# CUDA/Python snippets as Java would be a category error.
+layout = "dataset/snippets/{java,cuda,python}/*.jsnp + dataset/scores/{java,cuda,python}.csv + dataset/experience.csv"
+citation = [
+  "Jonathan Dorn, 'A General Software Readability Model', MSc thesis, University of Virginia, 2012",
+]
+
+[datasets.dorn2012.license]
+status = "NO_PERMISSION_SOUGHT"
+redistributable = false
+note = """
+No permission has been sought or granted for this corpus, and no explicit data
+license is published for it. It is publicly downloadable from the replication
+page that hosts it (the `url` above, maintained by the Scalabrino et al. group,
+which republishes Dorn's data alongside its own). This project therefore only
+FETCHES it at run time into the gitignored cache/ and publishes AGGREGATE /
+DERIVED results (the cross-corpus parse rates recorded in
+validation/breadth/results.txt). Not one byte of it is redistributed here, and
+nothing in this repository should be read as a claim that it may be.
 """

@@ -30,6 +30,13 @@ CITATION = (
     "Readability', IEEE Transactions on Software Engineering 36(4):546-558, "
     "2010, DOI 10.1109/TSE.2009.70"
 )
+# An author of the dataset asked that the work be cited as BOTH papers
+# (dataset.toml [datasets.bw2010]); every report carries both.
+CITATION_ISSTA = (
+    "Raymond P. L. Buse and Westley Weimer, 'A Metric for Software Readability', "
+    "ISSTA 2008:121-130, DOI 10.1145/1390630.1390647"
+)
+CITATIONS = (CITATION, CITATION_ISSTA)
 # Verbatim from README.md (anti-circularity note) — keep the wording in sync.
 ANTI_CIRCULARITY = (
     "Anti-circularity note (stated in the paper too): ambiguity rulings are "
@@ -70,7 +77,11 @@ def main() -> int:
 
     report = {
         "title": "BW 2010 faithfulness reproduction (ARCHITECTURE.md §8.3)",
-        "paper": {"citation": CITATION, "reference_accuracy": PAPER_ACCURACY},
+        "paper": {
+            "citation": CITATION,
+            "citations_requested_by_author": list(CITATIONS),
+            "reference_accuracy": PAPER_ACCURACY,
+        },
         "gate": {
             "rule": (
                 "bootstrap 95% CI of the 10-fold accuracy must overlap the paper's "
@@ -125,8 +136,15 @@ def main() -> int:
     md: list[str] = [
         "# BW 2010 faithfulness reproduction",
         "",
-        f"Reproduction of {CITATION} with codecaliper's public snippet-granularity "
-        "extractor (ARCHITECTURE.md §8.3).",
+        "Reproduction of the Buse-Weimer readability study with codecaliper's public "
+        "snippet-granularity extractor (ARCHITECTURE.md §8.3).",
+        "",
+        "## Citing the original work",
+        "",
+        "An author of the dataset asked that the work be cited as **both** papers; "
+        "this project honours that requested citation form:",
+        "",
+        *(f"- {c}" for c in CITATIONS),
         "",
         "## Headline numbers",
         "",
@@ -169,8 +187,10 @@ def main() -> int:
         f"{tr['dataset']['n_annotators_in_paper']} in the paper — "
         "reported as-is, never reconciled silently.",
         "- License: an author of the dataset (W. Weimer) granted redistribution and "
-        "derived-data publication by email 2026-07-12 (dataset.toml); the pipeline "
-        "still tracks derived aggregates only, by repo-focus choice, not license.",
+        "derived-data publication by email 2026-07-12 (dataset.toml). The repository "
+        "tracks derived aggregates plus the per-snippet mean ratings the arbitration "
+        "consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself "
+        "is fetched at run time, a repo-focus choice rather than a licence constraint.",
         "",
         "## Anti-circularity",
         "",

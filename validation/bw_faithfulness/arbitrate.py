@@ -113,7 +113,15 @@ ARCHIVE = CACHE / "DatasetBW.zip"
 PINNED = DERIVED / "arbitration_inputs"
 FEATURES_ON = PINNED / "features_fallback_on_tab1.csv"   # fallback_on, tab=1 (spec 0.1.0)
 FEATURES_OFF = DERIVED / "features_fallback_off.csv"     # pre-BW-ALL-0007 extraction
-SCORES = CACHE / "scores.csv"
+# The human ratings the matrix scores against. The TRACKED copy is authoritative,
+# so the arbitration is re-runnable without a third-party download (an author
+# granted redistribution of the Buse-Weimer data — dataset.toml [datasets.bw2010];
+# this is the only raw-dataset-derived file in the tracked tree, and it covers the
+# Buse-Weimer ratings ONLY). The extract.py output in cache/ is the fallback, and
+# the two are asserted byte-identical whenever both exist.
+SCORES_TRACKED = PINNED / "scores.csv"                   # snippet_id,mean_score,n_ratings
+SCORES_FETCHED = CACHE / "scores.csv"                    # extract.py output (gitignored)
+SCORES = SCORES_TRACKED if SCORES_TRACKED.exists() else SCORES_FETCHED
 SIGNS = HERE / "fig9_signs.toml"
 BASELINE = PINNED / "train_results_fallback_off.json"    # pre-fallback training record
 META_ON = PINNED / "extract_meta_fallback_on_tab1.json"
@@ -122,6 +130,16 @@ OUT_MD = DERIVED / "arbitration_report.md"
 
 N_SNIPPETS = 100
 PAPER_CUTOFF = 3.14  # train.py: the paper's Fig. 5 bimodal cutoff
+
+# An author of the dataset asked that the work be cited as BOTH papers
+# (dataset.toml [datasets.bw2010]); every report carries both.
+DATASET_CITATIONS = (
+    "Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Code Readability', "
+    "IEEE Transactions on Software Engineering 36(4):546-558, 2010, "
+    "DOI 10.1109/TSE.2009.70",
+    "Raymond P. L. Buse and Westley Weimer, 'A Metric for Software Readability', "
+    "ISSTA 2008:121-130, DOI 10.1145/1390630.1390647",
+)
 TAB_WIDTHS = (1, 2, 4, 8)
 MODES = ("fallback_off", "fallback_on")
 CURRENT = (1, "V0_current")
@@ -351,6 +369,15 @@ def _md(report: dict[str, Any], variant_names: list[str]) -> str:
     add("pre-fallback training record (`derived/arbitration_inputs/`) exactly before")
     add("the rest of the matrix was trusted.")
     add("")
+    add("## Citing the original work")
+    add("")
+    add("The experiment is scored against the Buse-Weimer dataset. An author of the")
+    add("dataset asked that the work be cited as **both** papers; this project honours")
+    add("that requested citation form:")
+    add("")
+    for c in report["dataset_citations"]:
+        add(f"- {c}")
+    add("")
     add("## Pre-registered decision rule (verbatim)")
     add("")
     add("> " + report["decision_rule"])
@@ -438,7 +465,8 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         (ARCHIVE, "run fetch.py first"),
         (FEATURES_OFF, "tracked pinned input — restore from git"),
         (FEATURES_ON, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
-        (SCORES, "run extract.py"),
+        (SCORES, "tracked pinned input (derived/arbitration_inputs/scores.csv) — restore "
+                 "from git, or regenerate the cache/ fallback with extract.py"),
         (BASELINE, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
         (META_ON, "tracked pinned input (derived/arbitration_inputs/) — restore from git"),
     ):
@@ -463,6 +491,19 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
         signs = tomllib.load(f)["signs"]
     n_clear = sum(1 for s in signs.values() if s["sign"] != "unclear")
     assert n_clear == 24, f"expected 24 clear-signed Fig. 9 features, found {n_clear}"
+
+    # Integrity gate: if extract.py has also written the cache/ copy, the tracked
+    # ratings must be byte-identical to it — the tracked file is a pin, not a fork.
+    if SCORES_TRACKED.exists() and SCORES_FETCHED.exists():
+        if SCORES_TRACKED.read_bytes() != SCORES_FETCHED.read_bytes():
+            raise SystemExit(
+                "ERROR: derived/arbitration_inputs/scores.csv differs from the "
+                "extract.py output in cache/scores.csv — the tracked ratings are a "
+                "pin of the dataset, so a difference means the archive or the "
+                "averaging changed. Investigate; do not silently update the pin."
+            )
+        print("ratings integrity: tracked derived/arbitration_inputs/scores.csv is "
+              "byte-identical to the freshly extracted cache/scores.csv.")
 
     with SCORES.open(newline="", encoding="utf-8") as f:
         score_rows = {int(r["snippet_id"]): r for r in csv.DictReader(f)}
@@ -766,6 +807,7 @@ def main() -> int:  # noqa: PLR0915 - one linear experiment script
     import sklearn
 
     report: dict[str, Any] = {
+        "dataset_citations": list(DATASET_CITATIONS),
         "decision_rule": DECISION_RULE,
         "environment": {
             "narwhals": narwhals.__version__,

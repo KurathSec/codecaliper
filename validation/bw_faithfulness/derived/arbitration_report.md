@@ -5,6 +5,15 @@ train.py protocol; the baseline cell reproduced the committed
 pre-fallback training record (`derived/arbitration_inputs/`) exactly before
 the rest of the matrix was trusted.
 
+## Citing the original work
+
+The experiment is scored against the Buse-Weimer dataset. An author of the
+dataset asked that the work be cited as **both** papers; this project honours
+that requested citation form:
+
+- Raymond P. L. Buse and Westley Weimer, 'Learning a Metric for Code Readability', IEEE Transactions on Software Engineering 36(4):546-558, 2010, DOI 10.1109/TSE.2009.70
+- Raymond P. L. Buse and Westley Weimer, 'A Metric for Software Readability', ISSTA 2008:121-130, DOI 10.1145/1390630.1390647
+
 ## Pre-registered decision rule (verbatim)
 
 > Primary criterion: the number of sign agreements over the 24 clear-signed Fig. 9 features (fig9_signs.toml; avg_identifier_length is 'unclear' and excluded). Tie-break: AUC. A winner must hold under BOTH extraction modes to be adopted for the instrument. The lexical fallback is adopted iff it does not reduce sign agreements or AUC materially (its independent justification is construct fidelity + coverage 29/100 -> 100/100). Operationalization: within each mode the 16 (tab, ops) cells are ranked by (n_sign_agree desc, AUC desc); a candidate beats the current setting (tab=1, V0_current) iff it strictly increases n_sign_agree in at least one mode, never decreases n_sign_agree in either mode, and never decreases AUC by more than 0.01 in either mode; ties keep the current ruling. Among clearing candidates: highest summed n_sign_agree, then summed AUC, then fewer changed dimensions, smaller tab, earlier variant. 'Materially' for the fallback: at the adopted (tab, ops), fallback_on must not have fewer sign agreements than fallback_off and its AUC must not be lower by more than 0.01. No candidate clearing the bars => recorded null result, current rulings stand.

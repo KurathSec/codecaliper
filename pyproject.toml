@@ -63,9 +63,9 @@ Changelog = "https://github.com/KurathSec/codecaliper/blob/main/CHANGELOG.md"
 path = "src/codecaliper/_version.py"
 
 [tool.hatch.build.targets.sdist]
-# hatchling already honors .gitignore (which covers the license-UNVERIFIED
-# dataset cache); this list is the explicit, gitignore-independent policy for
-# what must never enter the immutable PyPI artifact. release.yml asserts it.
+# hatchling already honors .gitignore (which covers the readability-corpus
+# cache); this list is the explicit, gitignore-independent policy for what must
+# never enter the immutable PyPI artifact. release.yml asserts it.
 exclude = [
   "/paper",                              # unreviewed draft — the repo/DOI archive carries it, PyPI does not
   "/.github",
@@ -85,8 +85,9 @@ addopts = "-q"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-# corpus inputs are measurement fixtures — their whitespace is load-bearing
-extend-exclude = ["tests/corpus"]
+# measurement fixtures — their whitespace is load-bearing and one of them is a
+# deliberately truncated (unparseable) fragment
+extend-exclude = ["tests/corpus", "validation/breadth/python-demo"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "TID253"]
