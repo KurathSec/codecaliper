@@ -45,8 +45,7 @@ extractor in the literature. codecaliper's answer:
 ## Install
 
 ```bash
-pip install codecaliper   # first PyPI release lands with tag v0.1.0; until
-                          # then: pip install git+https://github.com/KurathSec/codecaliper
+pip install codecaliper   # https://pypi.org/project/codecaliper/
 ```
 
 For byte-reproducible research use, install the exact calibrated grammar

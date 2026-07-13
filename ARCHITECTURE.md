@@ -110,8 +110,10 @@ codecaliper/
 │   ├── test_determinism.py      # two runs, different PYTHONHASHSEED, byte-identical output
 │   └── test_perf_smoke.py       # throughput floor; parser/spec-registry reuse assertions
 ├── validation/bw_faithfulness/  # ★ §6.3 pipeline (repo-only, never in the wheel)
-│   ├── dataset.toml             # URL + sha256 + license note; data NEVER committed
-│   ├── fetch.py  extract.py  train.py  report.py  README.md
+│   ├── dataset.toml             # per-corpus URL + sha256 + licence status; archives NEVER committed
+│   ├── fetch.py  extract.py  train.py  report.py  arbitrate.py  README.md
+├── validation/breadth/          # cross-corpus parse anatomy (3 corpora) + Python demo
+│   ├── measure_corpora.py  results.txt  README.md  python-demo/
 ├── tools/
 │   ├── gen_spec_docs.py         # ruling TOMLs → docs/spec/*.md (generated, staleness-checked)
 │   ├── gen_divergences.py       # classification TOMLs → docs/spec/divergences.md
@@ -658,5 +660,8 @@ general-purpose measurement primitives.
 - **W6**: **BW faithfulness reproduction** (snippet-scaffold ruling first!); differential lane +
   divergence list.
 - **W7**: CLI complete (`env`, `cite`), docs, community files.
-- **W8**: tool-showcase paper (ACM format, 4+1 pages) + screencast video; tag + Zenodo archival
-  DOI; submit to the MSR Data & Tool Showcase (tool track).
+- **W8**: **done** — v0.1.0 tagged 2026-07-11, PyPI serves `codecaliper 0.1.0`, GitHub Release
+  published, Zenodo concept DOI 10.5281/zenodo.21312527 resolves.
+  Remaining: tool-showcase paper (acmart sigconf, 4+1 pages) → MSR Data & Tool Showcase.
+  (No screencast: the MSR Data & Tool Showcase CFP has no video/demo-recording requirement —
+  that is an ICPC Tool-Demo convention, not this venue's.)

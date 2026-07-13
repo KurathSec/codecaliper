@@ -62,7 +62,7 @@ result types, not just stated here.
 ## Install
 
 ```bash
-pip install codecaliper          # (not yet on PyPI — install from source for now)
+pip install codecaliper          # PyPI: https://pypi.org/project/codecaliper/
 pip install -e .                 # from a checkout
 ```
 
@@ -90,8 +90,12 @@ print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 
 ## Status
 
-Spec **v1.1.0** (package 0.1.0.dev0 — the spec and package are versioned
-independently): Python + Java wired end-to-end; every active ruling is
+Spec **v1.1.0**, package **0.1.0** — released: on
+[PyPI](https://pypi.org/project/codecaliper/), tagged
+[v0.1.0](https://github.com/KurathSec/codecaliper/releases/tag/v0.1.0), archived
+at [10.5281/zenodo.21312527](https://doi.org/10.5281/zenodo.21312527) (the spec
+and the package are versioned independently). Python + Java wired end-to-end;
+every active ruling is
 exercised by a hand-computed corpus case; mypy --strict and the differential
 oracle lane (radon/lizard/cognitive_complexity, classified divergence list)
 are hard CI gates. The BW faithfulness reproduction ran on the original
@@ -103,8 +107,8 @@ parse errors) as versioned ruling supersessions (see
 `validation/bw_faithfulness/derived/`). The
 [docs site](https://kurathsec.github.io/codecaliper/) and the tag-triggered
 release pipeline (PyPI trusted publishing + Zenodo archival, `RELEASING.md`)
-are in place; next: the first tagged release (v0.1.0 + DOI) and the MSR
-Data & Tool Showcase paper (`ARCHITECTURE.md` §16, W8).
+are in place and have shipped v0.1.0; next: the MSR Data & Tool Showcase paper
+(`ARCHITECTURE.md` §16, W8).
 
 ## Development
 

@@ -94,7 +94,10 @@ Release + Zenodo DOI). The pipeline itself is `.github/workflows/release.yml`.
 - `CITATION.cff` is never version-bumped: its `version`/`date-released`
   fields are deliberately absent, because Zenodo and GitHub take both from
   the published release itself and a hand-maintained copy would only drift.
-- The BW faithfulness pipeline is NOT run in CI or at release time: the
-  dataset's license is UNVERIFIED, so fetching it stays a deliberate local
-  action (`validation/bw_faithfulness/README.md`). Releases ship only the
-  tracked aggregates in `derived/`.
+- The BW faithfulness pipeline is NOT run in CI or at release time: fetching a
+  third-party research corpus stays a deliberate local action
+  (`validation/bw_faithfulness/README.md`). Releases ship only the tracked
+  artifacts in `derived/`. Licence status per corpus is in `dataset.toml`: the
+  Buse-Weimer author granted redistribution and derived publication; the
+  Scalabrino 2018 and Dorn 2012 corpora have no permission at all and are never
+  redistributed, only measured.

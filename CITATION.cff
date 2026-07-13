@@ -33,6 +33,7 @@ authors:
     family-names: "Ji"
     affiliation: "Sunway College"
     email: "kurathandrew@gmail.com"
+    orcid: "https://orcid.org/0009-0009-9835-3800"
 keywords:
   - "code readability"
   - "code metrics"
