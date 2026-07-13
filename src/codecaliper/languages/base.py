@@ -1,6 +1,6 @@
 """The LanguageAdapter contract.
 
-Metric engines never see tree-sitter node-type strings — only :class:`NodeClass`
+Metric engines never see tree-sitter node-type strings, only :class:`NodeClass`
 and :class:`~codecaliper.syntax.tokens.TokenKind`. Per-language differences live
 entirely in the adapters' tables and a few named hook methods, every one citing
 a ruling ID; the grammar-integrity and spec-coverage tests hold the tables to
@@ -29,12 +29,12 @@ class NodeClass(Enum):
     LOOP = "loop"
     CATCH = "catch"
     BOOL_OP = "boolop"
-    JUMP_LABEL = "labeled-jump"           # break/continue LABEL — flat +1 (COG-JAVA-0001)
+    JUMP_LABEL = "labeled-jump"           # break/continue LABEL: flat +1 (COG-JAVA-0001)
     COMPREHENSION_GUARD = "comp-guard"
     LAMBDA = "lambda"
     FUNCTION_DEF = "function"
     CLASS_DEF = "class"
-    NESTING_ONLY = "nesting-only"         # try / with — no increment, no cognitive nesting
+    NESTING_ONLY = "nesting-only"         # try / with: no increment, no cognitive nesting
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,8 +85,9 @@ class LanguageAdapter:
     loop_keywords: frozenset[str] = frozenset()
 
     # Construct-specific tokenization rulings that only govern when their node
-    # type actually lexes (node_type -> ruling id) — cited per-occurrence, like
-    # TOK-ALL-0007, NOT statically the way the atomic-string rulings are.
+    # type actually lexes (node_type -> ruling id). These are cited
+    # per-occurrence, like TOK-ALL-0007, NOT statically the way the
+    # atomic-string rulings are.
     conditional_token_rulings: dict[str, str] = field(default_factory=dict)
 
     # --- structural tables ---

@@ -2,11 +2,11 @@ name: release
 
 # Tag-triggered release pipeline (ARCHITECTURE.md §11). Chain:
 #   gate (full test suite at the tagged commit) + build (sdist+wheel,
-#   tag/version/changelog/ancestry guards) — in parallel
-#   -> publish-pypi (trusted publishing via OIDC — no long-lived token)
+#   tag/version/changelog/ancestry guards), in parallel
+#   -> publish-pypi (trusted publishing via OIDC, no long-lived token)
 #   -> github-release (publishing the Release is what fires the Zenodo
 #      archival webhook and mints the version DOI)
-# A partial failure must be recovered with "Re-run failed jobs" — see
+# A partial failure must be recovered with "Re-run failed jobs". See
 # RELEASING.md, which also documents the one-time setup (PyPI pending
 # publisher, the `pypi` environment, the Zenodo toggle).
 
@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   gate:
-    # A tag is only a pointer — re-run the whole gate suite at the tagged
+    # A tag is only a pointer, so re-run the whole gate suite at the tagged
     # commit instead of trusting that some earlier CI run covered it.
     runs-on: ubuntu-latest
     steps:
@@ -39,21 +39,21 @@ jobs:
           python tools/gen_spec_docs.py
           git add -N docs/
           git diff --exit-code docs/ || {
-            echo "::error::docs/spec is stale — run tools/gen_spec_docs.py and commit"; exit 1; }
+            echo "::error::docs/spec is stale; run tools/gen_spec_docs.py and commit"; exit 1; }
 
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # full history — the ancestry guard below needs origin/main
+          fetch-depth: 0 # full history; the ancestry guard below needs origin/main
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Tag must point at a commit on main
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
-            echo "::error::tag $GITHUB_REF_NAME is not in main's history — releases are cut from main only"
+            echo "::error::tag $GITHUB_REF_NAME is not in main's history; releases are cut from main only"
             exit 1
           }
       - name: Tag must match the package version and not be a dev version
@@ -82,7 +82,7 @@ jobs:
             found { print }
           ' CHANGELOG.md > notes.md
           if ! grep -q '[^[:space:]]' notes.md; then
-            echo "::error::CHANGELOG.md has no non-empty '## [$version]' section — fix it BEFORE anything publishes"
+            echo "::error::CHANGELOG.md has no non-empty '## [$version]' section; fix it BEFORE anything publishes"
             exit 1
           fi
       # PIP_CONSTRAINT reaches the isolated PEP 517 build env, pinning hatchling too.
@@ -154,7 +154,7 @@ jobs:
             found { print }
           ' CHANGELOG.md > notes.md
           if ! grep -q '[^[:space:]]' notes.md; then
-            echo "::error::empty release notes for $version — check CHANGELOG.md"
+            echo "::error::empty release notes for $version; check CHANGELOG.md"
             exit 1
           fi
       - name: Publish the GitHub Release (fires the Zenodo webhook)

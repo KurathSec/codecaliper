@@ -1,9 +1,9 @@
 """The unified lexical token stream (TOK-* rulings).
 
 Derived from the tree-sitter leaf walk (with atomic-token subtrees) and
-classified by the adapter's token tables. This one stream feeds the BW
-readability features, lexical Halstead, and the LOC coverage counts — one
-tokenizer, three consumers, zero drift.
+classified by the adapter's token tables. The BW readability features, lexical
+Halstead and the LOC coverage counts all read this one stream, so they cannot
+drift apart.
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def normalize(source: str | bytes) -> tuple[str, tuple[Diagnostic, ...]]:
     """Input normalization per TOK-ALL-0001..0003."""
     diags: list[Diagnostic] = []
     if isinstance(source, bytes):
-        # the diagnostic fires only when replacement actually happened — valid
+        # the diagnostic fires only when replacement actually happened; valid
         # UTF-8 that legitimately contains U+FFFD is not flagged
         try:
             text = source.decode("utf-8")
@@ -88,7 +88,7 @@ def lang_tokenization_rulings(adapter: LanguageAdapter) -> tuple[str, ...]:
     (TOK-PY-0002 / TOK-JAVA-0001) that unconditionally govern how the stream is
     cut, so every token-derived value cites them. Construct-specific
     classification rulings (``adapter.conditional_token_rulings``, e.g.
-    TOK-JAVA-0002) are excluded — they are cited per-occurrence, like the
+    TOK-JAVA-0002) are excluded: they are cited per-occurrence, like the
     language-neutral TOK-ALL-0007, not statically."""
     conditional = set(adapter.conditional_token_rulings.values())
     return tuple(sorted(
@@ -148,7 +148,7 @@ def lex(
             kind = TokenKind.IDENTIFIER  # soft keywords are identifiers (BW-PY-0001)
         elif not node.is_named and _WORD_RE.fullmatch(text) is not None:
             # TOK-ALL-0007: anonymous word tokens outside the keyword table are
-            # identifiers (Python `__future__`, Java contextual keywords) —
+            # identifiers (Python `__future__`, Java contextual keywords),
             # matching the reference tokenizers, which yield NAME for them.
             kind = TokenKind.IDENTIFIER
             if cond_lines is not None:

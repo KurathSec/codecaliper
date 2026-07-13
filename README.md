@@ -4,60 +4,102 @@
 [![docs](https://github.com/KurathSec/codecaliper/actions/workflows/docs.yml/badge.svg)](https://kurathsec.github.io/codecaliper/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21312527.svg)](https://doi.org/10.5281/zenodo.21312527)
 
-> A cross-language (Python + Java, more staged) **code-readability + complexity
-> measurement instrument** — not another metrics scoreboard.
-> Documentation: <https://kurathsec.github.io/codecaliper/>
+A code-readability and complexity **measurement instrument** for Python and Java,
+built on tree-sitter. Documentation: <https://kurathsec.github.io/codecaliper/>
 
-codecaliper is built as an *instrument*: every number it emits is **traceable**
-— to a versioned metric-to-syntax specification, to the exact machine-readable
-rulings that fired, to the exact tree-sitter grammar that parsed the source —
-and **reproducible** — clock-free, hash-seed-free, order-stable. Where a
-scoreboard says "CC = 7", codecaliper says "CC = 7 *under spec 1.1.0, ruling
-CC-PY-0003, tree-sitter-python 0.25.0*".
+Every number codecaliper emits is *traceable* and *reproducible*: traceable to a
+versioned metric-to-syntax specification, to the exact rulings that fired, and to
+the exact grammar that parsed the source; reproducible because it is clock-free,
+hash-seed-free and order-stable. Where a scoreboard says "CC = 7", codecaliper
+says "CC = 7 under spec 1.1.0, ruling CC-PY-0003, tree-sitter-python 0.25.0".
+
+This README says what the tool is and how to use it. The design rationale, the
+requirements record and the decision log are in
+[`ARCHITECTURE.md`](ARCHITECTURE.md); how to add a ruling, a corpus case or a
+language is in [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## What it measures
 
-- **Readability (the core):** the first open, tested, cross-language
-  implementation of the **Buse–Weimer (2010) 25-feature readability set**,
-  computed on tree-sitter (comments and positions preserved). Output is always
-  the **raw feature vector** — there is deliberately no "readability score" —
-  plus a retraining scaffold. Scalabrino/Dorn feature sets are staged for 1.x.
-- **Complexity (a convenience, not the selling point):** cyclomatic,
-  **dual-mode cognitive complexity** (whitepaper-faithful by default,
-  `--sonar-compat` opt-in, every divergence between the modes is an enumerable
-  spec ruling), Halstead (a declared lexical approximation), maintainability
-  index (typed as *derived from* CC — never an independent signal), and the
-  LOC family.
+**Readability** is the point of the tool. codecaliper is an open, tested,
+cross-language implementation of the Buse-Weimer (2010) 25-feature readability
+set. The features come from the paper; what the tool adds is that every one of
+them is pinned. Figure 6 does not settle the questions an implementer actually
+has to answer (does a block comment count on every line it spans? is the dot in
+a qualified name a "period"?), so each answer here is a numbered ruling, and
+every number the tool emits cites the rulings that produced it. Two of those
+answers were not guessed: they were arbitrated on the original dataset by a
+pre-registered experiment, and the spec then moved to record what the experiment
+decided. One replaced an earlier ruling (`TOK-ALL-0006` supersedes `TOK-ALL-0004`,
+tab width 1 to 8, a spec MAJOR because it moved corpus values); the other added a
+ruling that had not existed (`BW-ALL-0007`, lexical fallback). See [Status](#status).
+
+Output is always the raw feature vector, computed on tree-sitter with comments
+and positions preserved. There is no "readability score" anywhere in the API, by
+design; a retraining scaffold ships instead of weights. The Scalabrino and Dorn
+feature sets slot into the same seam in 1.x.
+
+**Complexity** is the convenience half: cyclomatic; cognitive in two modes
+(whitepaper-faithful by default, `--sonar-compat` opt-in, with every divergence
+between the modes written down as a spec ruling); Halstead, declared as a
+lexical approximation; the maintainability index, typed as *derived from* CC so
+nobody mistakes it for an independent signal; and the LOC family.
 
 ## Why an instrument
 
-Different tools disagree on the same file because each is a different
-*operationalization* of the same construct (radon vs lizard cyclomatic; the
-per-language cognitive-complexity ports; every hand-rolled Buse–Weimer
-extractor in the literature). codecaliper's answer:
+Start with what an unwritten lexer convention costs. Buse and Weimer's Figure 9
+reports indentation as negatively correlated with readability: the more you
+indent, the less readable people judge the code. The paper never says how wide a
+tab is. Read a tab as one column and, on the paper's own 100 snippets,
+`avg_indentation` correlates with the human scores at Spearman rho **+0.0007**
+and `max_indentation` at **-0.007**. That is no signal at all, and the first one
+sits on the wrong side of zero. Read a tab as eight columns, same extractor, same
+data, and the two features give **-0.230** and **-0.254**, the direction the paper
+reports; agreement with its 24 clear-signed features goes from 20 to 21. One
+undocumented lexer choice decides whether you reproduce a published finding or
+quietly null it out.
 
-1. a **versioned mapping specification** — machine-readable rulings with
-   immutable IDs (`CC-PY-0003`), shipped as package data, stamped into every
-   result;
-2. a **hand-computed consistency corpus** — every active ruling is exercised by
-   a case with human-verified expected values;
-3. **differential tests** against radon / lizard / cognitive_complexity with
-   a **published known-divergence list** — every disagreement is classified
-   against a ruling, in both directions (an unclassified divergence fails CI,
-   and so does a stale entry); PMD and rust-code-analysis are staged as
-   additional oracles;
-4. a **faithfulness reproduction** of the original Buse–Weimer study (100 Java
-   snippets, 120 annotators) using this extractor and a retrained model.
+So tab width is not a convention here. It is ruling TOK-ALL-0006, adopted over
+the tab-as-1 ruling it supersedes because a pre-registered experiment on the
+original dataset said so, and cited by every vector that depends on it. Any
+readability extractor makes dozens of decisions of that shape. Writing each one
+down under an ID a reader can look up is what lets someone else tell your
+implementation of a construct apart from the construct itself.
+
+The four rho values above are in
+`validation/bw_faithfulness/derived/arbitration_report.json`, under
+`matrix."fallback_on/tab=1/V0_current"` and `matrix."fallback_on/tab=8/V0_current"`
+(key `spearman_arbitrated`), which is also where the 20-to-21 sign counts come
+from (`n_sign_agree`). The adopted tab=8 pair is reported again, rounded, in the
+per-feature table of
+`validation/bw_faithfulness/derived/bw_faithfulness_report.md`. The prose verdict
+and the tie-break are in `arbitration_report.md`, which carries the reasoning but
+not the correlations.
+
+Tools disagree about the same file because each one is a different
+operationalization of the same construct. radon and lizard do not compute the
+same cyclomatic number. Neither do two hand-rolled Buse-Weimer extractors.
+codecaliper's response is to make its own operationalization inspectable:
+
+- a **versioned mapping specification**, machine-readable rulings with immutable
+  IDs (`CC-PY-0003`), shipped as package data and stamped into every result;
+- a **hand-computed consistency corpus**, where every active ruling is exercised
+  by a case whose expected values a human worked out and wrote down;
+- **differential tests** against radon, lizard and cognitive_complexity with a
+  published known-divergence list. Every disagreement is classified against a
+  ruling; an unclassified divergence fails CI, and so does a stale entry. PMD
+  and rust-code-analysis are staged, not yet wired;
+- a **faithfulness reproduction** of the original Buse-Weimer study, using this
+  extractor and a retrained model.
 
 ## Honesty boundaries
 
-codecaliper guarantees **procedural consistency** (identical rules over
-isomorphic syntax across languages), *not* cross-language numerical
-comparability. MI contains CC. Halstead absolute values are
-implementation-defined. BW output is a feature set, not a score, calibrated on
-4–11-line snippets — function/file vectors are labelled extrapolation. Metrics
-operate on pre-preprocessing source text. Every one of these is enforced in the
-result types, not just stated here.
+codecaliper guarantees procedural consistency: identical rules over isomorphic
+syntax across languages. It does not guarantee that a Python CC and a Java CC
+are numerically comparable. MI contains CC. Halstead absolute values are
+implementation-defined. The BW vector is calibrated on 4-to-11-line snippets, so
+function-level and file-level vectors are labelled extrapolation. Metrics run on
+pre-preprocessing source text. None of this lives only in this README: it is
+enforced in the result types and emitted as diagnostics (ARCHITECTURE.md §13).
 
 ## Install
 
@@ -66,6 +108,35 @@ pip install codecaliper          # PyPI: https://pypi.org/project/codecaliper/
 pip install -e .                 # from a checkout
 ```
 
+For research use, pin the calibrated grammars as well. A grammar version other
+than the calibrated one still parses and still measures, but the numbers are no
+longer the numbers the spec was calibrated against, so every report produced
+under it is stamped `grammar.validated: false` and carries an
+`unvalidated-grammar` diagnostic:
+
+```bash
+pip install codecaliper -c https://raw.githubusercontent.com/KurathSec/codecaliper/main/constraints/ci.txt
+pip install -e . -c constraints/ci.txt   # from a checkout
+```
+
+The calibrated versions are listed in
+`src/codecaliper/spec/validated_grammars.toml` (currently tree-sitter-python
+0.25.0, tree-sitter-java 0.23.5). To see what you are actually running, and
+whether it is calibrated:
+
+```console
+$ codecaliper env
+codecaliper 0.1.0
+spec 1.1.0
+python 3.14.6 (Linux x86_64)
+tree-sitter 0.26.0 (binding)
+tree-sitter-python 0.25.0 (ABI 15, calibrated)
+tree-sitter-java 0.23.5 (ABI 14, calibrated)
+```
+
+An uncalibrated grammar prints `UNVALIDATED` on its line. That plate belongs in
+your bug report and in your methods section.
+
 ## Use
 
 ```bash
@@ -73,7 +144,7 @@ codecaliper myfile.py --json
 codecaliper src/**/*.java --csv -o metrics.csv
 codecaliper myfile.py --sonar-compat --explain
 codecaliper spec show CC-PY-0003     # read the ruling behind a number
-codecaliper env                      # the calibration plate for bug reports/papers
+codecaliper env                      # the calibration plate for bug reports and papers
 codecaliper cite                     # methods-section template
 ```
 
@@ -84,31 +155,47 @@ report = measure(source_code, language="python")
 cc = next(m for m in report.file_metrics if m.metric == "cyclomatic")
 print(cc.value, cc.rulings, report.provenance.spec_version)
 
-vec = report.readability[0]          # raw BW 25-feature vector — never a score
+vec = report.readability[0]          # the raw BW 25-feature vector, never a score
 print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 ```
 
 ## Status
 
-Spec **v1.1.0**, package **0.1.0** — released: on
+Package **0.1.0** is released: on
 [PyPI](https://pypi.org/project/codecaliper/), tagged
 [v0.1.0](https://github.com/KurathSec/codecaliper/releases/tag/v0.1.0), archived
-at [10.5281/zenodo.21312527](https://doi.org/10.5281/zenodo.21312527) (the spec
-and the package are versioned independently). Python + Java wired end-to-end;
-every active ruling is
-exercised by a hand-computed corpus case; mypy --strict and the differential
-oracle lane (radon/lizard/cognitive_complexity, classified divergence list)
-are hard CI gates. The BW faithfulness reproduction ran on the original
-100-snippet dataset: 10-fold logistic accuracy 0.820 (bootstrap 95% CI
-[0.770, 0.870], overlapping the paper's ~0.80), AUC 0.828, Fig. 9 sign
-agreement 21/24 — after a pre-registered arbitration experiment resolved two
-feature-definition ambiguities (indentation tab width; lexical fallback on
-parse errors) as versioned ruling supersessions (see
-`validation/bw_faithfulness/derived/`). The
-[docs site](https://kurathsec.github.io/codecaliper/) and the tag-triggered
-release pipeline (PyPI trusted publishing + Zenodo archival, `RELEASING.md`)
-are in place and have shipped v0.1.0; next: the MSR Data & Tool Showcase paper
-(`ARCHITECTURE.md` §16, W8).
+at Zenodo ([10.5281/zenodo.21312528](https://doi.org/10.5281/zenodo.21312528) is
+that version; the badge above is the concept DOI, which always resolves to the
+latest). It ships spec **1.1.0**, which the development tree is still on: the
+spec and the package are versioned independently, and a spec bump happens only
+when a ruling changes. See [`CHANGELOG.md`](CHANGELOG.md).
+
+Python and Java are wired end-to-end. Every active ruling is exercised by a
+hand-computed corpus case. `mypy --strict` and the differential oracle lane are
+hard CI gates.
+
+The Buse-Weimer faithfulness reproduction ran on the original 100-snippet
+dataset: 10-fold logistic accuracy 0.820 (bootstrap 95% CI [0.770, 0.870],
+overlapping the paper's ~0.80), AUC 0.828, Fig. 9 sign agreement 21/24. Two
+feature-definition ambiguities (indentation tab width, and lexical fallback on
+parse errors) were resolved beforehand by a pre-registered arbitration
+experiment, and the spec records each outcome: tab width as a supersession
+(`TOK-ALL-0006` replacing `TOK-ALL-0004`), lexical fallback as a new ruling
+(`BW-ALL-0007`). Reports: `validation/bw_faithfulness/derived/`.
+
+That lane is self-contained: an author of the dataset granted redistribution, so
+its raw inputs (the 100 snippets, the annotator matrix and the per-snippet
+means, 102 files and 57,168 bytes) are tracked here, and the reproduction
+re-runs from the git tree with no network. `oracle.csv` as distributed holds
+**121** annotator rows, where the paper says 120. The archive is measured as it
+is, the extra row is not reconciled away, and every number here is computed from
+all 121. The two other corpora codecaliper
+measures carry no such permission and no byte of either is tracked, so the
+cross-corpus breadth lane (`validation/breadth/`) needs a network fetch and
+always will. The terms, per corpus, are in
+[`PERMISSIONS.md`](PERMISSIONS.md).
+
+Next: the MSR Data and Tool Showcase paper (ARCHITECTURE.md §16).
 
 ## Development
 
@@ -116,24 +203,29 @@ are in place and have shipped v0.1.0; next: the MSR Data & Tool Showcase paper
 pip install -e ".[dev]" -c constraints/ci.txt
 pytest
 ruff check src tests tools
+mypy                 # --strict, configured in pyproject.toml; a hard CI gate
 ```
 
-See `ARCHITECTURE.md` for the full design (data model, spec mechanism,
-validation architecture, grammar-evolution policy) and `CONTRIBUTING.md` for
-how rulings, corpus cases, and adapters are added.
+All three gate every pull request. `mypy` is run with no arguments, exactly as
+`ci.yml` runs it: `[tool.mypy]` already sets `strict = true` and the files to
+check. [`CONTRIBUTING.md`](CONTRIBUTING.md) has the rest, including how to add a
+ruling, supersede one, or add a language.
 
 ## Citing
 
 Citation metadata lives in
-[`CITATION.cff`](https://github.com/KurathSec/codecaliper/blob/main/CITATION.cff)
-(GitHub's "Cite this repository" box reads it; Zenodo archives releases from
-it).
-`codecaliper cite` prints a methods-section template stating the package,
-spec, and grammar versions your numbers were produced under — report all
-three.
+[`CITATION.cff`](https://github.com/KurathSec/codecaliper/blob/main/CITATION.cff),
+which is what GitHub's "Cite this repository" box and Zenodo both read.
+`codecaliper cite` prints a methods-section template naming the package
+version, the spec version and the grammar versions your numbers were produced
+under. Report all three.
 
-## License & provenance
+If you use the Buse-Weimer corpus through this repository, cite the two original
+papers as its authors asked (`PERMISSIONS.md`).
+
+## License and provenance
 
 MIT. Some measurement primitives descend from
-[Spaghetti Architect](https://doi.org/10.5281/zenodo.21033174) (same author) —
-see `NOTICE`.
+[Spaghetti Architect](https://doi.org/10.5281/zenodo.21033174), by the same
+author; see [`NOTICE`](NOTICE), which also carries the data attribution for the
+Buse-Weimer corpus.

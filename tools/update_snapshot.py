@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Regenerate tests/snapshots/corpus_values.json (the spec-drift gate).
 
-Refuses to change existing numeric values unless --confirm-spec-bump is given —
-a numeric change under an unchanged spec MAJOR is exactly what the gate exists
-to catch (ARCHITECTURE.md §3.2).
+Refuses to change existing numeric values unless --confirm-spec-bump is given. A
+numeric change under an unchanged spec MAJOR is exactly what the gate exists to
+catch (ARCHITECTURE.md §3.2).
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def main() -> int:
                 print(f"REFUSING --confirm-spec-bump: values changed but the spec "
                       f"major is still {new_major} (snapshot was {old['spec_version']}, "
                       f"current is {spec_version()}). Bump the MAJOR in "
-                      "rulings/index.toml first — the flag confirms a bump, it does "
+                      "rulings/index.toml first: the flag confirms a bump, it does "
                       "not replace one.", file=sys.stderr)
                 return 1
 

@@ -1,7 +1,7 @@
 """Java adapter: tables + contextual hooks, every row citing a ruling.
 
 Verified against tree-sitter-java 0.23.5 node kinds. Java has no else_clause
-node — an `else` is an anonymous token and the else-if chain lives in the
+node: an `else` is an anonymous token, and the else-if chain lives in the
 if_statement's `alternative` field, so both are handled by hooks here.
 """
 
@@ -133,7 +133,7 @@ class JavaAdapter(LanguageAdapter):
         t = node.type
         if t == "if_statement":
             # CC-JAVA-0001 + COG-ALL-0002: an if that is the `alternative` of
-            # another if is an else-if arm — chain-flattened for cognitive.
+            # another if is an else-if arm, chain-flattened for cognitive.
             parent = node.parent
             if (
                 parent is not None
@@ -144,7 +144,7 @@ class JavaAdapter(LanguageAdapter):
             return Classified(NodeClass.BRANCH, (R_CC_IF, R_COG_STRUCT))
         if t == "else":
             # Anonymous `else` token: hybrid +1 unless it introduces an else-if
-            # (then the nested if_statement counts instead — no double count).
+            # (then the nested if_statement counts instead, so no double count).
             parent = node.parent
             if parent is not None and parent.type == "if_statement":
                 alt = parent.child_by_field_name("alternative")
@@ -179,8 +179,8 @@ class JavaAdapter(LanguageAdapter):
         return super().classify(node)
 
     def call_name(self, node: Node) -> str | None:
-        """COG-ALL-0005 receiver rule: bare calls plus this-receiver calls only —
-        a same-named call on another receiver is not recursion."""
+        """COG-ALL-0005 receiver rule: bare calls plus this-receiver calls only.
+        A same-named call on another receiver is not recursion."""
         if node.type != "method_invocation":
             return None
         obj = node.child_by_field_name("object")

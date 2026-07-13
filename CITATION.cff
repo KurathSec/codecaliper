@@ -1,15 +1,27 @@
-# Citation metadata (https://citation-file-format.github.io/) — read by
+# Citation metadata (https://citation-file-format.github.io/), read by
 # GitHub's "Cite this repository" box and by Zenodo's GitHub integration when
 # a release is archived. `version` and `date-released` are deliberately
 # omitted: Zenodo takes both from the release itself, and a hand-maintained
 # copy here would only drift (RELEASING.md). Keep title/author in sync with
 # `codecaliper cite` (src/codecaliper/cli.py).
+#
+# The two Buse and Weimer papers under `references` are not decoration. This
+# repository redistributes their dataset under a permission an author of it gave
+# by e-mail, and in the same reply he asked, if it were possible, that both
+# papers be cited. That is a request, and the permission is a permission: no
+# licence text was issued and nothing was made conditional on the citation
+# (PERMISSIONS.md, validation/bw_faithfulness/dataset.toml). The project honours
+# the request because it was asked for. This file is the surface GitHub and
+# Zenodo actually read, so it is honoured here too. Do not remove them.
 cff-version: 1.2.0
 message: >-
-  If you use codecaliper, please cite it as below. `codecaliper cite` prints
-  a methods-section template stating the package version, the mapping
-  specification version, and the exact grammar versions your numbers were
-  produced under — report all three.
+  If you use codecaliper, please cite it as below. If you use anything derived
+  from the Buse-Weimer dataset, please also cite the two Buse and Weimer papers
+  listed under `references`: an author of the dataset asked for that when he
+  permitted its redistribution, and this project passes the request on.
+  `codecaliper cite` prints a methods-section template stating the package
+  version, the mapping specification version, and the exact grammar versions
+  your numbers were produced under. Report all three.
 title: "codecaliper: a cross-language code readability and complexity measurement instrument"
 abstract: >-
   codecaliper measures code readability features (a faithful, tested,
@@ -44,9 +56,48 @@ keywords:
   - "measurement instrument"
   - "mining software repositories"
 references:
+  # The citation form the dataset author asked for, in the reply that permitted
+  # redistribution: BOTH of the following (2026-07-11, PERMISSIONS.md).
+  - type: article
+    title: "Learning a Metric for Code Readability"
+    authors:
+      - given-names: "Raymond P. L."
+        family-names: "Buse"
+      - given-names: "Westley"
+        family-names: "Weimer"
+    journal: "IEEE Transactions on Software Engineering"
+    volume: 36
+    issue: 4
+    start: 546
+    end: 558
+    year: 2010
+    doi: "10.1109/TSE.2009.70"
+    notes: >-
+      Source of the 25-feature readability feature set re-implemented here, and
+      of the dataset reproduced in validation/bw_faithfulness/.
+  - type: conference-paper
+    title: "A Metric for Software Readability"
+    authors:
+      - given-names: "Raymond P. L."
+        family-names: "Buse"
+      - given-names: "Westley"
+        family-names: "Weimer"
+    collection-title: "Proceedings of the 2008 International Symposium on Software Testing and Analysis (ISSTA 2008)"
+    publisher:
+      name: "Association for Computing Machinery"
+    start: 121
+    end: 130
+    year: 2008
+    doi: "10.1145/1390630.1390647"
+    notes: >-
+      The earlier paper introducing the readability metric; the dataset author
+      asked that it be cited alongside the 2010 TSE article.
   - type: software
     title: "Spaghetti Architect"
     doi: "10.5281/zenodo.21033174"
     authors:
       - given-names: "Yuxiang"
         family-names: "Ji"
+    notes: >-
+      Origin of the verbatim reference implementations in tests/_reference/
+      (see NOTICE).

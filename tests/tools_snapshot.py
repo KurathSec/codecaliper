@@ -28,11 +28,11 @@ def compute_corpus_values() -> dict[str, dict[str, object]]:
                 values[key] = qfloat(mv.value) if isinstance(mv.value, float) else mv.value
             # Disambiguate by span ONLY when a name/vector could collide (Java
             # overloads or a >=2-unit function-granularity case), so the drift
-            # gate never silently drops a distinct value — and single-unit,
+            # gate never silently drops a distinct value, while single-unit,
             # single-vector cases keep their plain keys (no snapshot churn).
             dup_names = _duplicates([fn.qualified_name for fn in rep.functions])
             for fn in rep.functions:
-                # start_line:start_col — two overloads can share a line, never a
+                # start_line:start_col. Two overloads can share a line, never a
                 # start position, so distinct values never collide to one key
                 tag = (f"@{fn.span.start_line}:{fn.span.start_col}"
                        if fn.qualified_name in dup_names else "")

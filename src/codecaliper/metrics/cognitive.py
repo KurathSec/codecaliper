@@ -1,4 +1,4 @@
-"""Cognitive complexity — ONE walker, dual mode (COG-* rulings).
+"""Cognitive complexity: ONE walker, dual mode (COG-* rulings).
 
 Default mode is whitepaper-faithful; sonar-compat matches the deployed
 Sonar-lineage implementations where they diverge from the paper text. The only

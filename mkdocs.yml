@@ -51,12 +51,18 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.snippets:
-      # base_path is the repo root so pages can verbatim-include GENERATED
-      # artifacts (validation/bw_faithfulness/derived/*.md) — included, never
-      # copied, so the site cannot drift from the derived reports.
+      # base_path is the repo root so pages can verbatim-include the GENERATED
+      # artifacts (validation/bw_faithfulness/derived/*.md). They are included,
+      # never copied, so the site cannot drift from the derived reports.
       base_path: ["."]
       check_paths: true
 
+# The site is for someone who wants to USE the tool and understand what its
+# numbers mean, plus the one contributor page a maintainer needs. That page is a
+# snippet transclusion of CONTRIBUTING.md, so the checklists cannot exist in two
+# versions. ARCHITECTURE.md is the requirements record and stays in the repo,
+# linked and not re-hosted: it is written for someone with the tree in front of
+# them.
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
@@ -68,8 +74,8 @@ nav:
   - API: api.md
   - Contributing: contributing.md
 
-# `mkdocs build --strict` (CI) turns any warning — broken nav entry, bad
-# link, missing snippet include — into a build failure.
+# `mkdocs build --strict` (CI) turns any warning (broken nav entry, bad link,
+# missing snippet include) into a build failure.
 validation:
   omitted_files: warn
   absolute_links: warn

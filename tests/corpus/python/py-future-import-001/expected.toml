@@ -6,7 +6,7 @@ computed_by = "hand"
 # The input's `type Alias = ...` is PEP 695 syntax (Python 3.12+). OUR
 # tree-sitter measurement is host-Python-independent, but the vendored
 # stdlib-ast crosscheck lane (py_ast_lane, ast.parse) raises SyntaxError on the
-# 3.10/3.11 CI matrix — a parser limit of the oracle, not a value divergence.
+# 3.10/3.11 CI matrix: a parser limit of the oracle, not a value divergence.
 # Excluded from every reference lane (all-or-nothing flag); the hand-computed
 # expectations below still gate the measurement on all supported interpreters.
 reference_comparable = false

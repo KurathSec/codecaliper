@@ -126,7 +126,7 @@ def test_case(case: dict) -> None:
 
 def test_diagnostic_codes_are_a_closed_set() -> None:
     """Every diagnostic code emitted anywhere across the corpus is a member of
-    DIAGNOSTIC_CODES — the set stays closed by enforcement, not by comment
+    DIAGNOSTIC_CODES. The set stays closed by enforcement, not by comment
     (ARCHITECTURE.md §2). A new code lands by extending the set, never ad hoc."""
     for case in CASES:
         rep = measure(case_source(case), language=case["language"],

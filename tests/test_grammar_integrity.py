@@ -57,7 +57,7 @@ def test_grammar_is_calibrated(lang: str) -> None:
     (constraints/ci.txt); user environments may deviate and get labelled."""
     info = get_adapter(lang).grammar_info()
     assert info.validated, (
-        f"{info.package} {info.version} != validated_grammars.toml — "
+        f"{info.package} {info.version} != validated_grammars.toml: "
         "either fix the environment or follow the grammar-upgrade procedure "
         "(ARCHITECTURE.md §10)"
     )

@@ -1,4 +1,4 @@
-# Normalize everything to LF in the repository and on checkout — the
+# Normalize everything to LF in the repository and on checkout: the
 # reproducibility claim (byte-identical outputs per platform) dies if git
 # rewrites source line endings differently per contributor.
 * text=auto eol=lf

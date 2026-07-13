@@ -1,11 +1,11 @@
-"""The tree-sitter quarantine — the ONLY module that imports ``tree_sitter``.
+"""The tree-sitter quarantine: the ONLY module that imports ``tree_sitter``.
 
 py-tree-sitter breaks its API across 0.x minors (0.22 removed
 ``Language(path, name)``; 0.23 removed the Parser setters; 0.24/0.25 moved
 query execution to ``QueryCursor`` and deprecated ``Language.version`` for
 ``abi_version``). Confining the import here bounds every future breakage to one
-file (ARCHITECTURE.md §4). The MVP deliberately avoids the Query API entirely —
-cursor walks suffice.
+file (ARCHITECTURE.md §4). The MVP avoids the Query API entirely; cursor walks
+suffice.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ def load_language(grammar_module: str) -> tuple[Language, str, int]:
     try:
         mod = importlib.import_module(grammar_module)
         lang = Language(mod.language())
-    except Exception as exc:  # noqa: BLE001 — surface as our typed error
+    except Exception as exc:  # noqa: BLE001 (surface as our typed error)
         raise GrammarLoadError(f"cannot load grammar module {grammar_module!r}: {exc}") from exc
     dist = grammar_module.replace("_", "-")
     try:
@@ -50,7 +50,7 @@ def make_parser(language: Language) -> Parser:
 
 
 def walk(tree: Tree) -> Iterator[tuple[Node, int]]:
-    """Cursor-based preorder ``(node, depth)`` — O(1) memory, no recursion limit,
+    """Cursor-based preorder ``(node, depth)``: O(1) memory, no recursion limit,
     deterministic order."""
     cursor = tree.walk()
     depth = 0
@@ -105,8 +105,8 @@ def leaves(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
 
 def leaves_lexical(tree: Tree, atomic_types: frozenset[str]) -> Iterator[Node]:
     """Full lexical leaf stream: like :func:`leaves`, but DESCENDS into ERROR
-    subtrees, yielding the tokens tree-sitter recovered inside them — the BW
-    construct is lexical and must see fragment tokens (BW-ALL-0007). MISSING
+    subtrees, yielding the tokens tree-sitter recovered inside them, because the
+    BW construct is lexical and must see fragment tokens (BW-ALL-0007). MISSING
     nodes are zero-width fabrications and still yield nothing; a childless
     ERROR node (raw untokenized bytes) also yields nothing."""
     cursor = tree.walk()

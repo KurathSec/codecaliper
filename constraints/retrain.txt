@@ -3,7 +3,7 @@
 #  arbitration_report.{json,md}). The AUC in those artifacts is sensitive at
 # the single-ranked-pair level (~4e-4), so their byte-reproducibility is
 # scoped to this stack (and the calibrated grammar pins in constraints/ci.txt,
-# which govern the re-derived features) as well as per platform — install with
+# which govern the re-derived features) as well as per platform, so install with
 #   pip install -e ".[retrain]" -c constraints/ci.txt -c constraints/retrain.txt
 # Complete transitive closure of scikit-learn (pip freeze in a clean venv).
 joblib==1.5.3

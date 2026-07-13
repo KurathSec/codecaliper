@@ -1,7 +1,7 @@
 """radon vs codecaliper: per-function Python cyclomatic complexity.
 
 radon is per-function by construction (`radon.complexity.cc_visit`), so the
-comparison is per named function — file-level totals are not a radon concept.
+comparison is per named function; file-level totals are not a radon concept.
 """
 
 from __future__ import annotations

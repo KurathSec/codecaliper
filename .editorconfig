@@ -1,4 +1,4 @@
-# EditorConfig (https://editorconfig.org) — keeps non-Python files consistent;
+# EditorConfig (https://editorconfig.org) keeps non-Python files consistent.
 # Python style is enforced by ruff (line-length 100, see pyproject.toml).
 root = true
 
@@ -20,8 +20,8 @@ indent_size = 2
 # Markdown uses trailing double-space as a hard line break.
 trim_trailing_whitespace = false
 
-# Corpus fixtures are measurement inputs with hand-computed expected values —
-# trailing whitespace and missing final newlines can be the very thing a case
+# Corpus fixtures are measurement inputs with hand-computed expected values.
+# Trailing whitespace and missing final newlines can be the very thing a case
 # measures (e.g. py-blank-lines-001). Editors must never "clean" them; a silent
 # fix here surfaces later as a baffling spec-drift gate failure.
 [tests/corpus/**]

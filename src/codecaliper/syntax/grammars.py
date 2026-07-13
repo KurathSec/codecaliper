@@ -1,9 +1,9 @@
 """Grammar loading and the calibration check (ARCHITECTURE.md §10).
 
-A deviating installed grammar version never refuses to run — it is stamped
+A deviating installed grammar version never refuses to run. It is stamped
 ``GrammarInfo.validated=False`` and every report carries an
-``unvalidated-grammar`` diagnostic. Run and label, never refuse, never silently
-trust.
+``unvalidated-grammar`` diagnostic. Run and label it; never refuse, and never
+silently trust.
 """
 
 from __future__ import annotations

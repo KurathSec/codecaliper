@@ -36,7 +36,7 @@ BW-JAVA-0001) -> avg 8/6 = 1.3333..., max 3. Per-line MAX identifier lengths
 (IllegalArgumentException); `rows` occurs 4x -> max_identifier_occurrences 4.
 indentation 0/4/8/4/4/0 -> avg 20/6 = 3.3333..., max 8.
 keywords per line 3/1/2/0/1/0 (public,int,int | if | throw,new | - | this | -)
--> avg 7/6 = 1.1666..., max 3; `||` is an uncategorized OPERATOR token — not a
+-> avg 7/6 = 1.1666..., max 3; `||` is an uncategorized OPERATOR token: not a
 keyword and in no operator class (BW-ALL-0006).
 numbers: two `0` literals on line 2 -> avg 2/6, max 2. comments 0.
 periods 1 (`this.rows`) -> 1/6. commas 1 (line 1) -> 1/6.

@@ -5,7 +5,7 @@ rulings = ["TOK-JAVA-0002", "BW-JAVA-0001", "LOC-ALL-0004", "TOK-ALL-0005"]
 computed_by = "hand"
 notes = """
 TOK-JAVA-0002 (new in spec 1.1.0): `_` is an IDENTIFIER token in every
-position. Line 3 uses `_` as an unnamed variable declarator — the grammar
+position. Line 3 uses `_` as an unnamed variable declarator, where the grammar
 yields an underscore_pattern node there (before 1.1.0 it lexed as OTHER,
 invisible to BW and Halstead); line 4 uses `_` as a lambda parameter, where
 the grammar already yields an identifier node. Both lex IDENTIFIER, so the

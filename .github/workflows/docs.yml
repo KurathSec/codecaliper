@@ -48,7 +48,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       # Pages must be enabled once by hand (Settings -> Pages -> Source:
-      # GitHub Actions) BEFORE the first run — automatic enablement requires
+      # GitHub Actions) BEFORE the first run. Automatic enablement requires
       # an admin-scoped token the workflow GITHUB_TOKEN can never hold
       # (RELEASING.md, one-time setup §4).
       - uses: actions/configure-pages@v6

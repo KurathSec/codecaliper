@@ -1,4 +1,4 @@
-"""Maintainability index (MI-ALL-0001) — derived, and it says so in the types.
+"""Maintainability index (MI-ALL-0001): derived, and it says so in the types.
 
 MI contains the CC term; it is NOT independent of cyclomatic complexity
 (ARCHITECTURE.md §13). Every value carries derived_from and mi-contains-cc.

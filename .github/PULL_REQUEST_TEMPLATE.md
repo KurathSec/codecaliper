@@ -4,7 +4,7 @@
 
 ## Instrument gates (check what applies)
 
-- [ ] **No corpus value changed** — or this PR bumps the spec MAJOR in
+- [ ] **No corpus value changed**, or this PR bumps the spec MAJOR in
       `src/codecaliper/spec/rulings/index.toml` and regenerates the snapshot
       with `tools/update_snapshot.py --confirm-spec-bump`.
 - [ ] Every new counting decision is a **TOML ruling with a new immutable ID**

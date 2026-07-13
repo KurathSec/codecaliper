@@ -2,8 +2,8 @@
 # ci.txt on purpose: ci.txt carries the instrument's calibrated grammar/oracle
 # pins, and the docs toolchain must never be able to perturb measurement CI.
 # This is the COMPLETE closure (pip freeze of a clean venv after installing
-# the four top-level tools), so transitive deps — pymdown-extensions,
-# griffelib, Markdown — cannot float either. Upgrade by re-freezing and
+# the four top-level tools), so transitive deps (pymdown-extensions,
+# griffelib, Markdown) cannot float either. Upgrade by re-freezing and
 # checking `mkdocs build --strict` locally.
 babel==2.18.0
 backrefs==7.0

@@ -7,7 +7,7 @@ computed_by = "hand"
 notes = """
 Error-opacity fixture (CORE-ALL-0002): the unclosed paren on line 4 makes
 tree-sitter-python emit ONE ERROR subtree spanning lines 4-6 (`x = (1 +`,
-`if a and b:`, `    pass`) — verified by dumping the tree: module's children
+`if a and b:`, `    pass`). Verified by dumping the tree: module's children
 are comment (line 1), expression_statement `total = 0` (line 3), ERROR (lines
 4-6). Inside the ERROR there is no if_statement node at all, only a raw `if`
 keyword token and a boolean_operator node; both sit under ERROR and are

@@ -1,4 +1,4 @@
-"""Line counting (LOC-* rulings) — coverage measures over the token stream.
+"""Line counting (LOC-* rulings): coverage measures over the token stream.
 
 sloc counts lines covered by code-token spans, so multi-line strings count on
 every line they span; this is exactly where the demoted regex lane provably

@@ -1,5 +1,5 @@
 [build-system]
-# >=1.27 for PEP 639 (SPDX `license = "MIT"` string) — older hatchling rejects it
+# >=1.27 for PEP 639 (SPDX `license = "MIT"` string); older hatchling rejects it
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
@@ -33,7 +33,7 @@ classifiers = [
 # Grammar policy (ARCHITECTURE.md §10): compatible RANGES here so pip can resolve
 # in shared environments; EXACT calibrated pins live in constraints/ci.txt and
 # spec/validated_grammars.toml. Provenance always records the actually-installed
-# versions and flags deviation — run and label, never refuse.
+# versions and flags deviation. Run and label, never refuse.
 dependencies = [
   "tree-sitter>=0.25,<0.27",
   "tree-sitter-python>=0.25,<0.26",
@@ -43,7 +43,7 @@ dependencies = [
 
 [project.optional-dependencies]
 retrain = ["scikit-learn>=1.4"]
-# Differential-test oracles ONLY — never runtime backends (ARCHITECTURE.md §8.2).
+# Differential-test oracles ONLY, never runtime backends (ARCHITECTURE.md §8.2).
 oracles = ["radon>=6", "lizard>=1.17", "cognitive-complexity>=1.3"]
 dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
 # Docs toolchain (mkdocs-material site, ARCHITECTURE.md §11); exact pins for
@@ -67,11 +67,11 @@ path = "src/codecaliper/_version.py"
 # cache); this list is the explicit, gitignore-independent policy for what must
 # never enter the immutable PyPI artifact. release.yml asserts it.
 exclude = [
-  "/paper",                              # unreviewed draft — the repo/DOI archive carries it, PyPI does not
+  "/paper",                              # unreviewed draft: the repo/DOI archive carries it, PyPI does not
   "/.github",
   "/CLAUDE.md",
   "/site",
-  "validation/bw_faithfulness/cache",    # dataset content — NEVER shipped (ARCHITECTURE.md §8.3)
+  "validation/bw_faithfulness/cache",    # dataset content: NEVER shipped (ARCHITECTURE.md §8.3)
   "validation/bw_faithfulness/*.zip",
 ]
 
@@ -85,7 +85,7 @@ addopts = "-q"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-# measurement fixtures — their whitespace is load-bearing and one of them is a
+# measurement fixtures: their whitespace is load-bearing, and one of them is a
 # deliberately truncated (unparseable) fragment
 extend-exclude = ["tests/corpus", "validation/breadth/python-demo"]
 

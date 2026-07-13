@@ -1,11 +1,11 @@
-"""The codecaliper CLI (stdlib argparse — zero extra dependencies).
+"""The codecaliper CLI (stdlib argparse, zero extra dependencies).
 
     codecaliper FILE... [--lang auto|python|java] [--json|--csv] ...
     codecaliper spec version | list | show RULING-ID
     codecaliper env                  # the calibration plate
     codecaliper cite [--format ...]  # methods-section template
 
-Diagnostics go to stderr, data to stdout — pipeline-safe. Exit codes:
+Diagnostics go to stderr, data to stdout, so the CLI is pipeline-safe. Exit codes:
 0 success, 1 usage/internal error, 2 completed with error-severity diagnostics.
 """
 
@@ -152,7 +152,7 @@ def _cmd_spec(argv: list[str]) -> int:
         except CodecaliperError as exc:
             print(f"codecaliper: error: {exc}", file=sys.stderr)
             return 1
-        print(f"{r.id} — {r.title}")
+        print(f"{r.id}: {r.title}")
         print(f"metric: {r.metric}   language: {r.language}   status: {r.status}"
               + (f"   mode: {r.mode}" if r.mode else ""))
         if r.superseded_by:
@@ -168,7 +168,7 @@ def _cmd_spec(argv: list[str]) -> int:
 
 
 def _cmd_env() -> int:
-    """The calibration plate — what bug reports and papers should quote."""
+    """The calibration plate: what bug reports and papers should quote."""
     from codecaliper.languages import available_languages, get_adapter
     from codecaliper.spec import spec_version
 

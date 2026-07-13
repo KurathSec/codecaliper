@@ -22,14 +22,14 @@ def test_parse_error_recovered_and_labelled() -> None:
 
 def test_error_subtrees_are_opaque() -> None:
     """CORE-ALL-0002: nothing inside an ERROR/MISSING subtree may feed any
-    metric — the boolean_operator below sits inside an ERROR region and must
+    metric. The boolean_operator below sits inside an ERROR region and must
     not count, and its tokens must not feed Halstead/sloc."""
     src = "x = (1 +\nif a and b:\n    pass\n"
     rep = measure(src, language="python")
     assert not rep.parse_ok
     fm = metric_map(rep.file_metrics)
     assert fm["cyclomatic"].value == 1, (
-        "decision points inside ERROR subtrees counted — CORE-ALL-0002 violated"
+        "decision points inside ERROR subtrees counted; CORE-ALL-0002 violated"
     )
     assert fm["cognitive"].value == 0
     # clean file for comparison: same tokens, no error
@@ -150,7 +150,7 @@ def test_java_snippet_scaffold_engages_for_constructor() -> None:
     if_trace = [t for t in cc.trace if t.ruling_id == "CC-JAVA-0001"]
     assert if_trace and if_trace[0].span.start_line == 2
     # EVERY trace span (the root-counted CC-ALL-0001 base included) must lie
-    # inside the snippet's own line domain — scaffold coordinates may not leak
+    # inside the snippet's own line domain: scaffold coordinates may not leak
     n = int(fm["physical_lines"].value)
     for t in cc.trace:
         assert 1 <= t.span.start_line <= t.span.end_line <= n, (
@@ -252,7 +252,7 @@ def test_explain_traces() -> None:
 def test_bw_lexical_fallback_scoping() -> None:
     """BW-ALL-0007: on parse errors, BW token features see ERROR-region tokens
     (both diagnostic levels + provenance), while every metric stays error-opaque
-    (CORE-ALL-0002) — and a clean parse never carries the fallback."""
+    (CORE-ALL-0002). A clean parse never carries the fallback."""
     src = "count = 1\nbroken = (count +\nif count and flag:\n    pass\n"
     rep = measure(src, language="python")
     assert not rep.parse_ok
@@ -303,7 +303,7 @@ def test_bw_lexical_fallback_scoping() -> None:
 
 def test_csv_vectors_join_by_span_not_name() -> None:
     """Same-qualified-name units (Java overloads, Python redefinitions) must
-    each carry their OWN BW vector in CSV output — a name-keyed join silently
+    each carry their OWN BW vector in CSV output: a name-keyed join silently
     hands every row the last unit's numbers."""
     import csv
     import io
@@ -377,7 +377,7 @@ def test_ruling_citations_are_language_scoped_and_complete() -> None:
 
 def test_tok_all_0007_fires_only_when_engaged() -> None:
     """TOK-ALL-0007 reclassified tokens on its own normative corpus inputs, so
-    the reports for those inputs must cite it — and a file without anonymous
+    the reports for those inputs must cite it, and a file without anonymous
     word tokens must not."""
     from conftest import CORPUS_DIR
 
@@ -400,7 +400,7 @@ def test_tok_all_0007_fires_only_when_engaged() -> None:
 def test_conditional_token_rulings_are_per_unit() -> None:
     """A construct-specific tokenization ruling (TOK-ALL-0007, TOK-JAVA-0002)
     is cited on a per-function BW vector only when its token lies inside that
-    unit's own span — not file-globally."""
+    unit's own span, not file-globally."""
     src = "from __future__ import annotations\n\ndef f(x):\n    return x + 1\n"
     rep = measure(src, language="python", granularity="function")
     fvec = next(v for v in rep.readability if (v.unit_name or "").endswith("f"))
@@ -431,7 +431,7 @@ def test_tok_java_0002_is_conditional_not_static() -> None:
 def test_soft_keyword_table_is_pinned_not_host_dependent() -> None:
     """BW-PY-0001's soft-keyword set is pinned, so `type` (added to CPython's
     softkwlist only in 3.12) classifies identically on every supported
-    interpreter — via the soft-keyword branch, never the TOK-ALL-0007
+    interpreter, via the soft-keyword branch, never the TOK-ALL-0007
     anonymous-word branch."""
     from codecaliper.languages.python import PythonAdapter
 
@@ -453,7 +453,7 @@ def test_session_rejects_invalid_mode_and_granularity() -> None:
 
 def test_concatenated_string_comment_is_a_comment_token() -> None:
     """TOK-PY-0002: a comment between implicitly concatenated string parts is
-    an ordinary COMMENT token — it counts as a comment line, not code, and the
+    an ordinary COMMENT token: it counts as a comment line, not code, and the
     string parts do not swallow its text."""
     src = 'msg = ("part one "\n       # explains part two\n       "part two")\n'
     rep = measure(src, language="python")
@@ -468,7 +468,7 @@ def test_concatenated_string_comment_is_a_comment_token() -> None:
 
 def test_encoding_diagnostic_only_on_actual_replacement() -> None:
     """TOK-ALL-0001: valid UTF-8 that legitimately CONTAINS U+FFFD is not
-    'replaced' — the diagnostic fires only when undecodable bytes were hit."""
+    'replaced'. The diagnostic fires only when undecodable bytes were hit."""
     legit = 's = "\N{REPLACEMENT CHARACTER}"\n'.encode()
     rep = measure(legit, language="python")
     assert not any(d.code == "encoding-replaced" for d in rep.diagnostics)

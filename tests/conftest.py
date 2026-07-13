@@ -69,8 +69,8 @@ def case_measure_kwargs(case: dict) -> dict:
 
 def is_reference_comparable(case: dict) -> bool:
     """Whether the stdlib reference lanes (bw_stdlib / py_ast_lane) can be run
-    on this case: they need clean, decodable, default-granularity input —
-    normalization edge cases and parse errors are OUR policy surface, not the
+    on this case: they need clean, decodable, default-granularity input.
+    Normalization edge cases and parse errors are OUR policy surface, not the
     reference's."""
     c = case["expected"]["case"]
     return (
@@ -79,7 +79,7 @@ def is_reference_comparable(case: dict) -> bool:
         and c.get("granularity") is None
         # a case may opt out when it exercises a construct an external oracle
         # cannot parse at all (e.g. lizard sees no functions in a single-line
-        # `...`-body stub) — the mismatch is the oracle's limit, not a value
+        # `...`-body stub). The mismatch is the oracle's limit, not a value
         # divergence, and the case's own hand-computed expectations still gate it
         and c.get("reference_comparable", True)
     )

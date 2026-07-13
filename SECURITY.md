@@ -9,7 +9,7 @@ Only the latest released version receives security fixes.
 codecaliper parses arbitrary, potentially untrusted source code through native
 tree-sitter grammars, so parser-reachable memory-safety issues are in scope.
 
-Please report vulnerabilities privately — do not open a public issue:
+Please report vulnerabilities privately. Do not open a public issue.
 
 - preferred: [GitHub private vulnerability reporting](https://github.com/KurathSec/codecaliper/security/advisories/new)
 - or by email: kurathandrew@gmail.com

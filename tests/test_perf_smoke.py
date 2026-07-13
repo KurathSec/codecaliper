@@ -36,6 +36,6 @@ def test_throughput_floor() -> None:
     elapsed = time.perf_counter() - start
     rate = n / elapsed
     assert rate > 50, (
-        f"measured {rate:.0f} snippets/s — below the 50/s smoke floor; "
+        f"measured {rate:.0f} snippets/s, below the 50/s smoke floor; "
         "check for per-call spec reloads or parser construction"
     )

@@ -2,7 +2,7 @@
 
 - every ruling ID cited anywhere (corpus, ruling examples, src/ code) exists;
 - every ruling's `examples` case exists AND cites the ruling back in its
-  [case].rulings — self-attested examples that assert nothing are rejected;
+  [case].rulings (self-attested examples that assert nothing are rejected);
 - every ACTIVE ruling is cited by >= 1 corpus case, except the explicit
   UNCOVERED allowlist below, which must SHRINK to empty before 1.0 and may
   never grow (a new ruling without a case is a red build);
@@ -23,7 +23,7 @@ CASE_IDS = {c["id"] for c in CASES}
 SRC = Path(__file__).parent.parent / "src" / "codecaliper"
 
 #: Rulings not yet exercised by a corpus case. SHRINK-ONLY: adding to this list
-#: is a review-visible act of debt; the 1.0 gate is an empty list — reached
+#: is a review-visible act of debt. The 1.0 gate is an empty list, reached
 #: 2026-07-05 (W4-5). It must stay empty: a new ruling ships with its case.
 UNCOVERED: frozenset[str] = frozenset()
 
@@ -47,7 +47,7 @@ def test_ruling_examples_exist_and_cite_back() -> None:
             )
             assert r.id in by_case[example], (
                 f"{r.id} claims {example} as a normative example, but that case "
-                f"does not cite {r.id} in its [case].rulings — self-attested "
+                f"does not cite {r.id} in its [case].rulings; self-attested "
                 "examples are vacuous"
             )
 
@@ -61,18 +61,18 @@ def test_active_rulings_are_covered() -> None:
     }
     new_debt = uncovered_now - UNCOVERED
     assert not new_debt, (
-        f"new active rulings without corpus coverage: {sorted(new_debt)} — "
+        f"new active rulings without corpus coverage: {sorted(new_debt)}. "
         "add a corpus case or (visibly) extend UNCOVERED"
     )
     paid_off = UNCOVERED - uncovered_now
     assert not paid_off, (
-        f"rulings now covered but still allowlisted: {sorted(paid_off)} — "
+        f"rulings now covered but still allowlisted: {sorted(paid_off)}. "
         "remove them from UNCOVERED (shrink-only)"
     )
 
 
 def test_all_ruling_ids_in_src_resolve() -> None:
-    """Any ruling-ID-shaped string anywhere in src/ must exist in the registry —
+    """Any ruling-ID-shaped string anywhere in src/ must exist in the registry,
     docstrings and comments included, so no citation can go phantom."""
     for py in SRC.rglob("*.py"):
         for rid in _RULING_ID_RE.findall(py.read_text(encoding="utf-8")):
@@ -81,7 +81,7 @@ def test_all_ruling_ids_in_src_resolve() -> None:
 
 def test_supersession_chain_is_consistent() -> None:
     """A superseded ruling must name a resolvable, ACTIVE successor, and a
-    superseded_by pointer may only appear on superseded rulings — the chain is
+    superseded_by pointer may only appear on superseded rulings. The chain is
     registry data the CLI and generated docs surface, so it may not dangle."""
     for r in iter_rulings():
         if r.status == "superseded":

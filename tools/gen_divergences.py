@@ -2,9 +2,9 @@
 """Render tests/differential/divergences.toml into docs/spec/divergences.md.
 
 The TOML classification table is the single source of truth; the differential
-lane (tests/differential/) keeps it complete in both directions — an
-unclassified divergence fails, and so does a stale entry no longer observed —
-so this rendered list is the complete known-divergence artifact
+lane (tests/differential/) keeps it complete in both directions. An
+unclassified divergence fails, and so does a stale entry no longer observed, so
+this rendered list is the complete known-divergence artifact
 (ARCHITECTURE.md §3.4). CI diffs the output like docs/spec/rulings.md.
 """
 
@@ -48,7 +48,7 @@ def render() -> str:
         f"# Known divergences from external oracles (spec v{spec_version()})",
         "",
         "> Generated from `tests/differential/divergences.toml` by",
-        "> `tools/gen_divergences.py` — do not edit by hand. The differential",
+        "> `tools/gen_divergences.py`. Do not edit by hand. The differential",
         "> lane (`tests/differential/`) keeps this list complete in both",
         "> directions: an unclassified divergence fails CI, and so does a",
         "> stale entry that is no longer observed (ARCHITECTURE.md §3.4).",
@@ -66,7 +66,7 @@ def render() -> str:
         "",
         "**Known witnessing gap** (ARCHITECTURE.md §8.2/§15): Java cyclomatic",
         "is witnessed by lizard only, and Java cognitive complexity has NO",
-        "external oracle — PMD and rust-code-analysis are staged, not yet",
+        "external oracle. PMD and rust-code-analysis are staged, not yet",
         "wired. Until then, Java counting rests on the hand-computed corpus",
         "and the spec alone.",
         "",

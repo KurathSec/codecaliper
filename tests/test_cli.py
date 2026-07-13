@@ -1,5 +1,5 @@
 """CLI contract tests: subcommand output content, flag behavior, exit codes,
-and error paths — asserted against independent expectations, never against the
+and error paths, asserted against independent expectations, never against the
 program's own output (ARCHITECTURE.md §9).
 """
 
@@ -42,7 +42,7 @@ def test_json_output_content(sample: Path) -> None:
     rep = json.loads(r.stdout)
     assert rep["parse_ok"] is True
     fm = {m["metric"]: m["value"] for m in rep["file_metrics"]}
-    assert fm["cyclomatic"] == 2  # 1 + if — independent hand expectation
+    assert fm["cyclomatic"] == 2  # 1 + if; independent hand expectation
     assert rep["provenance"]["spec_version"] == spec_version()
     assert rep["provenance"]["language"] == "python"
     assert rep["provenance"]["grammar"]["validated"] is True

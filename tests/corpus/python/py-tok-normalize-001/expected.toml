@@ -43,7 +43,7 @@ BW over 4 lines (BW-ALL-0001 avg = sum/lines, max = max):
   length 0,1,0,1 -> avg_identifier_length 0.5, max 1 (BW-ALL-0005).
   indentation/line 0,0,8,0 -> avg 8/4 = 2.0, max_indentation 8 (TOK-ALL-0006: tab=8;
   line length stays a raw char count, so the tab is 1 char there).
-  keywords/line 0,1,1,0 (def; return — both in kwlist, BW-PY-0001) ->
+  keywords/line 0,1,1,0 (def; return, both in kwlist, BW-PY-0001) ->
   avg_keywords 0.5, max_keywords 1.
   numbers none -> avg 0, max 0. comments: 1 token / 4 lines -> 0.25.
   periods 0, commas 0. spaces/line 2,1,1,2 -> 6/4 = 1.5 (the TAB is not ' ').

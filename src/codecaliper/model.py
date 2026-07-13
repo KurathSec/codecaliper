@@ -1,10 +1,11 @@
 """Result data model.
 
 All result types are frozen, slotted dataclasses: immutable, clock-free (no
-timestamps anywhere — outputs are byte-reproducible per platform, CORE-ALL-0004),
-with a stable field order that canonical.py serializes deterministically.
+timestamps anywhere, so outputs are byte-reproducible per platform,
+CORE-ALL-0004), with a stable field order that canonical.py serializes
+deterministically.
 
-Honesty is encoded in types, not docs: MI carries a typed ``derived_from`` and a
+Honesty is encoded in the types themselves: MI carries a typed ``derived_from`` and a
 standing ``mi-contains-cc`` diagnostic; every Halstead value carries
 ``halstead-approximation``; readability results carry ``extrapolated`` as a field;
 there is deliberately no score field anywhere (ARCHITECTURE.md §13).
@@ -57,10 +58,10 @@ class GrammarInfo:
 @dataclass(frozen=True, slots=True)
 class Provenance:
     tool_version: str
-    spec_version: str  # on EVERY report — the instrument's calibration stamp
+    spec_version: str  # on EVERY report: the instrument's calibration stamp
     language: str
     grammar: GrammarInfo
-    modes: tuple[tuple[str, str], ...]  # (("cognitive", "whitepaper"),) — sorted, hashable
+    modes: tuple[tuple[str, str], ...]  # (("cognitive", "whitepaper"),); sorted, hashable
     rulings_applied: tuple[str, ...]  # sorted, deduped IDs governing the emitted values
 
 
@@ -94,7 +95,7 @@ class MetricValue:
 
 @dataclass(frozen=True, slots=True)
 class FeatureVectorResult:
-    """A raw feature vector — never a score (ARCHITECTURE.md §7/§13)."""
+    """A raw feature vector, never a score (ARCHITECTURE.md §7/§13)."""
 
     feature_set: str  # "bw2010"
     granularity: Granularity

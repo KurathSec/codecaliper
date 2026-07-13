@@ -25,7 +25,7 @@ V = 21*log2(15) = 82.0447... ; D = (9/2)*(9/6) = 6.75; E = D*V = 553.8017...
 MI (MI-ALL-0001) = clamp((171 - 5.2*ln(82.0447) - 0.23*4 - 16.2*ln(4))*100/171)
 = 72.9265 (cc=4, sloc=4).
 Float assertions carry explicit abs_tol per CORE-ALL-0004 (12-significant-digit
-canonical emission, per-platform determinism) — this case is its corpus witness.
+canonical emission, per-platform determinism); this case is its corpus witness.
 """
 
 [expect.file]

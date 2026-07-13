@@ -4,7 +4,7 @@
     "python": "0.25.0"
   },
   "spec_version": "1.1.0",
-  "tool_version": "0.1.0.dev0",
+  "tool_version": "0.1.1.dev0",
   "values": {
     "java-block-comment-001": {
       "blank_lines": 0,

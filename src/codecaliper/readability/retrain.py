@@ -1,10 +1,10 @@
 """Retraining scaffold (ARCHITECTURE.md §7.4): feature extraction is decoupled from any
 trained model; codecaliper ships NO weights. Model artifacts are JSON (never
-pickle) and carry honesty metadata — applying a Java-snippet model elsewhere is
+pickle) and carry honesty metadata: applying a Java-snippet model elsewhere is
 a construct-validity decision the user makes with eyes open.
 
 The heavy lifting (logistic regression) needs the [retrain] extra
-(scikit-learn); this module only defines the artifact contract so the §6.3
+(scikit-learn); this module only defines the artifact contract, so the §8.3
 faithfulness pipeline and user retraining share one format.
 """
 
@@ -25,7 +25,7 @@ class ModelArtifact:
     spec_version: str
     trained_granularity: str
     trained_language: str
-    dataset_id: str  # e.g. "bw2010-original-100java" — an ID, never bundled data
+    dataset_id: str  # e.g. "bw2010-original-100java"; an ID, never bundled data
     protocol: str  # e.g. "bw2010-logistic-10fold"
     seed: int
     coefficients: tuple[float, ...]
@@ -45,7 +45,7 @@ class ModelArtifact:
         if art.feature_set == "bw2010" and art.feature_order_sha != BW_FEATURE_ORDER_SHA:
             raise SpecError(
                 "model artifact feature order does not match this codecaliper's "
-                "canonical bw2010 order — refusing to predict with misaligned features"
+                "canonical bw2010 order; refusing to predict with misaligned features"
             )
         return art
 

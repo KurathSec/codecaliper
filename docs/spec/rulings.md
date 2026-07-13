@@ -1,6 +1,6 @@
 # codecaliper mapping specification v1.1.0
 
-> Generated from `src/codecaliper/spec/rulings/*.toml` by `tools/gen_spec_docs.py` — do not edit by hand.
+> Generated from `src/codecaliper/spec/rulings/*.toml` by `tools/gen_spec_docs.py`. Do not edit by hand.
 
 ## bw2010
 

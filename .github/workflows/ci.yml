@@ -55,7 +55,7 @@ jobs:
           python tools/gen_spec_docs.py
           git add -N docs/ # so a newly generated (untracked) file also fails the diff
           git diff --exit-code docs/ || {
-            echo "::error::docs/spec is stale — run tools/gen_spec_docs.py and commit"; exit 1; }
+            echo "::error::docs/spec is stale; run tools/gen_spec_docs.py and commit"; exit 1; }
 
   differential:
     # External-oracle differential lane (ARCHITECTURE.md §3.4/§8.2): with the

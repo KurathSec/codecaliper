@@ -9,7 +9,7 @@ Classic colon switch. tree-sitter-java parses a switch STATEMENT as a
 CC = 1 (CC-ALL-0001) + three `case` switch_labels (+1 each, CC-JAVA-0006) = 4;
 the `default` switch_label does not count (fall-through path), and the
 switch_expression node itself is NodeClass.SWITCH, which is not a cyclomatic
-decision class — the branches are counted at the labels, not at the statement.
+decision class: the branches are counted at the labels, not at the statement.
 Cognitive: the switch statement is ONE structural increment (COG-ALL-0001):
 +1 + nesting 0 = 1 (class body and top-level method body do not deepen
 nesting); the case/default labels contribute nothing. No boolean sequences and

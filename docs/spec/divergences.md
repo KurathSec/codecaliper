@@ -1,7 +1,7 @@
 # Known divergences from external oracles (spec v1.1.0)
 
 > Generated from `tests/differential/divergences.toml` by
-> `tools/gen_divergences.py` — do not edit by hand. The differential
+> `tools/gen_divergences.py`. Do not edit by hand. The differential
 > lane (`tests/differential/`) keeps this list complete in both
 > directions: an unclassified divergence fails CI, and so does a
 > stale entry that is no longer observed (ARCHITECTURE.md §3.4).
@@ -19,7 +19,7 @@ Calibrated against the oracle versions pinned in `constraints/ci.txt`:
 
 **Known witnessing gap** (ARCHITECTURE.md §8.2/§15): Java cyclomatic
 is witnessed by lizard only, and Java cognitive complexity has NO
-external oracle — PMD and rust-code-analysis are staged, not yet
+external oracle. PMD and rust-code-analysis are staged, not yet
 wired. Until then, Java counting rests on the hand-computed corpus
 and the spec alone.
 
@@ -32,7 +32,7 @@ and the spec alone.
 | `py-nested-function-001` | `outer` | cognitive | 3 | 5 | `CORE-ALL-0003` | cognitive_complexity scores a function including its nested defs (inner's `if` lands at nesting 2); CORE-ALL-0003 excludes nested named units, which get their own FunctionReports. |
 | `py-recursion-001` | `fact` | cognitive | 1 | 2 | `COG-ALL-0006` | cognitive_complexity 1.3 implements the whitepaper's +1-per-recursive-call increment; our sonar-compat mode omits recursion per COG-ALL-0006 (whitepaper mode agrees with the oracle here). |
 | `snippet:diff-match-in-func` | `dispatch` | cognitive | 1 | 0 | `COG-ALL-0001` | match/case is a switch-like structural increment for us (COG-ALL-0001); cognitive_complexity 1.3 has no ast.Match handling and scores the whole statement zero. |
-| `snippet:diff-while-else` | `scan` | cognitive | 1 | 2 | `COG-ALL-0002` | cognitive_complexity gives a loop's `else` clause a +1 hybrid increment; COG-ALL-0002 rules only if-attached else arms count — loop/try completion clauses contribute nothing. |
+| `snippet:diff-while-else` | `scan` | cognitive | 1 | 2 | `COG-ALL-0002` | cognitive_complexity gives a loop's `else` clause a +1 hybrid increment; COG-ALL-0002 rules only if-attached else arms count, so loop/try completion clauses contribute nothing. |
 
 ## lizard
 

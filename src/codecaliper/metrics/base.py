@@ -1,8 +1,8 @@
-"""MetricContext — the trace/audit seam every increment routes through.
+"""MetricContext: the trace/audit seam every increment routes through.
 
 ``ctx.count(ruling, node, delta)`` records which rulings actually fired (for
 ``Provenance.rulings_applied``) and, only when ``explain=True``, a per-increment
-:class:`RulingTrace` — zero cost on the default path (ARCHITECTURE.md §3.3).
+:class:`RulingTrace`. The default path costs nothing (ARCHITECTURE.md §3.3).
 """
 
 from __future__ import annotations

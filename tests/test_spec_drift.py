@@ -18,7 +18,7 @@ from codecaliper.spec import spec_version
 
 def test_snapshot_exists() -> None:
     assert SNAPSHOT_PATH.exists(), (
-        "tests/snapshots/corpus_values.json missing — run tools/update_snapshot.py"
+        "tests/snapshots/corpus_values.json missing; run tools/update_snapshot.py"
     )
 
 
@@ -28,17 +28,17 @@ def test_no_silent_numeric_drift() -> None:
     snapshot = json.loads(SNAPSHOT_PATH.read_text(encoding="utf-8"))
     # The gate may never silently disarm itself: a spec bump (major OR minor)
     # is red until the snapshot is deliberately regenerated at the new version,
-    # and every corpus case must be snapshotted — otherwise values could drift
+    # and every corpus case must be snapshotted; otherwise values could drift
     # freely in the regeneration gap / on uncovered cases.
     assert str(snapshot["spec_version"]) == spec_version(), (
         f"snapshot is stamped spec {snapshot['spec_version']} but the current "
-        f"spec is {spec_version()} — regenerate it deliberately via "
+        f"spec is {spec_version()}; regenerate it deliberately via "
         "tools/update_snapshot.py (with --confirm-spec-bump iff values changed)"
     )
     live = compute_corpus_values()
     unsnapshotted = set(live) - set(snapshot["values"])
     assert not unsnapshotted, (
-        f"corpus cases missing from the snapshot: {sorted(unsnapshotted)} — "
+        f"corpus cases missing from the snapshot: {sorted(unsnapshotted)}. "
         "run tools/update_snapshot.py"
     )
     for case_id, values in snapshot["values"].items():
@@ -49,7 +49,7 @@ def test_no_silent_numeric_drift() -> None:
         assert set(values) == set(live[case_id]), (
             f"{case_id}: snapshot/live metric key sets differ "
             f"(only in snapshot: {sorted(set(values) - set(live[case_id]))}, "
-            f"only live: {sorted(set(live[case_id]) - set(values))}) — "
+            f"only live: {sorted(set(live[case_id]) - set(values))}); "
             "regenerate via tools/update_snapshot.py"
         )
         for key, expected in values.items():
@@ -60,6 +60,6 @@ def test_no_silent_numeric_drift() -> None:
                 ok = actual == expected
             assert ok, (
                 f"SPEC DRIFT: {case_id}::{key} changed {expected} -> {actual} under "
-                f"spec {spec_version()} — a numeric change requires a spec MAJOR "
+                f"spec {spec_version()}. A numeric change requires a spec MAJOR "
                 "bump (tools/update_snapshot.py --confirm-spec-bump)"
             )

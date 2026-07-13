@@ -1,5 +1,5 @@
-"""FeatureSet registry — bw2010 now; scalabrino2018/dorn2012 slot in at 1.x
-without model changes (FileReport.readability is already plural)."""
+"""FeatureSet registry. bw2010 is the only entry today; scalabrino2018/dorn2012
+slot in at 1.x without model changes (FileReport.readability is already plural)."""
 
 from __future__ import annotations
 

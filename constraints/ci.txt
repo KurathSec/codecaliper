@@ -9,7 +9,7 @@ tree-sitter-python==0.25.0
 tree-sitter-java==0.23.5
 
 # Differential-oracle pins: the divergence table (tests/differential/
-# divergences.toml) is calibrated against THESE oracle versions — a floating
+# divergences.toml) is calibrated against THESE oracle versions. A floating
 # oracle release that changes counting would redden unrelated PRs. Bumping an
 # oracle: install the new version, run pytest tests/differential, classify any
 # new/stale entries, regenerate docs (tools/gen_divergences.py), bump here.

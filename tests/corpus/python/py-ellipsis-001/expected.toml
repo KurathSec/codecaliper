@@ -4,7 +4,7 @@ language = "python"
 rulings = ["TOK-PY-0003", "HAL-ALL-0001", "LOC-ALL-0004", "TOK-ALL-0005"]
 computed_by = "hand"
 # lizard sees zero function units in single-line `...`-body stubs (verified),
-# so a differential unit-set match is impossible — the mismatch is lizard's
+# so a differential unit-set match is impossible; the mismatch is lizard's
 # parser limit, not a value divergence. radon and cognitive_complexity DO
 # recognize the stubs and actually agree with our values; but the
 # reference_comparable flag gates every lane at once, so they are excluded too.
@@ -22,7 +22,7 @@ no comments -> cloc 0. lloc = 2 function_definition + 2 expression_statement
 CC = 1 (no decisions); cognitive = 0 both modes.
 Halstead operators (KEYWORD/OPERATOR/PUNCT tokens) per stub line: def ( : )
 -> : ... = 7 -> N1 = 14; distinct {def, (, :, ), ->, ...} -> n1 = 6 (the two
-`...` are the ruled contribution — without TOK-PY-0003, N1 = 12, n1 = 5).
+`...` are the ruled contribution: without TOK-PY-0003, N1 = 12, n1 = 5).
 Operands (identifiers): stub a int int / other b str str -> N2 = 8, distinct
 {stub, a, int, other, b, str} -> n2 = 6. n = 12, N = 22; volume =
 22 * log2(12) = 78.8691750159.

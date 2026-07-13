@@ -16,7 +16,7 @@ labels: bug
 
 ## Environment
 
-<!-- Paste the FULL output of `codecaliper env` — spec, grammar, and binding
+<!-- Paste the FULL output of `codecaliper env`. The spec, grammar and binding
      versions determine which calibration applies. -->
 
 ```
@@ -28,5 +28,5 @@ $ codecaliper env
 Numbers here are ruled, not guessed: run with `--explain` and check the ruling
 IDs against `docs/spec/rulings.md` (or `codecaliper spec show <ID>`). If the
 behaviour matches a ruling you disagree with, this is a **calibration
-discussion** — say which ruling and cite the counter-evidence (tool, paper, or
-spec you believe is right).
+discussion**: say which ruling, and cite the counter-evidence (the tool, paper
+or spec you believe is right).

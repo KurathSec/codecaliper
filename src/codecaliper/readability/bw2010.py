@@ -3,7 +3,7 @@
 Canonical feature names and order are inherited verbatim from the reference
 implementation (Spaghetti Architect bench/anchor.py::_BW_FEATURE_NAMES,
 NOTICE-credited); tests/test_bw_port_fidelity.py holds this port to the stdlib
-reference per feature. Output is always the raw vector — there is no score
+reference per feature. Output is always the raw vector; there is no score
 (BW-ALL-0001).
 
 Two feature families (BW-ALL-0004):
@@ -29,7 +29,7 @@ R_TOKEN_LEVEL = require("BW-ALL-0004")
 R_ID_LENGTH = require("BW-ALL-0005")
 R_OP_CLASSES = require("BW-ALL-0006")
 
-#: Fig. 6 order — verbatim from the reference implementation.
+#: Fig. 6 order, verbatim from the reference implementation.
 BW_FEATURE_NAMES: tuple[str, ...] = (
     "avg_line_length", "max_line_length",
     "avg_identifiers", "max_identifiers",

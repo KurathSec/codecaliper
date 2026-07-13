@@ -38,7 +38,7 @@ R_TOK_ELLIPSIS = require("TOK-PY-0003")
 _SOFT_KEYWORDS = frozenset({"_", "case", "match", "type"})
 assert _SOFT_KEYWORDS >= frozenset(keyword.softkwlist), (
     f"host softkwlist {keyword.softkwlist} exceeds the pinned BW-PY-0001 set "
-    f"{sorted(_SOFT_KEYWORDS)} — reconcile the ruling before shipping"
+    f"{sorted(_SOFT_KEYWORDS)}; reconcile the ruling before shipping"
 )
 
 _NODE_CLASS_MAP: dict[str, tuple[NodeClass, tuple[str, ...]]] = {
@@ -68,7 +68,7 @@ class PythonAdapter(LanguageAdapter):
             keywords=frozenset(keyword.kwlist),
             # BW-PY-0001: soft keywords are identifiers, matching tokenize NAME.
             # PINNED to the spec's enumerated set rather than the running
-            # interpreter's keyword.softkwlist — `type` (PEP 695) is absent from
+            # interpreter's keyword.softkwlist: `type` (PEP 695) is absent from
             # softkwlist before 3.12, which would make provenance for a `type`
             # alias differ across the supported 3.10-3.14 interpreters.
             soft_keywords=_SOFT_KEYWORDS,

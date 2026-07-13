@@ -6,7 +6,7 @@ rulings = ["CC-ALL-0001", "CC-PY-0007", "COG-ALL-0001", "COG-ALL-0004",
 computed_by = "hand"
 notes = """
 Ternary nodes: `a if p else b` is one conditional_expression. In the return,
-`x if q else (b if p else c)` is TWO conditional_expression nodes — the outer
+`x if q else (b if p else c)` is TWO conditional_expression nodes: the outer
 node's `alternative` is a parenthesized_expression wrapping the inner node
 (the grammar nests a ternary in the else arm even without parens; the parens
 just make the nesting unambiguous). Total conditional_expression nodes = 3.

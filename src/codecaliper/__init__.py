@@ -1,4 +1,4 @@
-"""codecaliper — a cross-language code readability + complexity measurement
+"""codecaliper: a cross-language code readability + complexity measurement
 instrument with a versioned metric-to-syntax specification.
 
 Every emitted number is traceable (spec version, fired rulings, grammar

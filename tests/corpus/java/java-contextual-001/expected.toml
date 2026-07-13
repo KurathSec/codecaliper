@@ -5,7 +5,7 @@ rulings = ["TOK-ALL-0007", "BW-JAVA-0001", "LOC-ALL-0004", "CC-JAVA-0006"]
 computed_by = "hand"
 notes = """
 TOK-ALL-0007 (new in spec 1.1.0): Java contextual keywords are IDENTIFIER
-tokens — `record` (line 1) and `yield` (line 6) are not JLS reserved words,
+tokens. `record` (line 1) and `yield` (line 6) are not JLS reserved words,
 so they are outside the keyword table (BW-JAVA-0001) and classify as
 word-shaped anonymous tokens; before 1.1.0 `record` fell through to OPERATOR,
 while `yield` was wrongly in the keyword table (contradicting BW-JAVA-0001's

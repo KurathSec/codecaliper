@@ -1,4 +1,4 @@
-"""Language adapter registry — a plain dict, deliberately (ARCHITECTURE.md §14:
+"""Language adapter registry: a plain dict, deliberately (ARCHITECTURE.md §14:
 entry-point plugin discovery is deferred until a third-party adapter exists)."""
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def available_languages() -> tuple[str, ...]:
 
 
 def detect_language(path: str) -> str:
-    """--lang auto: extension map with an explicit error — never a guess."""
+    """--lang auto: extension map with an explicit error, never a guess."""
     lower = path.lower()
     for name in _BUILTIN:
         if any(lower.endswith(ext) for ext in get_adapter(name).file_extensions):

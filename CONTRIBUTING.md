@@ -10,7 +10,12 @@ python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]" -c constraints/ci.txt   # exact calibrated grammar pins
 pytest
 ruff check src tests tools
+mypy                                            # --strict; config in pyproject.toml
 ```
+
+All three are hard CI gates. `mypy` takes no arguments on purpose: `[tool.mypy]` in
+`pyproject.toml` sets `strict = true` and `files = ["src/codecaliper"]`, and the `typecheck` job in
+`ci.yml` runs exactly `mypy`, so passing your own paths can check something CI does not.
 
 ## The three rules
 
@@ -21,40 +26,157 @@ ruff check src tests tools
    changelog, and regenerate the snapshot with
    `python tools/update_snapshot.py --confirm-spec-bump`.
 2. **Every counting decision is a ruling.** New behaviour needs a ruling in
-   `src/codecaliper/spec/rulings/*.toml` (immutable ID — supersede, never
+   `src/codecaliper/spec/rulings/*.toml` (the ID is immutable: supersede, never
    mutate), a corpus case exercising it (`tests/corpus/<lang>/<case-id>/`),
    and code that cites it via `spec.require()`. The coverage meta-test
    (`tests/test_spec_coverage.py`) enforces this; its `UNCOVERED` allowlist is
-   shrink-only.
+   shrink-only. Then regenerate the docs the ruling feeds (see below), or CI
+   will fail on a stale generated file even though your tests pass locally.
 3. **Hand-compute corpus expectations.** `expected.toml` values are computed by
    a human, with the working shown in `notes`. Integers assert exactly; floats
    always carry tolerances.
 
+## Superseding a ruling
+
+"Supersede, never mutate" is rule 2, and it is a concrete edit, not an attitude.
+A ruling ID is immutable forever: changing what an existing ID *means* silently
+rewrites the history of every number ever published under it. Instead you retire
+the old stanza in place and write a new one.
+
+Two shipped supersessions show the whole mechanism. TOK-ALL-0004 (tab = 1) was
+superseded by TOK-ALL-0006 (tab = 8), and TOK-PY-0001 by TOK-PY-0002.
+
+**On the old stanza**, add exactly two fields and change nothing else. Its
+`statement`, `title`, `node_types` and ID stay as they were: that text is the
+audit trail for numbers already in the world, and editing it is the thing this
+rule exists to prevent.
+
+```toml
+status = "superseded"          # default is "active"
+superseded_by = "TOK-ALL-0006" # the successor's ID
+```
+
+You do not have to give the old stanza a corpus case, and neither TOK-ALL-0004
+nor TOK-PY-0001 has one. Coverage is enforced from the corpus side:
+`test_active_rulings_are_covered` requires every **active** ruling to be cited in
+some case's `[case].rulings`, and a superseded ruling is exempt by that filter.
+
+**The new stanza** is an ordinary ruling with a fresh ID, plus `since_spec` set
+to the spec version that introduces it, and a `statement` that names what it
+supersedes and why. TOK-ALL-0006 carries `since_spec = "1.0.0"` and
+`examples = ["py-tok-normalize-001"]`; TOK-PY-0002 carries `since_spec = "1.1.0"`
+and two examples. It is the successor that now needs a corpus case citing it. If
+you name that case in `examples`, the case must cite the ruling back in its
+`[case].rulings`, because `test_ruling_examples_exist_and_cite_back` rejects a
+self-attested example as vacuous.
+
+A meta-test holds the chain together: a superseded ruling must name a successor
+that resolves and is itself `active`, and `superseded_by` may not appear on a
+ruling that is not superseded. A dangling or circular supersession is a red
+build, not a stale comment.
+
+**The spec level is not decided by the supersession.** It is decided by the
+drift gate, and the two examples land on opposite sides:
+
+| supersession | did an existing corpus value move? | spec level |
+|---|---|---|
+| TOK-ALL-0004 → TOK-ALL-0006 (tab 1 → 8) | yes | **MAJOR**, spec 1.0.0 |
+| TOK-PY-0001 → TOK-PY-0002 (`concatenated_string` descended) | no | **MINOR**, spec 1.1.0 |
+
+So: write the new ruling, run the suite, and let `tests/test_spec_drift.py` tell
+you which bump you are making. If it stays green, you are additive (MINOR). If it
+goes red, you changed a calibrated number, and that is a MAJOR plus
+`tools/update_snapshot.py --confirm-spec-bump` (rule 1). Record the change in the
+`[[changelog]]` block in `index.toml` either way.
+
+## Generated files you have to regenerate
+
+Two files under `docs/` are rendered from data elsewhere in the tree and are
+committed. Editing them by hand is pointless; forgetting to regenerate them is a
+red CI on a change that is otherwise fine.
+
+| you touched | run | who fails if you do not |
+|---|---|---|
+| `src/codecaliper/spec/rulings/*.toml` | `python tools/gen_spec_docs.py` (writes `docs/spec/rulings.md`) | the `spec-docs` job in `ci.yml` (and the release gate): it regenerates and runs `git diff --exit-code docs/` |
+| `tests/differential/divergences.toml` | `python tools/gen_divergences.py` (writes `docs/spec/divergences.md`) | `tests/differential/test_table.py::test_generated_divergence_doc_is_fresh`, which needs no oracle installed and so runs in the plain `pytest` job too |
+
+Snapshots are the third case, and the one with teeth: `tools/update_snapshot.py`
+refreshes `tests/snapshots/corpus_values.json` and **refuses** to record a
+changed number unless you pass `--confirm-spec-bump` (rule 1).
+
 ## Adding a language (the afternoon tutorial)
+
+Most of the work is in one new file. The metric engines, the readability
+extractors, `model.py` and `api.py` need no edit at all: they are written
+against the `NodeClass` and `TokenKind` enums and never against a node-type
+string, so your tables are the only thing that teaches them your language.
+
+Three files outside `languages/` do hardcode the language set, and you have to
+edit all three. Skipping one fails in a way that will not remind you of this
+list, so they are steps 5, 6 and 7 rather than a footnote:
 
 1. Pin the grammar wheel (compatible range in `pyproject.toml`, exact pin in
    `constraints/ci.txt`, calibrated version in
    `src/codecaliper/spec/validated_grammars.toml`).
 2. Write `src/codecaliper/languages/<lang>.py`: token tables, node-class map,
-   hooks — every increment-bearing row citing a ruling (nesting-only rows
-   carry an empty tuple). `tests/test_grammar_integrity.py` will
-   hold your tables to the compiled grammar.
+   hooks. Every increment-bearing row cites a ruling (nesting-only rows carry
+   an empty tuple). `tests/test_grammar_integrity.py` will hold your tables to
+   the compiled grammar.
 3. Add `*-<LANG>-*` rulings for every language-specific decision.
 4. Add corpus cases with hand-computed expectations.
-5. Register the adapter in `src/codecaliper/languages/__init__.py`.
-6. Bump the spec MINOR (additive) and regenerate the snapshot — the drift test
+5. Register the adapter in `src/codecaliper/languages/__init__.py`: add the name
+   to the `_BUILTIN` tuple *and* a branch to `get_adapter()`. Miss this and you
+   get `UnsupportedLanguageError`; `_BUILTIN` alone also drives
+   `detect_language()`, so an unregistered language cannot be auto-detected.
+6. Add the grammar module to `_GRAMMAR_MODULES` in
+   `src/codecaliper/syntax/grammars.py`. It is an unguarded dict lookup, so
+   until you do, `load("<lang>")` raises a bare `KeyError('<lang>')` rather than
+   a codecaliper error.
+7. Add the language to `--lang`'s `choices` in `src/codecaliper/cli.py`
+   (currently `["auto", "python", "java"]`). Until you do, the API works and the
+   CLI rejects your language with an argparse usage error and exit 1.
+8. Bump the spec MINOR (additive) and regenerate the snapshot. The drift test
    proves existing languages' numbers did not move.
+9. Regenerate `docs/spec/rulings.md` with `python tools/gen_spec_docs.py` and
+   commit it (see the table above). If you also classified a new oracle
+   divergence, regenerate `docs/spec/divergences.md` too.
+
+Steps 6 and 7 are unparameterized lookups, not a designed extension point.
+Collapsing them into the `languages/` registry is a welcome cleanup; it is not
+your problem to solve before your language lands.
+
+One thing you get for free and should not fight: `api.py` guards the Java
+snippet-scaffold fallback with `adapter.name == "java"` (CORE-JAVA-0001), so a
+new language gets no scaffolding. If yours needs it, that is a ruling, not an
+`if`.
 
 ## What not to do
 
-- Do not add external metric tools as runtime dependencies — radon, lizard,
-  etc. are differential-test **oracles** only (`[oracles]` extra).
+- Do not add external metric tools as runtime dependencies. radon, lizard and
+  the rest are differential-test **oracles** only (the `[oracles]` extra).
 - Do not add a "readability score". BW output is a feature vector by design
   (ARCHITECTURE.md §13).
 - Do not import `tree_sitter` outside `src/codecaliper/syntax/_treesitter.py`.
 - Do not import anything from `tests/_reference/` in `src/`.
+- Do not track corpus data. The Buse-Weimer snippets under
+  `validation/bw_faithfulness/derived/arbitration_inputs/` are the sole
+  exception, permitted by a grant from an author of that dataset; every other
+  corpus is fetched into the gitignored `cache/` at run time. The terms, per
+  corpus, are in
+  [`PERMISSIONS.md`](https://github.com/KurathSec/codecaliper/blob/main/PERMISSIONS.md).
+  Read it before you add a byte of data to the tree.
 
 ## Releases
 
-Tagged releases build via trusted publishing and archive to Zenodo. Release
-notes state the spec version and the exact calibrated grammar versions.
+A release is a calibration event, not a version bump. The tag is what mints the
+citable artifact, so it has to name what was calibrated: every release states
+three versions (package, spec, and the exact grammar pins the numbers were
+produced under), and the CHANGELOG section for the version becomes the GitHub
+Release notes verbatim.
+
+The pipeline is `.github/workflows/release.yml`: a tag triggers the gate and the
+build in parallel, then PyPI trusted publishing, then the GitHub Release, whose
+publication fires the Zenodo archival webhook. The procedure, the ordering
+constraint on the validation reports, and the one-time account setup are in
+[`RELEASING.md`](https://github.com/KurathSec/codecaliper/blob/main/RELEASING.md).
+Follow it rather than improvising: several steps are not idempotent.

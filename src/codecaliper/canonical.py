@@ -2,7 +2,7 @@
 
 No timestamps, no hash-order dependence; floats are quantized to 12 significant
 digits (round-half-even via repr of the formatted value). Byte-identical output
-is a per-platform guarantee — tests/test_determinism.py enforces it.
+is a per-platform guarantee; tests/test_determinism.py enforces it.
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def to_json(report: FileReport) -> str:
 
 
 #: Wide-format CSV: one row per scope, flat metric + BW columns, plus MANDATORY
-#: provenance columns — a pasted CSV row still names its spec (ARCHITECTURE.md §9).
+#: provenance columns, so a pasted CSV row still names its spec (ARCHITECTURE.md §9).
 _PROVENANCE_COLUMNS = (
     "spec_version", "tool_version", "language", "grammar_package", "grammar_version",
     "grammar_validated", "cognitive_mode", "parse_ok",

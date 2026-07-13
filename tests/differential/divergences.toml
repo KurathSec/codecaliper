@@ -50,7 +50,7 @@ metric = "cognitive"
 ours = 1
 theirs = 2
 ruling = "COG-ALL-0002"
-reason = "cognitive_complexity gives a loop's `else` clause a +1 hybrid increment; COG-ALL-0002 rules only if-attached else arms count — loop/try completion clauses contribute nothing."
+reason = "cognitive_complexity gives a loop's `else` clause a +1 hybrid increment; COG-ALL-0002 rules only if-attached else arms count, so loop/try completion clauses contribute nothing."
 
 [[divergence]]
 oracle = "lizard"

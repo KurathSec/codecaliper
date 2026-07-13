@@ -38,8 +38,10 @@ CognitiveMode = Literal["whitepaper", "sonar-compat"]
 
 
 class Session:
-    """Caches adapters/parsers — the corpus-scale entry point (deterministic
-    sequential order; parallelism is a 1.x item)."""
+    """An option set validated once and applied to every call: the corpus-scale
+    entry point (deterministic sequential order; parallelism is a 1.x item).
+    Adapters and their parsers are cached process-wide by ``get_adapter``, not
+    per Session, so a plain ``measure()`` reuses them too."""
 
     def __init__(
         self,
@@ -340,7 +342,7 @@ def _measure(
     # --- readability vectors
     vectors = []
     if "bw2010" in readability:
-        # BW-ALL-0007: the BW construct is lexical — on parse errors its
+        # BW-ALL-0007: the BW construct is lexical, so on parse errors its
         # token-family features use the full leaf stream, ERROR regions
         # included. Every metric above stays error-opaque (CORE-ALL-0002).
         bw_tokens = tokens

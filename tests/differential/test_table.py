@@ -41,5 +41,5 @@ def test_generated_divergence_doc_is_fresh() -> None:
     gen = _load_generator()
     committed = (h.REPO_ROOT / "docs" / "spec" / "divergences.md").read_text(encoding="utf-8")
     assert committed == gen.render(), (
-        "docs/spec/divergences.md is stale — run: python tools/gen_divergences.py"
+        "docs/spec/divergences.md is stale; run: python tools/gen_divergences.py"
     )

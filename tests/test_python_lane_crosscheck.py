@@ -43,7 +43,7 @@ def _our_cc(src: str) -> int:
 # Rulings where the tree-sitter lane KNOWINGLY diverges from the stdlib-ast
 # reference (ternaries, match/case). The divergences are asserted EXACTLY by
 # the dedicated tests below, so corpus cases citing them are excluded from the
-# equality sweep — an accidental "fix" of either lane still surfaces.
+# equality sweep, so an accidental "fix" of either lane still surfaces.
 DIVERGENT_RULINGS = {"CC-PY-0007", "CC-PY-0008"}
 AGREEING_CASES = [
     c for c in PY_CASES

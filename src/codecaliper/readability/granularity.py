@@ -30,7 +30,7 @@ JAVA_CLASS_LINE_OFFSET = 1
 
 def rebase_unit(unit: FunctionUnit, line_offset: int, n_lines: int) -> FunctionUnit:
     """Shift a FunctionUnit's span from scaffold to original snippet coordinates,
-    and strip the synthetic scaffold qualifiers from qualified_name — scaffold
+    and strip the synthetic scaffold qualifiers from qualified_name: scaffold
     artifacts must never leak into emitted output (CORE-JAVA-0001). Longest
     prefix first: the class+method scaffold nests units under __CC__.__cc__."""
     qualified = unit.qualified_name
@@ -111,9 +111,9 @@ def vector(
             Diagnostic(
                 "info", "bw-lexical-fallback",
                 "parse errors present; token-family features computed over the "
-                "full lexical stream, ERROR regions included — the BW construct "
-                "is lexical (BW-ALL-0007). CORE-ALL-0002 still governs every "
-                "metric.",
+                "full lexical stream, ERROR regions included, because the BW "
+                "construct is lexical (BW-ALL-0007). CORE-ALL-0002 still governs "
+                "every metric.",
                 ruling="BW-ALL-0007",
             )
         )
@@ -179,8 +179,8 @@ def function_vectors(
 ) -> list[FeatureVectorResult]:
     """Per-unit vectors. ``opaque_tokens`` is the error-opaque stream, passed
     only when the file-level BW lexical fallback engaged (BW-ALL-0007): a
-    unit's vector is flagged only when its OWN span gained ERROR-region tokens
-    — the opaque stream is a subsequence of the full one, so equal slice
+    unit's vector is flagged only when its OWN span gained ERROR-region tokens.
+    The opaque stream is a subsequence of the full one, so equal slice
     lengths imply identical slices. ``cond_opaque``/``cond_full`` map each
     conditional tokenization ruling to the lines it engaged on in the
     respective stream; a unit cites one only when it engaged inside the unit's

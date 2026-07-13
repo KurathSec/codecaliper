@@ -11,7 +11,7 @@ comment and line-2 assignment are clean siblings outside it.
 METRICS stay error-opaque (CORE-ALL-0002): cc = 1 (base only), cognitive = 0
 both modes, sloc = 1 (only line 2 has a code token in the opaque stream),
 lloc = 1 (one expression_statement outside the ERROR).
-BW features use the FULL lexical stream (BW-ALL-0007) — tokens inside the
+BW features use the FULL lexical stream (BW-ALL-0007), so tokens inside the
 ERROR region count. Per line:
   L1 `# demo` comment; L2 `count = 1` id/=/1; L3 `broken = (count +`
   id/=/(/id/+; L4 `if count and flag:` if/id/and/id/:; L5 `    pass` pass.
@@ -21,8 +21,8 @@ identifiers 0,1,2,2,0 -> avg 5/5 = 1.0, max 2; keywords 0,0,0,2 (if,and),
 per-line maxima 0,5,6,5,0 (count/broken/count|flag) -> avg 16/5 = 3.2, max 6
 (BW-ALL-0005); indentation 0,0,0,0,4 -> avg 0.8, max 4; spaces 1,2,3,3,4 ->
 avg 13/5 = 2.6; parens: one `(` -> 0.2; arithmetic: one `+` -> 0.2;
-assignments: `=` on L2 and L3 (the L3 one is INSIDE the error region — the
-fallback's witness) -> avg 0.4; branches: `if` -> 0.2; loops 0; commas 0;
+assignments: `=` on L2 and L3 (the L3 one is INSIDE the error region, which is
+the fallback's witness) -> avg 0.4; branches: `if` -> 0.2; loops 0; commas 0;
 periods 0; blank 0; max_char_occurrences = 13 (space);
 max_identifier_occurrences = 3 (count x3).
 The vector carries bw-lexical-fallback and cites BW-ALL-0007; the report

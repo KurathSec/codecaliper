@@ -1,7 +1,7 @@
 """Shared engine for the differential oracle lane.
 
 Inputs are (a) every consistency-corpus case the reference lanes can compare
-(``conftest.is_reference_comparable`` — normalization edge cases and parse
+(``conftest.is_reference_comparable``: normalization edge cases and parse
 errors are OUR policy surface, not the oracles'), (b) the BW-fidelity EXTRA
 snippets, and (c) the divergence-axis probe snippets below, which exercise the
 counting decisions where our rulings knowingly differ from at least one
@@ -114,7 +114,7 @@ JAVA_PROBES = {
 
 def probe_oracle(module_name: str, dist_name: str) -> str | None:
     """Return a skip reason when the oracle is unavailable, else None
-    (honest-SKIP probe, anchor.py style — absence never fails locally)."""
+    (honest-SKIP probe, anchor.py style; absence never fails locally)."""
     try:
         importlib.import_module(module_name)
     except ImportError as exc:
@@ -207,8 +207,8 @@ def load_table() -> tuple[TableEntry, ...]:
 def our_functions(source: str, language: str, metric: str) -> dict[str, tuple[str, int]]:
     """simple name -> (qualified name, per-function value).
 
-    Cognitive values run in sonar-compat mode — the oracle under comparison
-    (cognitive_complexity) is a Sonar-lineage implementation.
+    Cognitive values run in sonar-compat mode, because the oracle under
+    comparison (cognitive_complexity) is a Sonar-lineage implementation.
     """
     rep = measure(
         source,
@@ -304,7 +304,7 @@ def pair(
         theirs_map[name] = value
     if set(ours) != set(theirs_map):
         raise AssertionError(
-            f"{oracle} on {label}: function unit sets differ — "
+            f"{oracle} on {label}: function unit sets differ. "
             f"only ours: {sorted(set(ours) - set(theirs_map))}, "
             f"only oracle: {sorted(set(theirs_map) - set(ours))} "
             "(a unit-scope mismatch is a harness or scope bug, not a value divergence)"
@@ -376,7 +376,7 @@ def assert_no_stale(oracle: str, comps: Iterable[Comparison]) -> None:
             for e in stale
         )
         pytest.fail(
-            "STALE entr(y|ies) in tests/differential/divergences.toml — no longer "
+            "STALE entr(y|ies) in tests/differential/divergences.toml: no longer "
             "observed against the installed oracle (values changed, or the input "
             "disappeared); remove or re-triage, then regenerate the docs:\n" + listing
         )
