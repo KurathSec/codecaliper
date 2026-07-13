@@ -509,7 +509,7 @@ snippets in the per-oracle tests.
    `spearman`/`ci95_bootstrap` from Spaghetti's `bench/grade.py` (NOTICE-credited).
 
 The pipeline is **local and manual only — it never runs in CI** (§11, RELEASING.md): an author
-granted redistribution by email (2026-07-12, dataset.toml), but fetching stays a deliberate local
+granted redistribution by email (2026-07-11, dataset.toml), but fetching stays a deliberate local
 action and only aggregates are tracked, by repo-focus choice. What IS tracked
 are the derived artifacts (`derived/`: per-snippet feature vectors + aggregate reports), which
 make the extraction step diffable after the fact; there is no automated per-PR guard over them —

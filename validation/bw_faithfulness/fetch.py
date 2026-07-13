@@ -7,7 +7,7 @@ fetches the Scalabrino 2018 and Dorn 2012 corpora, which the cross-corpus parse
 anatomy in validation/breadth/ measures.
 
 Licence posture is per corpus and recorded in dataset.toml: an author granted
-redistribution of the Buse-Weimer data (email 2026-07-12); NO permission has been
+redistribution of the Buse-Weimer data (email 2026-07-11); NO permission has been
 sought or granted for the Scalabrino and Dorn corpora, so those are fetched at
 run time and only aggregate/derived results are ever published. Nothing fetched
 here is ever committed: every download lands inside cache/ (gitignored), and the
@@ -98,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
         rc |= fetch_one(key, datasets[key])
     print("NOTE: cache/ is gitignored — nothing fetched here is ever committed. "
           "Buse-Weimer: an author granted redistribution and derived publication "
-          "(email 2026-07-12). Scalabrino 2018 / Dorn 2012: no permission sought or "
+          "(email 2026-07-11). Scalabrino 2018 / Dorn 2012: no permission sought or "
           "granted — run-time fetch, aggregate/derived results only, never "
           "redistributed (dataset.toml).")
     return rc

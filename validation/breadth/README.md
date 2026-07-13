@@ -24,7 +24,7 @@ and per-corpus licence status are recorded in
 
 ## Licence posture (read this before redistributing anything)
 
-- **Buse & Weimer (2010)**: an author granted, by email (2026-07-12),
+- **Buse & Weimer (2010)**: an author granted, by email (2026-07-11),
   redistribution of the raw data and publication of derived results. He asked that
   the work be cited as **both** Buse & Weimer, IEEE TSE 36(4):546–558, 2010 **and**
   Buse & Weimer, ISSTA 2008:121–130; this project does so.

@@ -67,9 +67,9 @@ from the sign-agreement gate (the excluded count is reported).
 Missing dataset ⇒ each step SKIPs with a precise reason (anchor.py style) and
 exit code 0 — absence must never fail a build.
 
-**Licence status** (full record in `dataset.toml`): an author of the dataset
-(W. Weimer) granted, by email on 2026-07-12, both redistribution of the raw data
-and publication of derived results. The pipeline nonetheless keeps fetching the
+**Licence status** (prose record: `PERMISSIONS.md`; machine-readable: `dataset.toml`):
+an author of the dataset (W. Weimer) granted, by email on 2026-07-11, both
+redistribution of the raw data and publication of derived results. The pipeline nonetheless keeps fetching the
 snippet archive at run time and tracks only derived artifacts plus the
 per-snippet mean ratings (`derived/arbitration_inputs/scores.csv`, the one input
 the arbitration cannot recompute) — a repo-focus choice, no longer a licence

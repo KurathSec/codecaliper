@@ -187,7 +187,8 @@ def main() -> int:
         f"{tr['dataset']['n_annotators_in_paper']} in the paper — "
         "reported as-is, never reconciled silently.",
         "- License: an author of the dataset (W. Weimer) granted redistribution and "
-        "derived-data publication by email 2026-07-12 (dataset.toml). The repository "
+        "derived-data publication by email 2026-07-11 (PERMISSIONS.md, dataset.toml). "
+        "The repository "
         "tracks derived aggregates plus the per-snippet mean ratings the arbitration "
         "consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself "
         "is fetched at run time, a repo-focus choice rather than a licence constraint.",

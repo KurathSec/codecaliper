@@ -110,7 +110,7 @@ re-stamped spec 1.1.0 with dataset numbers byte-identical:
 10-fold logistic accuracy 0.820, bootstrap 95% CI [0.770, 0.870] overlapping the
 paper's ~0.80, AUC 0.828, sign agreement 21/24; deviations documented in the report — see
 `validation/bw_faithfulness/derived/bw_faithfulness_report.md`; BW redistribution granted by an
-author (email 2026-07-12) — corpus archives still stay in gitignored `cache/`, tracked `derived/`
+author (email 2026-07-11) — corpus archives still stay in gitignored `cache/`, tracked `derived/`
 holds aggregates/feature vectors plus the ONE dataset-derived pin the arbitration needs,
 `derived/arbitration_inputs/scores.csv`; the Scalabrino 2018 and Dorn 2012 corpora have NO
 permission at all: fetched at run time, aggregates only, never a tracked byte — see

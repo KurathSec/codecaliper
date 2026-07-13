@@ -63,7 +63,7 @@ Spearman rho of each feature against the snippet mean score; expected sign is th
 ## Dataset
 
 - 100 snippets; 121 annotator rows in the archive vs 120 in the paper — reported as-is, never reconciled silently.
-- License: an author of the dataset (W. Weimer) granted redistribution and derived-data publication by email 2026-07-12 (dataset.toml). The repository tracks derived aggregates plus the per-snippet mean ratings the arbitration consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself is fetched at run time, a repo-focus choice rather than a licence constraint.
+- License: an author of the dataset (W. Weimer) granted redistribution and derived-data publication by email 2026-07-11 (PERMISSIONS.md, dataset.toml). The repository tracks derived aggregates plus the per-snippet mean ratings the arbitration consumes (derived/arbitration_inputs/scores.csv); the snippet archive itself is fetched at run time, a repo-focus choice rather than a licence constraint.
 
 ## Anti-circularity
 

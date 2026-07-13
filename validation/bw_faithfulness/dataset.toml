@@ -2,8 +2,10 @@
 # (ARCHITECTURE.md §8.3). NO CORPUS ARCHIVE IS EVER COMMITTED: fetch.py downloads
 # each archive into cache/ (gitignored) and verifies its sha256 against this file.
 #
-# Three corpora, three DIFFERENT licence postures — see [datasets.*.license]:
-#   bw2010          redistribution granted by an author (email 2026-07-12)
+# Three corpora, three DIFFERENT licence postures — see [datasets.*.license],
+# and PERMISSIONS.md at the repository root for the same terms in prose plus the
+# authentication record of the Buse-Weimer grant:
+#   bw2010          redistribution granted by an author (email 2026-07-11)
 #   scalabrino2018  NO permission sought or granted — fetched at run time, aggregates only
 #   dorn2012        NO permission sought or granted — fetched at run time, aggregates only
 #
@@ -36,7 +38,8 @@ redistributable = true
 note = """
 No explicit data license is published for DatasetBW.zip on the replication page
 that hosts it (dibt-research.unimol.it/report/readability, verified 2026-07-03).
-The original author Westley Weimer granted, by email on 2026-07-12, permission
+The original author Westley Weimer granted, by email on 2026-07-11 (DKIM-verified;
+record and sha256 of the retained original in PERMISSIONS.md), permission
 to (1) redistribute the raw snippets and annotator scores as part of an archived
 research artifact and (2) publish data derived from the snippets. He asked that
 the work be cited as BOTH entries in `citation` above (the TSE 2010 paper AND
@@ -52,7 +55,7 @@ id = "scalabrino2018-200java-methods"
 archive = "Dataset.zip"
 description = "200 Java methods rated for readability (Scalabrino, Linares-Vasquez, Oliveto & Poshyvanyk, JSEP 2018)"
 url = "https://dibt-research.unimol.it/report/readability/files/Dataset.zip"
-# TOFU-anchored 2026-07-12 against the archive fetched from the URL above; the
+# TOFU-anchored 2026-07-13 against the archive fetched from the URL above; the
 # URL was re-confirmed by HTTP HEAD on 2026-07-13 (200, Content-Length 103236).
 sha256 = "8239ee0809cb9e95182bb019401b105ebd566b0dedfa707309753058d817d7ed"
 size_bytes = 103236
@@ -79,7 +82,7 @@ id = "dorn2012-multilang-snippets"
 archive = "DatasetDorn.zip"
 description = "Dorn's multi-language readability corpus: 121 Java + 121 CUDA + 120 Python snippets with per-language scores (Dorn, 2012)"
 url = "https://dibt-research.unimol.it/report/readability/files/DatasetDorn.zip"
-# TOFU-anchored 2026-07-12 against the archive fetched from the URL above; the
+# TOFU-anchored 2026-07-13 against the archive fetched from the URL above; the
 # URL was re-confirmed by HTTP HEAD on 2026-07-13 (200, Content-Length 329256).
 sha256 = "56df86ae823f2a8953b84e5dd143d0058a1239ce4cfac7764efd48ba8e439346"
 size_bytes = 329256
