@@ -58,21 +58,24 @@ only the version string is wrong. Step 2 below is where that gets prevented.
    version is independent of the spec version, but a spec MAJOR bump (a
    calibrated number changed) must be visible in the package version too: never
    ship a new spec under an already-released package version.
-3. **Read the stamp the committed reports carry, and regenerate if it is not
-   `X.Y.Z`.** The question is not "did anything feeding the reports change", it
-   is "do the reports already say the version being released":
+3. **Read the stamps the committed artifacts carry, and regenerate any that is
+   not `X.Y.Z`.** The question is not "did anything feeding them change", it is
+   "do they already say the version being released". Three tracked artifacts
+   stamp the package version that generated them:
 
    ```bash
    grep -h '"tool_version"' validation/bw_faithfulness/derived/*.json
    grep -h '^- codecaliper' validation/bw_faithfulness/derived/bw_faithfulness_report.md
+   grep -h '"tool_version"' tests/snapshots/corpus_values.json
    ```
 
-   If every stamp already reads `X.Y.Z`, leave the reports alone: they are
-   correct for the release that produced them, and a needless re-run only churns
-   the diff. If any stamp reads a `.dev0`, or any other version, re-run the lane
-   **now**, after step 2, so that it cannot. The lane is self-contained and needs
-   no network (its raw inputs are tracked pins), but it does need the `[retrain]`
-   ML stack:
+   If every stamp already reads `X.Y.Z`, leave them alone: they are correct for
+   the release that produced them, and a needless re-run only churns the diff. If
+   any stamp reads a `.dev0`, or any other version, regenerate **now**, after step
+   2, so that it cannot. The drift snapshot is one command
+   (`python tools/update_snapshot.py`, which still refuses a numeric change). The
+   Buse-Weimer lane is self-contained and needs no network (its raw inputs are
+   tracked pins), but it does need the `[retrain]` ML stack:
 
    ```bash
    pip install -e ".[dev,retrain]" -c constraints/ci.txt -c constraints/retrain.txt
@@ -80,7 +83,7 @@ only the version string is wrong. Step 2 below is where that gets prevented.
    ```
 
    Then confirm that the regeneration moved **only** the version string, with no
-   numeric change anywhere in the diff, and commit the reports with the bump.
+   numeric change anywhere in the diff, and commit the results with the bump.
 
    Both greps above are deliberately non-recursive. `derived/arbitration_inputs/`
    holds the **pinned inputs** of the pre-registered arbitration, not outputs, and

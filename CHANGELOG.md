@@ -16,6 +16,9 @@ three versions, not one:
 
 ## [Unreleased]
 
+- package 0.1.2.dev0 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,
+  tree-sitter-java 0.23.5 (binding tree-sitter 0.26.0)
+
 ## [0.1.1] - 2026-07-14
 
 - package 0.1.1 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,
