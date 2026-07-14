@@ -71,6 +71,6 @@ Spearman rho of each feature against the snippet mean score; expected sign is th
 
 ## Provenance
 
-- codecaliper 0.1.1.dev0, spec 1.1.0
+- codecaliper 0.1.1, spec 1.1.0
 - grammar: tree-sitter-java 0.23.5 (ABI 14, validated=True)
 - BW feature-order sha256: 8adae3992539a4eb2cf8d3b2386558612c77ad8e2e850f5bab940bbf430ad56d

@@ -58,11 +58,20 @@ only the version string is wrong. Step 2 below is where that gets prevented.
    version is independent of the spec version, but a spec MAJOR bump (a
    calibrated number changed) must be visible in the package version too: never
    ship a new spec under an already-released package version.
-3. **Only if this release regenerates the validation reports** (a spec change, a
-   grammar recalibration, or any change to the BW extractor): re-run the
-   Buse-Weimer lane **now**, after step 2, so the reports carry the release
-   version and not a `.dev0` one. The lane is self-contained and needs no
-   network (its raw inputs are tracked pins), but it does need the `[retrain]`
+3. **Read the stamp the committed reports carry, and regenerate if it is not
+   `X.Y.Z`.** The question is not "did anything feeding the reports change", it
+   is "do the reports already say the version being released":
+
+   ```bash
+   grep -h '"tool_version"' validation/bw_faithfulness/derived/*.json
+   grep -h '^- codecaliper' validation/bw_faithfulness/derived/bw_faithfulness_report.md
+   ```
+
+   If every stamp already reads `X.Y.Z`, leave the reports alone: they are
+   correct for the release that produced them, and a needless re-run only churns
+   the diff. If any stamp reads a `.dev0`, or any other version, re-run the lane
+   **now**, after step 2, so that it cannot. The lane is self-contained and needs
+   no network (its raw inputs are tracked pins), but it does need the `[retrain]`
    ML stack:
 
    ```bash
@@ -70,11 +79,21 @@ only the version string is wrong. Step 2 below is where that gets prevented.
    cd validation/bw_faithfulness && python extract.py && python train.py && python report.py
    ```
 
-   Then check the regenerated `derived/bw_faithfulness_report.md` header says
-   `codecaliper X.Y.Z`, with no `.dev0`, and commit the reports with the bump.
-   If nothing that feeds those reports changed, leave them alone: they are
-   correct for the release that produced them, and a needless re-run only churns
-   the diff.
+   Then confirm that the regeneration moved **only** the version string, with no
+   numeric change anywhere in the diff, and commit the reports with the bump.
+
+   Both greps above are deliberately non-recursive. `derived/arbitration_inputs/`
+   holds the **pinned inputs** of the pre-registered arbitration, not outputs, and
+   their `0.1.0.dev0` stamps are a true statement about the build that produced
+   them. Regenerating those would not fix a stale stamp, it would falsify a
+   record. Leave them alone.
+
+   Keying this step off the *inputs* is the mistake that has now been made twice.
+   The stamp goes stale whenever the lane is re-run mid-cycle, which is a normal
+   thing to do and has nothing to do with whether anything feeding it changed.
+   0.1.0 shipped reports stamped `0.1.0.dev0` that way, and 0.1.1 would have
+   shipped reports stamped `0.1.1.dev0` for the same reason, because the lane had
+   been re-run during the cycle when its raw inputs were tracked into the tree.
 4. In `CHANGELOG.md`, rename `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD` and
    check that the `package · spec · grammars` line still matches
    `src/codecaliper/_version.py`, `spec/rulings/index.toml` and

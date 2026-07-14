@@ -129,7 +129,7 @@ whether it is calibrated:
 
 ```console
 $ codecaliper env
-codecaliper 0.1.0
+codecaliper 0.1.1
 spec 1.1.0
 python 3.14.6 (Linux x86_64)
 tree-sitter 0.26.0 (binding)
@@ -164,14 +164,15 @@ print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 
 ## Status
 
-Package **0.1.0** is released: on
+Package **0.1.1** is released: on
 [PyPI](https://pypi.org/project/codecaliper/), tagged
-[v0.1.0](https://github.com/KurathSec/codecaliper/releases/tag/v0.1.0), archived
-at Zenodo ([10.5281/zenodo.21312528](https://doi.org/10.5281/zenodo.21312528) is
-that version; the badge above is the concept DOI, which always resolves to the
-latest). It ships spec **1.1.0**, which the development tree is still on: the
-spec and the package are versioned independently, and a spec bump happens only
-when a ruling changes. See [`CHANGELOG.md`](CHANGELOG.md).
+[v0.1.1](https://github.com/KurathSec/codecaliper/releases/tag/v0.1.1), archived
+at Zenodo. The badge above is the concept DOI, which always resolves to the
+latest version; every released version also has its own DOI, listed on that
+Zenodo record. It ships spec **1.1.0**: the spec and the package are versioned
+independently, and a spec bump happens only when a ruling changes, so 0.1.1
+leaving every emitted number where it was is exactly why the spec did not move.
+See [`CHANGELOG.md`](CHANGELOG.md).
 
 Python and Java are wired end-to-end. Every active ruling is exercised by a
 hand-computed corpus case. `mypy --strict` and the differential oracle lane are

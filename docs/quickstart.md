@@ -109,7 +109,7 @@ codecaliper demo.py --metrics cyclomatic,cognitive --no-readability
   "readability": [],
   "diagnostics": [],
   "provenance": {
-    "tool_version": "0.1.1.dev0",
+    "tool_version": "0.1.1",
     "spec_version": "1.1.0",
     "language": "python",
     "grammar": {
@@ -185,7 +185,7 @@ unwrapped line, ready to paste (scroll it, or pipe it to `fmt`):
 
 ```console
 $ codecaliper cite
-Metrics were computed with codecaliper 0.1.1.dev0 under mapping specification 1.1.0 (grammars: tree-sitter-python 0.25.0, tree-sitter-java 0.23.5); cognitive complexity in whitepaper mode unless stated; readability vectors are the raw Buse-Weimer 2010 feature set, with granularity and extrapolation as labelled in the output.
+Metrics were computed with codecaliper 0.1.1 under mapping specification 1.1.0 (grammars: tree-sitter-python 0.25.0, tree-sitter-java 0.23.5); cognitive complexity in whitepaper mode unless stated; readability vectors are the raw Buse-Weimer 2010 feature set, with granularity and extrapolation as labelled in the output.
 ```
 
 ## Python API
