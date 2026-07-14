@@ -16,14 +16,24 @@ Two-sided honesty (ARCHITECTURE.md §3.4):
   Spaghetti Architect's ``bench/anchor.py``), never fails a local build. SKIP
   alone cannot mask a regression in CI: the ``differential`` job installs the
   ``oracles`` extra AND hard-imports every oracle module before pytest runs,
-  so an oracle that installs-but-cannot-import fails the job instead of
-  silently skipping every comparison.
+  and fetches the pinned PMD AND runs it once before pytest, so an oracle that
+  is absent, or installs-but-cannot-import, fails the job instead of silently
+  skipping every comparison.
+
+Three oracles are pip packages and one, PMD, is a JVM tool fetched by
+``tools/fetch_pmd.py`` (see ``pmd_values`` for how its numbers are read out).
 """
 
 from __future__ import annotations
 
 import importlib
+import json
+import os
+import re
+import shutil
+import subprocess
 import sys
+import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from functools import cache, lru_cache
@@ -44,8 +54,10 @@ else:  # pragma: no cover
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent.parent
 TABLE_PATH = HERE / "divergences.toml"
+PMD_PIN_PATH = HERE / "pmd.toml"
+PMD_RULESET = HERE / "pmd_ruleset.xml"
 
-ORACLES = ("radon", "lizard", "cognitive_complexity")
+ORACLES = ("radon", "lizard", "cognitive_complexity", "pmd")
 METRICS = ("cyclomatic", "cognitive")
 
 # --- divergence-axis probe snippets -----------------------------------------
@@ -109,6 +121,57 @@ JAVA_PROBES = {
         "    }\n"
         "}\n"
     ),
+    # COG-ALL-0001: a switch EXPRESSION is a switch and takes the same
+    # structural increment as a switch statement. PMD's cyclomatic rule agrees;
+    # its cognitive rule scores the whole expression zero.
+    "diff-java-switch-expr": (
+        "class SwExpr {\n"
+        "    int grade(int x) {\n"
+        "        return switch (x) {\n"
+        "            case 1 -> 10;\n"
+        "            default -> 0;\n"
+        "        };\n"
+        "    }\n"
+        "}\n"
+    ),
+    # COG-ALL-0005 / COG-ALL-0006: the ONE axis on which the two cognitive modes
+    # disagree, and the only Java witness of it. PMD takes the whitepaper's
+    # recursion increment, so it witnesses whitepaper mode here, not sonar-compat.
+    "diff-java-recursion": (
+        "class R {\n"
+        "    int fact(int n) {\n"
+        "        if (n <= 1) { return 1; }\n"
+        "        return n * fact(n - 1);\n"
+        "    }\n"
+        "}\n"
+    ),
+    # CORE-ALL-0003: a lambda body stays part of the enclosing unit (lizard
+    # concurs). PMD's cyclomatic rule neither descends into it nor reports the
+    # lambda as a unit of its own, so the `if` lands nowhere.
+    "diff-java-lambda": (
+        "class L {\n"
+        "    Runnable make(boolean flag) {\n"
+        "        return () -> {\n"
+        "            if (flag) { System.out.print(1); }\n"
+        "        };\n"
+        "    }\n"
+        "}\n"
+    ),
+    # COG-ALL-0004: nesting increments, where a second external implementation
+    # concurring is the whole point (agreement is a witness, not a null result).
+    "diff-java-nesting": (
+        "class N {\n"
+        "    int deep(int[][] g) {\n"
+        "        int t = 0;\n"
+        "        for (int[] row : g) {\n"
+        "            for (int v : row) {\n"
+        "                if (v > 0) { t += v; }\n"
+        "            }\n"
+        "        }\n"
+        "        return t;\n"
+        "    }\n"
+        "}\n"
+    ),
 }
 
 
@@ -121,6 +184,47 @@ def probe_oracle(module_name: str, dist_name: str) -> str | None:
         return (
             f"differential oracle {dist_name!r} is not installed ({exc}); "
             f"install it with: pip install -e '.[oracles]'"
+        )
+    return None
+
+
+# --- PMD, the JVM oracle (not a pip package, so not behind probe_oracle) --------
+
+
+@lru_cache(maxsize=1)
+def pmd_pin() -> dict[str, str]:
+    """The pinned PMD release (tests/differential/pmd.toml)."""
+    with PMD_PIN_PATH.open("rb") as f:
+        pin: dict[str, str] = tomllib.load(f)["pmd"]
+    return pin
+
+
+def pmd_executable() -> Path | None:
+    """The pinned PMD launcher, or None if it is not there.
+
+    ``$CODECALIPER_PMD`` overrides the location for a system-installed PMD; the
+    version gate in ``pmd_values`` still applies to it, so an override cannot
+    quietly answer with a different release.
+    """
+    override = os.environ.get("CODECALIPER_PMD")
+    if override:
+        path = Path(override)
+        return path if path.is_file() else None
+    path = REPO_ROOT / ".oracles" / pmd_pin()["unpacks_to"] / "bin" / "pmd"
+    return path if path.is_file() else None
+
+
+def probe_pmd() -> str | None:
+    """Skip reason when PMD cannot run here, else None."""
+    if shutil.which("java") is None:
+        return (
+            "differential oracle 'pmd' needs a JVM and there is no `java` on PATH "
+            "(PMD is a JVM tool, which is why it is not in the `oracles` extra)"
+        )
+    if pmd_executable() is None:
+        return (
+            f"differential oracle 'pmd' {pmd_pin()['version']} is not present; "
+            "fetch the pinned distribution with: python tools/fetch_pmd.py"
         )
     return None
 
@@ -284,6 +388,125 @@ def cognitive_complexity_functions(source: str) -> list[tuple[str, int]]:
     ]
 
 
+# PMD is a linter, so its numbers arrive inside violation messages:
+#   The method 'find(int[][], int)' has a cyclomatic complexity of 5.
+#   The method 'grade(int)' has a cognitive complexity of 3, current threshold is 1
+# Matching on the "method"/"constructor" wording also keeps a class-level (WMC)
+# violation from ever being mistaken for a unit.
+_PMD_MESSAGE = re.compile(
+    r"The (?:method|constructor) '(?P<name>[^'(]+)\([^']*\)' has a "
+    r"(?P<metric>cyclomatic|cognitive) complexity of (?P<value>\d+)"
+)
+
+
+def _pmd_stem(label: str) -> str:
+    """A filesystem-safe stem for an input label ('snippet:x' -> 'snippet__x')."""
+    return label.replace(":", "__")
+
+
+@lru_cache(maxsize=1)
+def pmd_values() -> dict[str, dict[str, dict[str, int]]]:
+    """label -> metric -> {simple method name: value}, from ONE PMD invocation.
+
+    Reading metric values out of a linter takes one trick and one inference, and
+    both are asserted rather than assumed.
+
+    The trick: pmd_ruleset.xml drops both rules to their reporting floor, which
+    turns them into per-method metric reporters.
+
+    The inference: PMD's CognitiveComplexity ``reportLevel`` cannot go below 1
+    (the property is declared positive), so a method whose cognitive complexity
+    is 0 reports nothing and is simply ABSENT. Cyclomatic complexity, being
+    1 + decision points, is never below 1, so the CyclomaticComplexity rule at
+    methodReportLevel=1 reports EVERY method. That report is therefore the method
+    universe, and within it, absence from the cognitive report means exactly 0.
+    The guard below is what makes this an inference and not a guess: a cognitive
+    violation naming a method the cyclomatic pass did not report would mean the
+    universe is wrong, and it fails loudly instead of silently reading as a zero.
+
+    One JVM start covers every Java input (PMD's startup dominates its runtime).
+    """
+    exe = pmd_executable()
+    assert exe is not None, "callers sit behind probe_pmd()"
+    java_inputs = inputs("java")
+
+    with tempfile.TemporaryDirectory(prefix="codecaliper-pmd-") as tmp:
+        root = Path(tmp)
+        # PMD's parser, unlike javac, does not require the file name to match a
+        # public class name, so the label can own the stem.
+        stems = {_pmd_stem(label): label for label in java_inputs}
+        for label, src in java_inputs.items():
+            (root / f"{_pmd_stem(label)}.java").write_text(src, encoding="utf-8")
+        out = root / "report.json"
+        proc = subprocess.run(
+            [str(exe), "check", "-d", str(root), "-R", str(PMD_RULESET),
+             "-f", "json", "-r", str(out), "--no-cache", "--no-progress",
+             "--no-fail-on-violation"],
+            capture_output=True, text=True, check=False,
+        )
+        if proc.returncode != 0 or not out.is_file():
+            raise AssertionError(
+                f"pmd exited {proc.returncode} and wrote no usable report.\n"
+                f"stdout:\n{proc.stdout}\nstderr:\n{proc.stderr}"
+            )
+        report = json.loads(out.read_text(encoding="utf-8"))
+
+    if report.get("processingErrors"):
+        raise AssertionError(f"pmd could not process an input: {report['processingErrors']}")
+    if report.get("configurationErrors"):
+        raise AssertionError(f"pmd rejected the ruleset: {report['configurationErrors']}")
+    got = report.get("pmdVersion")
+    if got != pmd_pin()["version"]:
+        raise AssertionError(
+            f"pmd reports version {got!r}, but tests/differential/pmd.toml pins "
+            f"{pmd_pin()['version']!r}. PMD's counting can move between releases, so "
+            "the divergence table is calibrated against ONE version; re-pin "
+            "deliberately (and re-triage the table), never drift into a new one."
+        )
+
+    raw: dict[str, dict[str, dict[str, int]]] = {}
+    for entry in report["files"]:
+        label = stems[Path(entry["filename"]).stem]
+        for violation in entry["violations"]:
+            match = _PMD_MESSAGE.match(violation["description"])
+            if match is None:
+                raise AssertionError(
+                    f"unreadable PMD {violation['rule']} message on {label}: "
+                    f"{violation['description']!r}. The pin is PMD "
+                    f"{pmd_pin()['version']}; a message-format change means the "
+                    "values can no longer be read out and this parser must be "
+                    "re-read against the new release."
+                )
+            raw.setdefault(label, {}).setdefault(match["metric"], {})[match["name"]] = int(
+                match["value"]
+            )
+
+    values: dict[str, dict[str, dict[str, int]]] = {}
+    for label in java_inputs:
+        seen = raw.get(label, {})
+        universe = seen.get("cyclomatic", {})
+        cognitive = seen.get("cognitive", {})
+        orphans = set(cognitive) - set(universe)
+        if orphans:
+            raise AssertionError(
+                f"pmd reported a cognitive complexity for {sorted(orphans)} in {label!r} "
+                "but no cyclomatic complexity. The cyclomatic report is this harness's "
+                "method universe, and 'absent from the cognitive report' is read as 0 "
+                "against it; that reading is unsound if the two rules disagree about "
+                "which methods exist."
+            )
+        values[label] = {
+            "cyclomatic": dict(universe),
+            "cognitive": {name: cognitive.get(name, 0) for name in universe},
+        }
+    return values
+
+
+def pmd_functions(label: str, metric: str) -> list[tuple[str, int]]:
+    """(name, value) per method, for one input and one metric."""
+    return sorted(pmd_values()[label][metric].items())
+
+
 # --- pairing and collection -----------------------------------------------------
 
 
@@ -334,6 +557,17 @@ def comparisons(oracle: str, label: str) -> tuple[Comparison, ...]:
         return pair(oracle, label, "cyclomatic",
                     our_functions(src, language, "cyclomatic"),
                     lizard_functions(src, ext))
+    if oracle == "pmd":
+        # The only oracle that witnesses BOTH metrics, and the only external
+        # witness Java cognitive complexity has at all.
+        src = inputs("java")[label]
+        return tuple(
+            c
+            for metric in METRICS
+            for c in pair(oracle, label, metric,
+                          our_functions(src, "java", metric),
+                          pmd_functions(label, metric))
+        )
     raise ValueError(f"unknown oracle {oracle!r}")
 
 

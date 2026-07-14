@@ -17,6 +17,28 @@ All three are hard CI gates. `mypy` takes no arguments on purpose: `[tool.mypy]`
 `pyproject.toml` sets `strict = true` and `files = ["src/codecaliper"]`, and the `typecheck` job in
 `ci.yml` runs exactly `mypy`, so passing your own paths can check something CI does not.
 
+### The differential oracles (one of them is not a pip package)
+
+The oracle lane (`tests/differential/`) checks our numbers against external tools. Four are wired,
+and they install two different ways:
+
+```bash
+pip install -e ".[dev,oracles]" -c constraints/ci.txt  # radon, lizard, cognitive_complexity
+python tools/fetch_pmd.py                              # PMD: the Java oracle (cyclomatic + cognitive)
+```
+
+The `[oracles]` extra is **not** the whole oracle set. PMD is a JVM tool, not a pip package, so it
+is outside the pip closure `constraints/ci.txt` pins: it needs `java` on PATH, its own pin lives in
+`tests/differential/pmd.toml`, and `tools/fetch_pmd.py` downloads that exact release (~73 MB) into
+the gitignored `.oracles/`, sha256-verifying the archive before it unpacks anything.
+
+Without a JVM, or with nothing fetched, the PMD tests SKIP with a reason that tells you which of the
+two is missing. That is fine locally: a missing oracle never fails a contributor's build. It is not
+fine in CI, so the `differential` job in `ci.yml` installs a JDK, runs `tools/fetch_pmd.py` (cached
+on the pinned sha256) and proves `pmd --version` answers *before* pytest starts. A SKIP there would
+let the job pass while testing nothing, which is also why the three pip oracles are hard-imported in
+the same job.
+
 ## The three rules
 
 1. **No number changes silently.** If your change alters any value for any
@@ -153,7 +175,8 @@ new language gets no scaffolding. If yours needs it, that is a ruling, not an
 ## What not to do
 
 - Do not add external metric tools as runtime dependencies. radon, lizard and
-  the rest are differential-test **oracles** only (the `[oracles]` extra).
+  cognitive_complexity (the `[oracles]` extra) and PMD (a JVM tool, fetched by
+  `tools/fetch_pmd.py`) are differential-test **oracles** only.
 - Do not add a "readability score". BW output is a feature vector by design
   (ARCHITECTURE.md §13).
 - Do not import `tree_sitter` outside `src/codecaliper/syntax/_treesitter.py`.

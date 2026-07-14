@@ -92,7 +92,7 @@ jobs:
           PIP_CONSTRAINT: constraints/build.txt
       - name: sdist must not ship excluded paths (the full pyproject exclude policy)
         run: |
-          if tar tzf dist/*.tar.gz | grep -E "(bw_faithfulness/cache/|bw_faithfulness/.*\.zip|/paper/|/\.github/|/CLAUDE\.md$|/site/)"; then
+          if tar tzf dist/*.tar.gz | grep -E "(bw_faithfulness/cache/|bw_faithfulness/.*\.zip|/paper/|/\.github/|/CLAUDE\.md$|/site/|/\.oracles/)"; then
             echo "::error::sdist contains paths excluded by policy (pyproject sdist excludes)"
             exit 1
           fi

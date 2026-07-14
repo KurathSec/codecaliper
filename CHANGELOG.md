@@ -59,6 +59,52 @@ three versions, not one:
   the Scalabrino et al. (2018) and Dorn (2012) corpora have no permission of any
   kind, and not one byte of either is or will be tracked.
 
+### PMD is wired as the Java differential oracle
+
+- **PMD 7.26.0 witnesses both cyclomatic and cognitive complexity, per method, for
+  Java.** It is the first external witness Java cognitive complexity has had in this
+  project, and the second for Java cyclomatic (lizard was the only one). It is
+  independent of tree-sitter all the way down, its own Java grammar and its own
+  metric visitors, so agreement with it is not two wrappers around one parser
+  agreeing with themselves. Coverage: 16 Java inputs (9 reference-comparable corpus
+  cases plus 7 probes) x 2 metrics = 32 per-method comparisons, of which 28 agree.
+- **Four new classified divergences** (`tests/differential/divergences.toml`,
+  rendered to `docs/spec/divergences.md`):
+  - `java-contextual-001` / `Point.quadrant` and `snippet:diff-java-switch-expr` /
+    `SwExpr.grade`, cognitive, ours 1, PMD 0 (COG-ALL-0001). One gap, hit twice:
+    PMD's CognitiveComplexity rule scores a switch *expression* zero. Measured on
+    all four forms: it counts arrow-form and colon-form switch *statements*,
+    agreeing with us, and zeroes both forms of switch expression, while its own
+    CyclomaticComplexity rule counts all four. The gap is
+    expression-versus-statement, and it is specific to PMD's cognitive rule.
+  - `snippet:diff-java-recursion` / `R.fact`, cognitive, ours 1, PMD 2
+    (COG-ALL-0006). PMD takes the whitepaper's +1-per-recursive-call increment;
+    comparisons run in sonar-compat mode, which omits it. The Python oracle
+    `cognitive_complexity` 1.3 takes the same side (`py-recursion-001`).
+  - `snippet:diff-java-lambda` / `L.make`, cyclomatic, ours 2, PMD 1
+    (CORE-ALL-0003). PMD's CyclomaticComplexity rule neither descends into a lambda
+    body nor reports the lambda as a unit of its own, so the lambda's `if` is
+    counted nowhere. Two witnesses put PMD alone: lizard scores `make` 2, and PMD's
+    own CognitiveComplexity rule *does* descend into the lambda (cognitive 2). PMD's
+    two rules disagree with each other.
+- **The residual gap, named.** Recursion is the one axis on which the two cognitive
+  modes differ, and PMD takes the whitepaper side: on that row it witnesses the
+  whitepaper mode, which scores 2 and agrees with it exactly. Java's sonar-compat
+  recursion behaviour therefore still has **no external witness**, and rests on the
+  hand-computed corpus and the spec alone. The Java witnessing gap is narrowed, not
+  closed.
+- **No measured value changed.** PMD is a test-time oracle, never a runtime
+  dependency, and the spec stays at 1.1.0.
+- **Running it.** PMD is a JVM tool, so it is not in the `oracles` pip extra: it
+  needs `java` on PATH and `python tools/fetch_pmd.py`, which downloads about 73 MB
+  and sha256-verifies it against the pin in `tests/differential/pmd.toml`, into the
+  gitignored `.oracles/`. Sitting outside the pip closure that `constraints/ci.txt`
+  pins is precisely why PMD was cut at 0.1.0. Without PMD, or without a JVM, the
+  lane SKIPs with an actionable reason, exactly like the pip oracles. CI does not get
+  that option: the `differential` job in `ci.yml` installs a JVM (temurin 21), runs
+  `tools/fetch_pmd.py` and hard-gates on `pmd --version` before pytest, because a
+  SKIP there would let the job pass while testing nothing.
+
 ### Other
 
 - `validation/breadth/`: the cross-corpus parse-anatomy lane (parse rates over

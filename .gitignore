@@ -45,12 +45,19 @@ validation/bw_faithfulness/*.zip
 # mkdocs build output (deployed by .github/workflows/docs.yml, never committed)
 site/
 
+# The PMD distribution, fetched and sha256-verified by tools/fetch_pmd.py from
+# the pin in tests/differential/pmd.toml. PMD is a JVM tool, so it cannot ride
+# in the `oracles` pip extra; 73 MB of a third party's release binaries has no
+# business in this tree either.
+.oracles/
+
 # MSR paper sources: submission material, kept local until publication
 # (pyproject.toml excludes it from the sdist and release.yml asserts that,
 # as defense in depth should this rule ever be dropped)
 paper/
 
-# Editors / OS
+# Editors / OS / agent tooling
+.claude/
 .idea/
 .vscode/
 *.swp

@@ -118,8 +118,9 @@ codecaliper/
 │   ├── _reference/              # test-only verbatim ports (NOTICE-credited):
 │   │   ├── bw_stdlib.py         #   anchor.py::bw_readability_features (stdlib tokenize)
 │   │   └── py_ast_lane.py       #   eval/metrics.py cyclomatic/cognitive/halstead/MI (stdlib ast)
-│   ├── differential/            # external-oracle lane: divergences.toml, _harness.py, and
-│   │                            #   test_radon / test_lizard / test_cognitive / test_table
+│   ├── differential/            # external-oracle lane: divergences.toml, _harness.py, the PMD pin
+│   │                            #   (pmd.toml) and its metric-reporting ruleset (pmd_ruleset.xml),
+│   │                            #   and test_radon / test_lizard / test_cognitive / test_pmd / test_table
 │   ├── test_consistency_corpus.py
 │   ├── test_spec_coverage.py    # rulings ⇄ code ⇄ corpus bidirectional coverage
 │   ├── test_spec_drift.py       # numbers may not change without a spec MAJOR bump
@@ -148,6 +149,7 @@ codecaliper/
 ├── validation/breadth/          # cross-corpus parse anatomy (3 corpora) + Python demo.
 │   └── measure_corpora.py  results.txt  README.md  python-demo/  # NEEDS A NETWORK FETCH (§8.3)
 ├── tools/
+│   ├── fetch_pmd.py             # downloads + sha256-verifies the pinned PMD into .oracles/
 │   ├── gen_spec_docs.py         # ruling TOMLs → docs/spec/rulings.md (generated, staleness-checked)
 │   ├── gen_divergences.py       # classification TOMLs → docs/spec/divergences.md
 │   └── update_snapshot.py       # refuses numeric changes without --confirm-spec-bump
@@ -600,22 +602,50 @@ The probe/SKIP pattern is inherited from `bench/anchor.py`. Honesty runs two way
 
 - **Locally**, a missing oracle is a `SKIP` with a precise reason. A contributor's build never fails
   for a tool they do not have.
-- **In CI** (the `differential` job in `ci.yml`), the three wired oracles are installed at
-  `constraints/ci.txt` pins, with a hard-import step (`python -c "import radon.complexity, lizard,
-  cognitive_complexity.api"`) before pytest. An oracle that installs but cannot import fails the job
-  outright, so a silent SKIP can never mask a regression.
+- **In CI** (the `differential` job in `ci.yml`), every oracle is proved live *before* pytest runs,
+  because a SKIP there would let the job pass while testing nothing. The three pip oracles are
+  installed at `constraints/ci.txt` pins and hard-imported (`python -c "import radon.complexity,
+  lizard, cognitive_complexity.api"`). PMD is a JVM tool, so the job also sets up a temurin JDK,
+  restores the pinned distribution from a cache keyed on its sha256, runs `tools/fetch_pmd.py`
+  (idempotent, so a no-op on a cache hit), and runs `pmd --version`.
 
 Oracle set. **Per-PR, zero-install**: the two `tests/_reference/` ports (the stdlib BW extractor and
 the Python-AST lane) run on every PR as free differential witnesses. **Differential CI job**: radon,
 lizard and cognitive_complexity from pip, with `cognitive_complexity` specifically witnessing
-`--sonar-compat`. **Staged, not yet wired** (§15 items 2 and 4; the README says the same): PMD, the
-serious second Java cyclomatic witness, without which Java cyclomatic is witnessed by lizard alone
-and Java cognitive complexity has no external oracle at all, only the corpus and the spec, as the
-divergence-list preamble states; rust-code-analysis, whose last release was 2023, making it a
-scheduled-job candidate rather than per-PR infrastructure; and a pinned wild-file input set.
+`--sonar-compat`, plus **PMD 7.26.0** for Java. PMD sits outside the pip closure `constraints/ci.txt`
+pins (it is a JVM tool and needs `java` on PATH), so it carries its own pin,
+`tests/differential/pmd.toml` (version, URL, sha256, size), and `tools/fetch_pmd.py` downloads and
+sha256-verifies exactly that artifact into the gitignored `.oracles/`. PMD witnesses **both**
+cyclomatic and cognitive, per method, over the 16 Java inputs (9 reference-comparable corpus cases
+and 7 probes): the first external witness Java cognitive complexity has had in this project, and the
+second for Java cyclomatic. It is independent of tree-sitter all the way down, with its own Java
+grammar and its own metric visitors, so agreement with it is not two wrappers around one parser
+agreeing with themselves. Of the 32 per-method comparisons, 28 agree and 4 are classified
+divergences (§3.4).
+
+**The gap that survives.** Recursion is the one axis on which the two cognitive modes differ, and PMD
+takes the whitepaper's +1-per-recursive-call side, agreeing exactly with our whitepaper mode (as does
+the Python oracle, `py-recursion-001`), while the comparisons run in sonar-compat. Java's
+sonar-compat recursion behaviour therefore still has no external witness and rests on the
+hand-computed corpus and the spec alone. The Java witnessing gap is narrowed, not closed.
+
+Reading metric values out of a linter takes one trick and one inference, both asserted in
+`_harness.pmd_values` rather than assumed. The trick: `tests/differential/pmd_ruleset.xml` drops both
+rules to their reporting floor (`methodReportLevel=1`, `reportLevel=1`), which turns them into
+per-method metric reporters, PMD's numbers arriving inside the violation messages. The inference:
+CognitiveComplexity's `reportLevel` cannot be set to 0 (the property is declared positive), so a
+method whose cognitive complexity is 0 reports nothing and is simply absent; cyclomatic complexity,
+being 1 + decision points, is never below 1, so CyclomaticComplexity at the floor reports *every*
+method. That report is the method universe, and within it, absence from the cognitive report means
+exactly 0. The harness asserts that no cognitive violation names a method the cyclomatic pass did not
+report, which is what makes this an inference rather than a guess; it also asserts that the running
+PMD reports the pinned version, and fails loudly on any violation message it cannot parse.
+
+**Staged, not yet wired**: rust-code-analysis, whose last release was 2023, making it a scheduled-job
+candidate rather than per-PR infrastructure. **Still cut** (§15 item 2): a pinned wild-file input
+set; the inputs today are the consistency corpus plus inline probe snippets in the per-oracle tests.
 **SonarQube is excluded as an automated oracle** because of its server architecture. Its whitepaper
-is a *spec source*, with cognitive_complexity as the Sonar-lineage witness. The inputs today are the
-whole corpus plus inline probe snippets in the per-oracle tests.
+is a *spec source*, with cognitive_complexity as the Sonar-lineage witness.
 
 ### 8.3 BW faithfulness reproduction (§6.3, the make-or-break)
 
@@ -741,14 +771,17 @@ than a guess. Diagnostics go to stderr, data to stdout; exit codes 0/1/2.
 - Extras: `[retrain]` (scikit-learn), `[oracles]` (radon, lizard, cognitive_complexity, all
   test-time only), `[dev]`, `[docs]` (mkdocs-material and mkdocstrings; `docs.yml` installs it
   under `constraints/docs.txt`).
-- CI as built, with the original plan de-scoped per §15 items 3 and 4. `ci.yml` has four jobs, all
+- CI as built, with the original plan de-scoped per §15 item 3 (item 4, the PMD cut, has since been
+  reversed: the differential job now fetches and gates PMD). `ci.yml` has four jobs, all
   on `ubuntu-latest`: **test** (Python 3.10, 3.12 and 3.14; ruff, then the whole pytest suite:
   consistency, spec-coverage, spec-drift, grammar-integrity, BW port fidelity, AST-lane crosscheck,
   CLI, behaviour, determinism, perf smoke); **typecheck** (mypy `--strict`, a hard gate, on 3.12);
   **spec-docs** (regenerate and `git diff --exit-code docs/`, so a stale generated page is red); and
-  **differential** (oracles at `constraints/ci.txt` pins, a hard-import step so that a SKIP cannot
-  mask an absence, zero unclassified divergences, stale entries fail). `docs.yml`: `mkdocs build
-  --strict` and the Pages deploy. `grammar-bump.yml`: the weekly early warning (Mondays 06:00 UTC).
+  **differential** (the pip oracles at `constraints/ci.txt` pins, PMD at the
+  `tests/differential/pmd.toml` pin on a temurin JDK, each proved live before pytest so that a SKIP
+  cannot mask an absence, zero unclassified divergences, stale entries fail). `docs.yml`:
+  `mkdocs build --strict` and the Pages deploy. `grammar-bump.yml`: the weekly early warning
+  (Mondays 06:00 UTC).
   `release.yml`: gate and build in parallel, then PyPI trusted publishing, then the GitHub Release,
   which fires the Zenodo webhook (RELEASING.md).
 - There is deliberately **no bw-faithfulness workflow**. The lane is self-contained and needs no
@@ -804,7 +837,7 @@ artifact is general-purpose measurement primitives.
 | Lexical Halstead | AST-harvest Halstead | Cross-language uniformity; lexer reuse; the divergence is declared via halstead-approximation (no Halstead differential lane is wired) |
 | Range pins + CI lockfile + validated flag | Exact `==` grammar pins in install metadata | `==` fights pip resolution in shared envs; the flag keeps honesty without breaking installs |
 | Run-and-label on unvalidated grammars | Refuse to run | Provenance already records the truth; refusal punishes legitimate environments |
-| Ship with the three pip-installable oracles wired per-PR (radon, lizard, cognitive_complexity); leave PMD and rust-code-analysis staged | Wire all five before 1.0 | The three are pinned in `constraints/ci.txt` (radon 6.0.1, lizard 1.23.0, cognitive-complexity 1.3.0) and gate every PR. PMD is a JVM tool outside that pip closure and was the §15 item-4 cut, which leaves Java cyclomatic witnessed by lizard alone and Java cognitive with no external witness at all. That gap is stated (§8.2, the divergence-list preamble), not silent. RCA's last release was 2023 |
+| Ship with the three pip-installable oracles wired per-PR (radon, lizard, cognitive_complexity); leave PMD and rust-code-analysis staged | Wire all five before 1.0 | The three are pinned in `constraints/ci.txt` (radon 6.0.1, lizard 1.23.0, cognitive-complexity 1.3.0) and gate every PR. PMD is a JVM tool outside that pip closure and was the §15 item-4 cut, which leaves Java cyclomatic witnessed by lizard alone and Java cognitive with no external witness at all. That gap is stated (§8.2, the divergence-list preamble), not silent. RCA's last release was 2023. **Revisited: see the amendment below the table** |
 | ctx.count() + opt-in `--explain` traces | rulings-applied lists only | Divergence triage needs *where and how much*, not just *which* |
 | 12-sig-digit float quantization + per-platform byte claim | Cross-OS byte-identity claim | libm differences make the stronger claim false, and honesty is the brand |
 | Indentation tab = 8 (TOK-ALL-0006, superseding TOK-ALL-0004's tab = 1) | tab = 1 / tab = 4 | Pre-registered 32-cell arbitration: tab=1 zeroes the Fig. 9 indentation correlation; any tab>=2 fixes the sign, and 8 won the pre-registered AUC tie-break (8-vs-4 is a stated convention pick within noise) |
@@ -812,12 +845,29 @@ artifact is general-purpose measurement primitives.
 | Java arithmetic-op class unchanged after arbitration (null result) | Adding ++/--/compound assignment | No variant changed any Fig. 9 sign across 32 cells, and an AUC spread <= 0.00125 is noise. A ruling is not changed on noise |
 | Track the BW raw inputs; keep Scalabrino and Dorn out of the tree forever | Fetch everything at run time (the pre-permission status quo) | An author granted redistribution of the BW data (PERMISSIONS.md), so the headline reproduction runs from the git tree with no download step that can rot, 404 or change under it. No such grant exists for the other two corpora, so the asymmetry is permanent and stated (§8.3) |
 
+> **Amendment (recorded after the fact, not rewritten away).** The oracle row above is the decision
+> as it was taken for 0.1.0, and it held at the 0.1.0 tag: PMD stayed staged and the §15 item-4 cut
+> shipped. It has since been revisited and reversed. PMD 7.26.0 is wired as a Java differential
+> oracle, pinned outside the pip closure in `tests/differential/pmd.toml`, fetched and
+> sha256-verified by `tools/fetch_pmd.py`, and gated in CI by a JDK setup plus a `pmd --version`
+> check (§8.2). It witnesses Java cyclomatic *and* Java cognitive per method, so the row's "no
+> external witness at all" no longer describes Java cognitive. Nothing measured moved: no change
+> under `src/`, no snapshot change, spec still 1.1.0. What the row got right and still holds: PMD is
+> outside the pip closure `constraints/ci.txt` pins, which is exactly why wiring it cost a JVM in CI
+> and a second pin file. The narrowed residue is in §8.2 (Java's sonar-compat recursion behaviour
+> has no external witness, because PMD takes the whitepaper side of the one axis on which the modes
+> differ). The rust-code-analysis half of the row is unchanged: still staged, last release 2023.
+
 ## 15. De-scoping ladder: which rungs were taken
 
 This was written before W6 as a cut order, cheapest first, for the case where the schedule ran out.
 W6 and W8 shipped (§16), so it is now a record of what 0.1.0 actually gave up. Rungs 1 and 5 were
 never taken; 2, 3 and 4 were. Each cut still stands as the honest description of a gap, and each
 is reversible without touching the core.
+
+> **Amendment (recorded after the fact, not rewritten away).** Cut 4 has since been reversed (see
+> item 4). Reversing it bore out the reversibility claim above: no code under `src/`, no number
+> moved, no spec bump.
 
 1. `--explain` traces move to 1.1 (the `ctx.count` seam stays; only the CLI surface slips).
    **Not cut.** `--explain` ships and is the per-increment attribution shown in §3.3.
@@ -830,6 +880,11 @@ is reversible without touching the core.
    nothing in CI exercises the libm difference the claim is scoped around.
 4. The PMD oracle drops to lizard-only Java witnessing for 1.0. **Cut.** Java cyclomatic has one
    external witness and Java cognitive has none (§8.2, §14).
+   **Reversed after 0.1.0** (the two sentences above record the cut as it shipped, and stay): PMD
+   7.26.0 is wired, pinned in `tests/differential/pmd.toml`, fetched by `tools/fetch_pmd.py` and
+   gated in CI, and it witnesses Java cyclomatic *and* Java cognitive per method (§8.2). One axis of
+   the gap survives, not the whole metric: Java's sonar-compat recursion behaviour still has no
+   external witness, because PMD takes the whitepaper side there.
 5. `Session` caching drops to plain `measure()`. **Not cut.** `Session` ships, and
    `test_perf_smoke.py` asserts both the parser reuse and the throughput floor.
 6. Never cut: the consistency corpus, the spec-drift gate, the BW faithfulness pipeline, the

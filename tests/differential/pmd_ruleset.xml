@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PMD ruleset for the codecaliper differential lane (ARCHITECTURE.md §8.2).
+
+  PMD is a linter, not a metrics reporter: it emits a violation only when a
+  value crosses the rule's threshold, and the value is carried in the violation
+  MESSAGE. Dropping the thresholds to their floor turns both rules into
+  per-method metric reporters, which is the only way to read PMD's numbers out
+  of the CLI.
+
+  CyclomaticComplexity: methodReportLevel=1 reports EVERY method, because
+  cyclomatic complexity is 1 + decision points and so is never below 1. The
+  harness relies on that: the cyclomatic report is the method universe.
+
+  CognitiveComplexity: reportLevel=1 is the FLOOR, not zero. PMD declares that
+  property with a positive-integer constraint, so a method whose cognitive
+  complexity is 0 cannot be made to report and is simply absent. Within the
+  universe above, absence therefore means exactly 0, which is how the harness
+  reads it (and it asserts that no cognitive violation names a method the
+  cyclomatic pass did not).
+
+  classReportLevel is pushed out of reach rather than disabled (PMD has no
+  "off" for it): the units under comparison are methods and constructors, and
+  a class-level WMC violation would be an extra row with no counterpart on our
+  side. The harness also matches on the "method"/"constructor" wording, so a
+  class row could not be mistaken for a unit even if one did fire.
+
+  cycloOptions is left at its default ON PURPOSE: PMD's default counts each
+  boolean operator as a path, which is the same decision as CC-JAVA-0003, and
+  `ignoreBooleanPaths` would silently change what is being compared.
+-->
+<ruleset name="codecaliper-differential-oracle"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>Report every method's cyclomatic and cognitive complexity value.</description>
+
+  <rule ref="category/java/design.xml/CyclomaticComplexity">
+    <properties>
+      <property name="methodReportLevel" value="1"/>
+      <property name="classReportLevel" value="1000000"/>
+    </properties>
+  </rule>
+
+  <rule ref="category/java/design.xml/CognitiveComplexity">
+    <properties>
+      <property name="reportLevel" value="1"/>
+    </properties>
+  </rule>
+
+</ruleset>

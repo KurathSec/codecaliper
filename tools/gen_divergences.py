@@ -24,18 +24,22 @@ ROOT = Path(__file__).resolve().parent.parent
 TABLE = ROOT / "tests" / "differential" / "divergences.toml"
 OUT = ROOT / "docs" / "spec" / "divergences.md"
 CONSTRAINTS = ROOT / "constraints" / "ci.txt"
+PMD_PIN = ROOT / "tests" / "differential" / "pmd.toml"
 _ORACLES = ("radon", "lizard", "cognitive-complexity")
 
 
 def _oracle_pins_line() -> str:
-    """The pinned oracle versions, read from constraints/ci.txt so the doc can
-    never drift from the calibration source of truth."""
+    """The pinned oracle versions, read from constraints/ci.txt and (for PMD,
+    which is a JVM tool and so outside the pip closure) tests/differential/pmd.toml,
+    so the doc can never drift from the calibration sources of truth."""
     pins = []
     for line in CONSTRAINTS.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         name = line.split("==")[0].strip().lower()
         if "==" in line and not line.startswith("#") and name in _ORACLES:
             pins.append(f"`{line}`")
+    with PMD_PIN.open("rb") as f:
+        pins.append(f"`pmd=={tomllib.load(f)['pmd']['version']}`")
     return ", ".join(pins) + "."
 
 
@@ -61,14 +65,23 @@ def render() -> str:
         "`tests/differential/_harness.py` (divergence-axis probes); all other",
         "inputs are consistency-corpus cases.",
         "",
-        "Calibrated against the oracle versions pinned in `constraints/ci.txt`:",
+        "Calibrated against the oracle versions pinned in `constraints/ci.txt`",
+        "and, for PMD (a JVM tool, so outside the pip closure),",
+        "`tests/differential/pmd.toml`:",
         _oracle_pins_line(),
         "",
-        "**Known witnessing gap** (ARCHITECTURE.md §8.2/§15): Java cyclomatic",
-        "is witnessed by lizard only, and Java cognitive complexity has NO",
-        "external oracle. PMD and rust-code-analysis are staged, not yet",
-        "wired. Until then, Java counting rests on the hand-computed corpus",
-        "and the spec alone.",
+        "**What is witnessed, and where the witnessing runs out**",
+        "(ARCHITECTURE.md §8.2/§15). Java is witnessed by lizard (cyclomatic)",
+        "and by PMD (cyclomatic and cognitive). PMD is independent of",
+        "tree-sitter all the way down, with its own Java grammar and its own",
+        "metric visitors, so agreement with it is not two wrappers around one",
+        "parser agreeing with themselves. One gap survives: on the single axis",
+        "where the two cognitive modes differ, the recursion increment, PMD",
+        "takes the whitepaper's +1, so on `snippet:diff-java-recursion` it",
+        "witnesses *whitepaper* mode rather than the `sonar-compat` mode these",
+        "comparisons run in. Java's sonar-compat recursion behaviour therefore",
+        "has no external witness, and rests on the hand-computed corpus and the",
+        "spec alone. rust-code-analysis remains staged, not wired.",
         "",
     ]
     by_oracle: dict[str, list[dict]] = {}

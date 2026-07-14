@@ -84,10 +84,13 @@ codecaliper's response is to make its own operationalization inspectable:
   IDs (`CC-PY-0003`), shipped as package data and stamped into every result;
 - a **hand-computed consistency corpus**, where every active ruling is exercised
   by a case whose expected values a human worked out and wrote down;
-- **differential tests** against radon, lizard and cognitive_complexity with a
-  published known-divergence list. Every disagreement is classified against a
-  ruling; an unclassified divergence fails CI, and so does a stale entry. PMD
-  and rust-code-analysis are staged, not yet wired;
+- **differential tests** against radon, lizard, cognitive_complexity and PMD,
+  with a published known-divergence list. Every disagreement is classified
+  against a ruling; an unclassified divergence fails CI, and so does a stale
+  entry. The first three are pip oracles; PMD is a JVM tool, outside that pip
+  closure, so it carries its own pin (`tests/differential/pmd.toml`), needs
+  `java` on PATH, and is an honest SKIP locally when absent.
+  rust-code-analysis is staged, not yet wired;
 - a **faithfulness reproduction** of the original Buse-Weimer study, using this
   extractor and a retrained model.
 
@@ -173,6 +176,18 @@ when a ruling changes. See [`CHANGELOG.md`](CHANGELOG.md).
 Python and Java are wired end-to-end. Every active ruling is exercised by a
 hand-computed corpus case. `mypy --strict` and the differential oracle lane are
 hard CI gates.
+
+PMD 7.26.0 is now wired into that lane: the first external witness this project
+has had for Java cognitive complexity, and the second for Java cyclomatic
+(lizard was the only one). It is independent of tree-sitter all the way down,
+with its own Java grammar and its own metric visitors, so agreement with it is
+not two wrappers around one parser agreeing with themselves. Over 16 Java
+inputs and 2 metrics, 28 of the 32 per-method comparisons agree; the other 4
+are classified divergences (`docs/spec/divergences.md`). One gap survives:
+recursion is the single axis on which the two cognitive modes differ, and PMD
+takes the whitepaper's increment, so it witnesses whitepaper mode there. Java's
+sonar-compat recursion behaviour still has no external witness, and rests on
+the hand-computed corpus and the spec alone.
 
 The Buse-Weimer faithfulness reproduction ran on the original 100-snippet
 dataset: 10-fold logistic accuracy 0.820 (bootstrap 95% CI [0.770, 0.870],

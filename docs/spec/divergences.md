@@ -14,14 +14,23 @@ codecaliper in `sonar-compat` mode. `snippet:*` inputs are defined in
 `tests/differential/_harness.py` (divergence-axis probes); all other
 inputs are consistency-corpus cases.
 
-Calibrated against the oracle versions pinned in `constraints/ci.txt`:
-`radon==6.0.1`, `lizard==1.23.0`, `cognitive-complexity==1.3.0`.
+Calibrated against the oracle versions pinned in `constraints/ci.txt`
+and, for PMD (a JVM tool, so outside the pip closure),
+`tests/differential/pmd.toml`:
+`radon==6.0.1`, `lizard==1.23.0`, `cognitive-complexity==1.3.0`, `pmd==7.26.0`.
 
-**Known witnessing gap** (ARCHITECTURE.md §8.2/§15): Java cyclomatic
-is witnessed by lizard only, and Java cognitive complexity has NO
-external oracle. PMD and rust-code-analysis are staged, not yet
-wired. Until then, Java counting rests on the hand-computed corpus
-and the spec alone.
+**What is witnessed, and where the witnessing runs out**
+(ARCHITECTURE.md §8.2/§15). Java is witnessed by lizard (cyclomatic)
+and by PMD (cyclomatic and cognitive). PMD is independent of
+tree-sitter all the way down, with its own Java grammar and its own
+metric visitors, so agreement with it is not two wrappers around one
+parser agreeing with themselves. One gap survives: on the single axis
+where the two cognitive modes differ, the recursion increment, PMD
+takes the whitepaper's +1, so on `snippet:diff-java-recursion` it
+witnesses *whitepaper* mode rather than the `sonar-compat` mode these
+comparisons run in. Java's sonar-compat recursion behaviour therefore
+has no external witness, and rests on the hand-computed corpus and the
+spec alone. rust-code-analysis remains staged, not wired.
 
 ## cognitive_complexity
 
@@ -42,6 +51,15 @@ and the spec alone.
 | `py-match-001` | `label` | cyclomatic | 2 | 3 | `CC-PY-0008` | lizard counts every `case` token including the bare wildcard; CC-PY-0008 excludes an unguarded `case _:` as the fall-through path (mirror of Java default, CC-JAVA-0006). |
 | `snippet:diff-comp-guard` | `evens` | cyclomatic | 2 | 3 | `CC-PY-0004` | lizard's token-based CCN counts the comprehension `for` keyword as a loop; CC-PY-0004 rules the iteration clause is not a decision point (only the guard counts). |
 | `snippet:diff-match-in-func` | `dispatch` | cyclomatic | 3 | 4 | `CC-PY-0008` | lizard counts every `case` token including the bare wildcard arm; CC-PY-0008 rules `case _:` with no guard is the fall-through path and does not count (mirror of Java `default:`). |
+
+## pmd
+
+| case | unit | metric | ours | theirs | ruling | why |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| `java-contextual-001` | `Point.quadrant` | cognitive | 1 | 0 | `COG-ALL-0001` | COG-ALL-0001 gives a switch its structural +1 whether it is a statement or an expression, and this record's body is a switch expression; PMD 7.26's CognitiveComplexity rule scores a switch expression zero. Measured on all four forms: PMD counts arrow-form and colon-form switch STATEMENTS (agreeing with us) and zeroes both forms of switch EXPRESSION, while its own CyclomaticComplexity rule counts all four. The gap is expression-vs-statement, and it is specific to PMD's cognitive rule. |
+| `snippet:diff-java-lambda` | `L.make` | cyclomatic | 2 | 1 | `CORE-ALL-0003` | CORE-ALL-0003 keeps a lambda body inside the enclosing unit, so the lambda's `if` counts toward make. PMD's CyclomaticComplexity rule neither descends into the lambda nor reports it as a unit of its own, so that `if` is counted nowhere and the method reads as 1. Two witnesses put PMD alone here: lizard scores make 2, and PMD's OWN CognitiveComplexity rule does descend into the lambda (cognitive 2, agreeing with us), so PMD's two rules disagree with each other about lambda bodies. |
+| `snippet:diff-java-recursion` | `R.fact` | cognitive | 1 | 2 | `COG-ALL-0006` | PMD implements the whitepaper's +1-per-recursive-call increment; our sonar-compat mode omits it per COG-ALL-0006, and comparisons run in sonar-compat mode. Recursion is the ONE axis on which our two cognitive modes differ, so on this row PMD witnesses our WHITEPAPER mode, which scores 2 and agrees with it exactly. Java's sonar-compat recursion behaviour therefore has no external witness. The Python oracle cognitive_complexity 1.3 takes the same side (see py-recursion-001), so both independent implementations follow the whitepaper here. |
+| `snippet:diff-java-switch-expr` | `SwExpr.grade` | cognitive | 1 | 0 | `COG-ALL-0001` | The minimal probe for the same PMD gap that java-contextual-001 hits: a bare `return switch (x) { ... };` and nothing else. Ours is the switch increment of COG-ALL-0001 (+1 at nesting 0); PMD's CognitiveComplexity rule does not visit switch expressions and reports nothing, which the harness reads as 0. |
 
 ## radon
 

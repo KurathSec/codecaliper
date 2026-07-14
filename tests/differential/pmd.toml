@@ -1,0 +1,20 @@
+# The pinned PMD distribution: the Java differential oracle (ARCHITECTURE.md §8.2).
+#
+# PMD is a JVM tool, so it is outside the pip closure that constraints/ci.txt
+# pins. This file is that closure's Java half, and it is the single source of
+# truth for the version: tools/fetch_pmd.py downloads and sha256-verifies this
+# exact artifact, tests/differential/_harness.py locates the unpacked binary by
+# this version AND asserts the running PMD reports it, and tools/gen_divergences.py
+# prints it next to the pip oracle pins in the published divergence list.
+#
+# Upgrading is the same deal as a grammar bump: PMD's counting can move between
+# releases, so a bump is only done deliberately. Re-run the differential lane
+# and expect the divergence table to be re-triaged, not silently accepted.
+
+[pmd]
+version = "7.26.0"
+url = "https://github.com/pmd/pmd/releases/download/pmd_releases/7.26.0/pmd-dist-7.26.0-bin.zip"
+sha256 = "9f55cb7ff0e9f9a66dd2f005eaa370e84c8a4cd971b134aa14a930c4a283ebc9"
+size_bytes = 73646044
+# The directory the archive unpacks to, under .oracles/ (gitignored).
+unpacks_to = "pmd-bin-7.26.0"
