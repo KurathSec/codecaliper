@@ -34,10 +34,10 @@ model trained under one feature layout can never quietly predict under another.
 
 ## Procedural consistency is not cross-language comparability
 
-Python and Java run through the same engines under the same rulings. That makes
-the *procedure* consistent. It does not make the *numbers* comparable: a Java
-cyclomatic 7 and a Python cyclomatic 7 are not the same quantity, because the
-two languages express control flow differently. Compare within-language
+Python, Java and Go run through the same engines under the same rulings. That
+makes the *procedure* consistent. It does not make the *numbers* comparable: a
+Java cyclomatic 7 and a Python cyclomatic 7 are not the same quantity, because
+the languages express control flow differently. Compare within-language
 distributions, not raw values across languages.
 
 ## What text is measured

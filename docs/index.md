@@ -2,7 +2,7 @@
 
 codecaliper measures code readability (the raw Buse-Weimer 2010 feature set)
 and complexity (cyclomatic, dual-mode cognitive, Halstead, maintainability
-index, LOC) for Python and Java, and it tells you where every number came from.
+index, LOC) for Python, Java, and Go, and it tells you where every number came from.
 
 A metrics scoreboard says *"CC = 7"*. codecaliper says *"CC = 7 under spec
 1.1.0, on tree-sitter-python 0.25.0, and here are the seven increments, each one

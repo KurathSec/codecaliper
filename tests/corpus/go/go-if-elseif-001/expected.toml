@@ -1,0 +1,32 @@
+[case]
+id = "go-if-elseif-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0001", "COG-ALL-0001", "COG-ALL-0002", "LOC-ALL-0004"]
+computed_by = "hand"
+notes = """
+if / else-if / else. In Go, as in Java, the else-if arm is the `if_statement`
+in the outer if's `alternative` field, and the trailing `else` is an anonymous
+token whose alternative is a block.
+CC = 1 (CC-ALL-0001) + if(1) + else-if(1) = 3 (CC-GO-0001; the `else` is not a
+decision point).
+Cognitive = if(+1, nesting 0; COG-ALL-0001) + else-if(hybrid +1; COG-ALL-0002)
++ else(hybrid +1; COG-ALL-0002) = 3. No boolean sequences and no calls, so the
+recursion-mode divergence cannot fire: whitepaper = sonar_compat = 3.
+lloc (LOC-ALL-0004) = package_clause + function_declaration + if_statement +
+the else-if if_statement + 3 return_statement = 7.
+"""
+
+[expect.file]
+cyclomatic = 3
+lloc = 7
+
+[expect.file.cognitive]
+whitepaper = 3
+sonar_compat = 3
+
+[expect.functions.sign]
+cyclomatic = 3
+
+[expect.functions.sign.cognitive]
+whitepaper = 3
+sonar_compat = 3

@@ -174,6 +174,44 @@ JAVA_PROBES = {
     ),
 }
 
+# Go probes: lizard is the Go cyclomatic oracle. It concurs with us on every
+# Go-specific counting decision below, so none appears in divergences.toml.
+GO_PROBES = {
+    # CC-GO-0004: switch case labels count, `default` does not (lizard concurs).
+    "diff-go-switch": (
+        "package p\n"
+        "func pick(x int) int {\n"
+        "\tswitch x {\n"
+        "\tcase 1:\n"
+        "\t\treturn 10\n"
+        "\tcase 2:\n"
+        "\t\treturn 20\n"
+        "\tdefault:\n"
+        "\t\treturn 0\n"
+        "\t}\n"
+        "}\n"
+    ),
+    # CC-GO-0005: select communication cases count (lizard concurs).
+    "diff-go-select": (
+        "package p\n"
+        "func recv(a, b chan int) int {\n"
+        "\tselect {\n"
+        "\tcase x := <-a:\n"
+        "\t\treturn x\n"
+        "\tcase y := <-b:\n"
+        "\t\treturn y\n"
+        "\t}\n"
+        "}\n"
+    ),
+    # CC-GO-0003: each short-circuit operator counts (lizard concurs).
+    "diff-go-boolop": (
+        "package p\n"
+        "func ok(a, b, c bool) bool {\n"
+        "\treturn a && b || c\n"
+        "}\n"
+    ),
+}
+
 
 def probe_oracle(module_name: str, dist_name: str) -> str | None:
     """Return a skip reason when the oracle is unavailable, else None
@@ -239,14 +277,19 @@ def inputs(language: str) -> dict[str, str]:
         src = case_source(case)
         assert isinstance(src, str)  # byte-policy cases are not reference-comparable
         out[case["id"]] = src
-    snippets = dict(EXTRA_SNIPPETS, **PY_PROBES) if language == "python" else JAVA_PROBES
+    if language == "python":
+        snippets = dict(EXTRA_SNIPPETS, **PY_PROBES)
+    elif language == "go":
+        snippets = GO_PROBES
+    else:
+        snippets = JAVA_PROBES
     for name, src in snippets.items():
         out[f"snippet:{name}"] = src
     return out
 
 
 def all_labels() -> set[str]:
-    return set(inputs("python")) | set(inputs("java"))
+    return set(inputs("python")) | set(inputs("java")) | set(inputs("go"))
 
 
 # --- comparison records -------------------------------------------------------
@@ -551,9 +594,13 @@ def comparisons(oracle: str, label: str) -> tuple[Comparison, ...]:
                     our_functions(src, "python", "cognitive"),
                     cognitive_complexity_functions(src))
     if oracle == "lizard":
-        language = "python" if label in inputs("python") else "java"
+        if label in inputs("python"):
+            language, ext = "python", "py"
+        elif label in inputs("go"):
+            language, ext = "go", "go"
+        else:
+            language, ext = "java", "java"
         src = inputs(language)[label]
-        ext = "py" if language == "python" else "java"
         return pair(oracle, label, "cyclomatic",
                     our_functions(src, language, "cyclomatic"),
                     lizard_functions(src, ext))

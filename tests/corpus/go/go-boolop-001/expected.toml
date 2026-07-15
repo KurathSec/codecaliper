@@ -1,0 +1,28 @@
+[case]
+id = "go-boolop-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0003", "COG-ALL-0001", "COG-ALL-0003"]
+computed_by = "hand"
+notes = """
+Short-circuit operators. `a && b && c` is two `&&` binary_expression nodes;
+`a && b || c` parses as `(a && b) || c`, one `&&` and one `||`.
+CC = 1 (CC-ALL-0001) + if(1) + (`a && b && c`: 2 && nodes) + (`a && b || c`: 1
+&& + 1 ||) = 1 + 1 + 2 + 2 = 6 (CC-GO-0003, one decision point per operator).
+Cognitive = if(+1, nesting 0) + sequence(`&& &&` = one run of like operators,
++1; COG-ALL-0003) + [return: `&&` run +1, `||` run +1 = 2] = 1 + 1 + 2 = 4,
+both modes.
+"""
+
+[expect.file]
+cyclomatic = 6
+
+[expect.file.cognitive]
+whitepaper = 4
+sonar_compat = 4
+
+[expect.functions.check]
+cyclomatic = 6
+
+[expect.functions.check.cognitive]
+whitepaper = 4
+sonar_compat = 4

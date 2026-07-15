@@ -7,6 +7,7 @@
 tree-sitter==0.26.0
 tree-sitter-python==0.25.0
 tree-sitter-java==0.23.5
+tree-sitter-go==0.25.0
 
 # Differential-oracle pins: the divergence table (tests/differential/
 # divergences.toml) is calibrated against THESE oracle versions. A floating

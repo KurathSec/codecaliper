@@ -9,7 +9,7 @@ any of them.
 
 codecaliper is a measurement instrument for code readability (Buse-Weimer 2010 feature set) and
 complexity (cyclomatic, dual-mode cognitive, Halstead, MI, LOC) on a unified tree-sitter base
-(Python + Java). "Instrument" is load-bearing: every emitted number is traceable to a versioned
+(Python, Java, Go). "Instrument" is load-bearing: every emitted number is traceable to a versioned
 spec ruling and a grammar version, and reproducible byte-for-byte per platform.
 
 Treat `ARCHITECTURE.md` as authoritative when it disagrees with anything else, except code. When
@@ -61,7 +61,7 @@ Isolation seams, enforced rather than agreed:
   banned-module-level-imports). Binding API churn lands in that one file.
 - Metric engines (`metrics/`) and readability (`readability/`) never see tree-sitter node-type
   strings, only the `NodeClass` and `TokenKind` enums. Per-language knowledge lives in
-  `languages/python.py` and `languages/java.py` as plain dict tables plus small named hooks, every
+  `languages/python.py`, `languages/java.py` and `languages/go.py` as plain dict tables plus small named hooks, every
   increment-bearing row citing a ruling. That seam is real for `metrics/`, `readability/`,
   `model.py`, `api.py`, `cli.py` and `syntax/grammars.py`, which a new language does not touch: the
   CLI derives `--lang` choices from the registry and the grammar loader takes its tree-sitter

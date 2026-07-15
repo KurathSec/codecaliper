@@ -154,3 +154,35 @@ this ruling. Arbitrated by the BW faithfulness experiment
 (validation/bw_faithfulness/derived/arbitration_report.md).
 """
 examples = ["py-bw-fallback-001"]
+
+[[ruling]]
+id = "BW-GO-0001"
+metric = "bw2010"
+language = "go"
+title = "Go keyword set"
+since_spec = "1.2.0"
+statement = """
+Keywords are exactly the 25 reserved words of the Go spec. The predeclared
+identifiers true/false/nil/iota are NOT keywords: the Go spec places them in the
+universe block as identifiers (shadowable), so they lex as IDENTIFIER tokens.
+This is a deliberate, spec-faithful divergence from BW-JAVA-0001, which counts
+Java's true/false/null as keywords — the two language specs classify their
+boolean/nil literals differently, and each ruling follows its own spec. The
+blank identifier `_` is likewise an IDENTIFIER (a plain `identifier` node),
+matching BW-PY-0001 and TOK-JAVA-0002.
+"""
+examples = ["go-features-001"]
+
+[[ruling]]
+id = "BW-GO-0002"
+metric = "bw2010"
+language = "go"
+title = "Go branch/loop keyword features"
+since_spec = "1.2.0"
+statement = """
+avg_branches counts `if` keyword tokens (an else-if contributes via its `if`);
+avg_loops counts `for` keyword tokens (Go's only loop keyword). `switch`,
+`select` and `range` are not branch/loop keyword tokens for this feature,
+mirroring BW-JAVA-0002's treatment of `switch`.
+"""
+examples = ["go-features-001"]

@@ -1,4 +1,4 @@
-"""lizard vs codecaliper: per-function cyclomatic complexity, Python AND Java.
+"""lizard vs codecaliper: per-function cyclomatic complexity, Python, Java AND Go.
 
 lizard's CCN is token-based, which is exactly why it is a useful witness: it
 disagrees with tree-shape counting on ruled axes (comprehension `for` tokens,
@@ -16,7 +16,7 @@ pytestmark = pytest.mark.skipif(
     _SKIP_REASON is not None, reason=_SKIP_REASON or "lizard is installed"
 )
 
-LABELS = sorted(h.inputs("python")) + sorted(h.inputs("java"))
+LABELS = sorted(h.inputs("python")) + sorted(h.inputs("java")) + sorted(h.inputs("go"))
 
 
 @pytest.mark.parametrize("label", LABELS)

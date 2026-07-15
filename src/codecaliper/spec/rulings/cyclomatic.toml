@@ -170,3 +170,75 @@ Each `switch_label` beginning with `case` contributes one decision point; a
 node_types = ["switch_label"]
 examples = ["java-switch-001"]
 
+[[ruling]]
+id = "CC-GO-0001"
+metric = "cyclomatic"
+language = "go"
+title = "if statements count +1 (else-if chains count each if)"
+since_spec = "1.2.0"
+statement = """
+Each `if_statement` contributes one decision point, including an if_statement
+that is the `alternative` of another (an else-if arm is a branch). Go has no
+ternary operator, so `if` is the only conditional branch.
+"""
+node_types = ["if_statement"]
+examples = ["go-if-elseif-001"]
+
+[[ruling]]
+id = "CC-GO-0002"
+metric = "cyclomatic"
+language = "go"
+title = "Loops count +1"
+since_spec = "1.2.0"
+statement = """
+Each `for_statement` contributes one decision point. `for` is Go's only loop
+keyword and covers every loop form (three-clause, condition-only, range, and
+the bare infinite loop); all forms are the same `for_statement` node and count
+once.
+"""
+node_types = ["for_statement"]
+examples = ["go-loops-001"]
+
+[[ruling]]
+id = "CC-GO-0003"
+metric = "cyclomatic"
+language = "go"
+title = "Short-circuit operators count per operator"
+since_spec = "1.2.0"
+statement = """
+Each `binary_expression` whose operator is `&&` or `||` contributes one
+decision point; `a && b && c` contributes 2. Matches lizard.
+"""
+node_types = ["binary_expression"]
+examples = ["go-boolop-001"]
+
+[[ruling]]
+id = "CC-GO-0004"
+metric = "cyclomatic"
+language = "go"
+title = "switch/type-switch case clauses count +1 each; default does not"
+since_spec = "1.2.0"
+statement = """
+Each `expression_case` (value switch) and `type_case` (type switch) contributes
+one decision point; the `default_case` does not (it is the fall-through path,
+like an else). The switch statement node itself is not a decision point — the
+branches are counted at the cases.
+"""
+node_types = ["expression_case", "type_case"]
+examples = ["go-switch-001"]
+
+[[ruling]]
+id = "CC-GO-0005"
+metric = "cyclomatic"
+language = "go"
+title = "select communication cases count +1 each; default does not"
+since_spec = "1.2.0"
+statement = """
+Each `communication_case` in a `select` contributes one decision point: a
+select chooses among ready channel operations, each a distinct path. The
+`default_case` does not count. Kept a separate ruling from CC-GO-0004 because a
+select branches on communication readiness, not on a value or type.
+"""
+node_types = ["communication_case"]
+examples = ["go-select-001"]
+

@@ -73,6 +73,7 @@ nav:
   - Validation: validation.md
   - API: api.md
   - Contributing: contributing.md
+  - Adding a language: adding-a-language.md
 
 # `mkdocs build --strict` (CI) turns any warning (broken nav entry, bad link,
 # missing snippet include) into a build failure.

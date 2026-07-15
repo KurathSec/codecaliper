@@ -38,6 +38,7 @@ dependencies = [
   "tree-sitter>=0.25,<0.27",
   "tree-sitter-python>=0.25,<0.26",
   "tree-sitter-java>=0.23.5,<0.24",
+  "tree-sitter-go>=0.25,<0.26",
   "tomli>=2.0; python_version < '3.11'",
 ]
 

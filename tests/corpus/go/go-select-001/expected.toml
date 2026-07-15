@@ -1,0 +1,31 @@
+[case]
+id = "go-select-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0005", "COG-ALL-0001"]
+computed_by = "hand"
+notes = """
+A `select` with two communication cases and a default. A select chooses among
+ready channel operations, each communication_case a distinct path.
+CC = 1 (CC-ALL-0001) + communication_case(1) + communication_case(1) = 3
+(CC-GO-0005; the default_case does not count, and the select statement node
+itself is not a decision point — CC-GO-0005 is kept separate from the
+switch-case ruling CC-GO-0004 because a select branches on communication
+readiness, not on a value).
+Cognitive = the select is one structural increment (COG-ALL-0001, measured like
+a switch): +1 + nesting 0 = 1; the comm cases contribute nothing.
+whitepaper = sonar_compat = 1.
+"""
+
+[expect.file]
+cyclomatic = 3
+
+[expect.file.cognitive]
+whitepaper = 1
+sonar_compat = 1
+
+[expect.functions.recv]
+cyclomatic = 3
+
+[expect.functions.recv.cognitive]
+whitepaper = 1
+sonar_compat = 1

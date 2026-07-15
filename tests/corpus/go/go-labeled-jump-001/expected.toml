@@ -1,0 +1,31 @@
+[case]
+id = "go-labeled-jump-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0001", "CC-GO-0002", "COG-ALL-0001", "COG-GO-0001"]
+computed_by = "hand"
+notes = """
+A labeled `break Found` out of a doubly-nested range loop. The label
+declaration `Found:` (labeled_statement) is not itself counted; the labeled
+break is a fundamental increment (COG-GO-0001).
+CC = 1 (CC-ALL-0001) + for#1(1) + for#2(1) + if(1) = 4 (CC-GO-0001/0002; the
+labeled break is a jump, not a decision point).
+Cognitive: for#1(+1, nesting 0) -> 1, nesting 1; for#2(+1+1) -> 3, nesting 2;
+if(+1+2) -> 6, nesting 3; break Found(fundamental +1, no nesting effect;
+COG-GO-0001) -> 7. Both modes agree (the whitepaper lists labeled jumps as a
+fundamental increment and Go's sonar lineage implements it identically):
+whitepaper = sonar_compat = 7.
+"""
+
+[expect.file]
+cyclomatic = 4
+
+[expect.file.cognitive]
+whitepaper = 7
+sonar_compat = 7
+
+[expect.functions.search]
+cyclomatic = 4
+
+[expect.functions.search.cognitive]
+whitepaper = 7
+sonar_compat = 7

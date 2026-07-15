@@ -1,0 +1,29 @@
+[case]
+id = "go-recursion-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0001", "COG-ALL-0001", "COG-ALL-0005", "COG-ALL-0006"]
+computed_by = "hand"
+notes = """
+Direct recursion: `fib` calls itself twice. Each recursive call is a bare
+same-package call `fib(...)` (call_expression whose function is a plain
+identifier), which the receiver rule counts (COG-ALL-0005). This is the Go
+witness for the whitepaper-vs-sonar recursion divergence.
+CC = 1 (CC-ALL-0001) + if(1) = 2 (the recursive calls are not decision points).
+Cognitive, whitepaper: if(+1, nesting 0) + fib(n-1)(+1) + fib(n-2)(+1) = 3
+(COG-ALL-0005). Cognitive, sonar-compat: if(+1) only, recursion omitted
+(COG-ALL-0006) = 1. This is the sole inter-mode divergence.
+"""
+
+[expect.file]
+cyclomatic = 2
+
+[expect.file.cognitive]
+whitepaper = 3
+sonar_compat = 1
+
+[expect.functions.fib]
+cyclomatic = 2
+
+[expect.functions.fib.cognitive]
+whitepaper = 3
+sonar_compat = 1

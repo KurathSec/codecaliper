@@ -189,3 +189,18 @@ line-length and space-count features remain raw character counts (a candidate
 for future arbitration, noted in the report).
 """
 examples = ["py-tok-normalize-001"]
+
+[[ruling]]
+id = "TOK-GO-0001"
+metric = "tokenization"
+language = "go"
+title = "Go atomic tokens: string, raw-string and rune literals"
+since_spec = "1.2.0"
+statement = """
+`interpreted_string_literal`, `raw_string_literal` and `rune_literal` subtrees
+are consumed as single STRING tokens: their contents are not descended and are
+invisible to BW token-family features and Halstead. A rune literal is
+integer-valued but written like a character literal, so it is consumed whole,
+mirroring Java's `character_literal` (TOK-JAVA-0001).
+"""
+node_types = ["interpreted_string_literal", "raw_string_literal", "rune_literal"]

@@ -23,7 +23,8 @@
 ## 0. Fixed decisions (from the charter; do not relitigate)
 
 - **MVP languages: Python + Java.** Java is the Buse-Weimer (BW) native language, which is what
-  makes the §6.3 faithfulness reproduction possible. That reproduction is the project's main piece
+  makes the §6.3 faithfulness reproduction possible. (Go was added after the MVP as the first
+  third language, validating the extension seam end-to-end; see §5 and `docs/adding-a-language.md`.) That reproduction is the project's main piece
   of external evidence that the extractor implements what the paper describes.
 - **tree-sitter is the unified syntactic base.** Metrics operate on the **pre-preprocessing
   source text**, declared honestly: the C-family preprocessor makes any syntactic tool an

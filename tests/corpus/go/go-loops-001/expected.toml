@@ -1,0 +1,32 @@
+[case]
+id = "go-loops-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0002", "COG-ALL-0001", "COG-ALL-0004", "LOC-ALL-0004"]
+computed_by = "hand"
+notes = """
+Two `for` loops (the three-clause form and the range form) plus a nested if.
+`for` is Go's only loop keyword; both forms are `for_statement` (CC-GO-0002).
+CC = 1 (CC-ALL-0001) + for#1(1) + if(1) + for#2(1) = 4.
+Cognitive = for#1(+1, nesting 0) + if(+1+1 nesting; COG-ALL-0004) + for#2(+1,
+nesting 0) = 1 + 2 + 1 = 4, both modes (no boolean sequences, no calls).
+lloc (LOC-ALL-0004) = package_clause + function_declaration + short_var(total)
++ for#1 + its for-clause init short_var(i) + its inc_statement(i++) + if +
+inc_statement(total++) + for#2 + assignment(total += v) + return = 11 (the
+range for-clause introduces no separate statement node; the three-clause
+for-clause's initializer and post statement do).
+"""
+
+[expect.file]
+cyclomatic = 4
+lloc = 11
+
+[expect.file.cognitive]
+whitepaper = 4
+sonar_compat = 4
+
+[expect.functions.count]
+cyclomatic = 4
+
+[expect.functions.count.cognitive]
+whitepaper = 4
+sonar_compat = 4

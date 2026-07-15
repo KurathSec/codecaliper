@@ -1,4 +1,4 @@
-# codecaliper mapping specification v1.1.0
+# codecaliper mapping specification v1.2.0
 
 > Generated from `src/codecaliper/spec/rulings/*.toml` by `tools/gen_spec_docs.py`. Do not edit by hand.
 
@@ -90,6 +90,32 @@ this ruling. Arbitrated by the BW faithfulness experiment
 (validation/bw_faithfulness/derived/arbitration_report.md).
 
 Normative cases: `py-bw-fallback-001`
+
+### BW-GO-0001 — Go keyword set
+
+*language: go · status: active · since spec 1.2.0*
+
+Keywords are exactly the 25 reserved words of the Go spec. The predeclared
+identifiers true/false/nil/iota are NOT keywords: the Go spec places them in the
+universe block as identifiers (shadowable), so they lex as IDENTIFIER tokens.
+This is a deliberate, spec-faithful divergence from BW-JAVA-0001, which counts
+Java's true/false/null as keywords — the two language specs classify their
+boolean/nil literals differently, and each ruling follows its own spec. The
+blank identifier `_` is likewise an IDENTIFIER (a plain `identifier` node),
+matching BW-PY-0001 and TOK-JAVA-0002.
+
+Normative cases: `go-features-001`
+
+### BW-GO-0002 — Go branch/loop keyword features
+
+*language: go · status: active · since spec 1.2.0*
+
+avg_branches counts `if` keyword tokens (an else-if contributes via its `if`);
+avg_loops counts `for` keyword tokens (Go's only loop keyword). `switch`,
+`select` and `range` are not branch/loop keyword tokens for this feature,
+mirroring BW-JAVA-0002's treatment of `switch`.
+
+Normative cases: `go-features-001`
 
 ### BW-JAVA-0001 — Java keyword set
 
@@ -206,6 +232,22 @@ sonar-compat omits the recursion increment — is unchanged.)
 
 Normative cases: `py-recursion-001`
 
+### COG-GO-0001 — Labeled jumps and goto are a fundamental increment: flat +1, both modes
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `break_statement`, `continue_statement`, `goto_statement`
+
+A `break LABEL`, `continue LABEL`, or `goto LABEL` contributes a flat +1
+regardless of nesting depth and does not deepen nesting (the whitepaper's
+fundamental increment list names goto/break/continue to a label; both modes
+agree). A bare break/continue contributes nothing, and the label declaration
+itself (`LABEL: for ...`) is not separately counted. `goto` always targets a
+label, so it always counts. Cyclomatic is unaffected: a jump is not a decision
+point.
+
+Normative cases: `go-labeled-jump-001`
+
 ### COG-JAVA-0001 — Labeled jumps are a fundamental increment: flat +1, both modes
 
 *language: java · status: active · since spec 1.1.0*
@@ -317,6 +359,68 @@ cyclomatic = 1 + the number of decision points in the measured unit. What
 counts as a decision point is pinned by the per-language rulings below.
 
 Normative cases: `py-cc-boolop-001`, `java-elseif-001`
+
+### CC-GO-0001 — if statements count +1 (else-if chains count each if)
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `if_statement`
+
+Each `if_statement` contributes one decision point, including an if_statement
+that is the `alternative` of another (an else-if arm is a branch). Go has no
+ternary operator, so `if` is the only conditional branch.
+
+Normative cases: `go-if-elseif-001`
+
+### CC-GO-0002 — Loops count +1
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `for_statement`
+
+Each `for_statement` contributes one decision point. `for` is Go's only loop
+keyword and covers every loop form (three-clause, condition-only, range, and
+the bare infinite loop); all forms are the same `for_statement` node and count
+once.
+
+Normative cases: `go-loops-001`
+
+### CC-GO-0003 — Short-circuit operators count per operator
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `binary_expression`
+
+Each `binary_expression` whose operator is `&&` or `||` contributes one
+decision point; `a && b && c` contributes 2. Matches lizard.
+
+Normative cases: `go-boolop-001`
+
+### CC-GO-0004 — switch/type-switch case clauses count +1 each; default does not
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `expression_case`, `type_case`
+
+Each `expression_case` (value switch) and `type_case` (type switch) contributes
+one decision point; the `default_case` does not (it is the fall-through path,
+like an else). The switch statement node itself is not a decision point — the
+branches are counted at the cases.
+
+Normative cases: `go-switch-001`
+
+### CC-GO-0005 — select communication cases count +1 each; default does not
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `communication_case`
+
+Each `communication_case` in a `select` contributes one decision point: a
+select chooses among ready channel operations, each a distinct path. The
+`default_case` does not count. Kept a separate ruling from CC-GO-0004 because a
+select branches on communication readiness, not on a value or type.
+
+Normative cases: `go-select-001`
 
 ### CC-JAVA-0001 — if statements count +1 (else-if chains count each if)
 
@@ -631,6 +735,18 @@ Java's `yield`, which was wrongly in the keyword table (contradicting
 BW-JAVA-0001's stated set) and lexed as KEYWORD.
 
 Normative cases: `py-future-import-001`, `java-contextual-001`
+
+### TOK-GO-0001 — Go atomic tokens: string, raw-string and rune literals
+
+*language: go · status: active · since spec 1.2.0*
+
+Binds node types: `interpreted_string_literal`, `raw_string_literal`, `rune_literal`
+
+`interpreted_string_literal`, `raw_string_literal` and `rune_literal` subtrees
+are consumed as single STRING tokens: their contents are not descended and are
+invisible to BW token-family features and Halstead. A rune literal is
+integer-valued but written like a character literal, so it is consumed whole,
+mirroring Java's `character_literal` (TOK-JAVA-0001).
 
 ### TOK-JAVA-0001 — Java atomic tokens: string and character literals
 

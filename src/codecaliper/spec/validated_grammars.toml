@@ -4,3 +4,4 @@
 [grammars]
 python = "0.25.0"
 java = "0.23.5"
+go = "0.25.0"

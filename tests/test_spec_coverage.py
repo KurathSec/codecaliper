@@ -27,7 +27,7 @@ SRC = Path(__file__).parent.parent / "src" / "codecaliper"
 #: 2026-07-05 (W4-5). It must stay empty: a new ruling ships with its case.
 UNCOVERED: frozenset[str] = frozenset()
 
-_RULING_ID_RE = re.compile(r"\b(?:CORE|TOK|CC|COG|HAL|MI|LOC|BW)-(?:ALL|PY|JAVA)-\d{4}\b")
+_RULING_ID_RE = re.compile(r"\b(?:CORE|TOK|CC|COG|HAL|MI|LOC|BW)-(?:ALL|PY|JAVA|GO)-\d{4}\b")
 
 
 def test_corpus_citations_exist() -> None:

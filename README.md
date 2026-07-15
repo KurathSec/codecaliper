@@ -4,7 +4,7 @@
 [![docs](https://github.com/KurathSec/codecaliper/actions/workflows/docs.yml/badge.svg)](https://kurathsec.github.io/codecaliper/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21312527.svg)](https://doi.org/10.5281/zenodo.21312527)
 
-A code-readability and complexity **measurement instrument** for Python and Java,
+A code-readability and complexity **measurement instrument** for Python, Java, and Go,
 built on tree-sitter. Documentation: <https://kurathsec.github.io/codecaliper/>
 
 Every number codecaliper emits is *traceable* and *reproducible*: traceable to a
@@ -174,7 +174,7 @@ independently, and a spec bump happens only when a ruling changes, so 0.1.1
 leaving every emitted number where it was is exactly why the spec did not move.
 See [`CHANGELOG.md`](CHANGELOG.md).
 
-Python and Java are wired end-to-end. Every active ruling is exercised by a
+Python, Java and Go are wired end-to-end. Every active ruling is exercised by a
 hand-computed corpus case. `mypy --strict` and the differential oracle lane are
 hard CI gates.
 

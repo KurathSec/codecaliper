@@ -16,8 +16,26 @@ three versions, not one:
 
 ## [Unreleased]
 
-- package 0.1.2.dev0 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,
-  tree-sitter-java 0.23.5 (binding tree-sitter 0.26.0)
+- package 0.1.2.dev0 · spec 1.2.0 · grammars: tree-sitter-python 0.25.0,
+  tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
+
+### Go language support (spec 1.2.0)
+
+- Go is the third language, and the first added since the extension seam was
+  tightened. It is confined to the `languages/` package: `languages/go.py` plus
+  its registry entry, no edit to the metric engines, readability, model, API,
+  CLI or grammar loader. Nine new rulings (CC-GO-0001..0005, COG-GO-0001,
+  TOK-GO-0001, BW-GO-0001, BW-GO-0002); every other rule is a reused `-ALL-`
+  ruling. Spec bumped 1.1.0 -> 1.2.0 (MINOR: additive, no existing corpus value
+  changed).
+- Notable Go-specific rulings: `for` is the only loop keyword and covers every
+  loop form; `select` communication cases are a distinct cyclomatic ruling from
+  switch cases; labeled break/continue and `goto` are a fundamental cognitive
+  +1 in both modes; `true`/`false`/`nil`/`iota` are predeclared IDENTIFIERS, not
+  keywords (a spec-faithful divergence from Java's BW keyword set).
+- Cross-checked against lizard (the Go cyclomatic oracle), which concurs on
+  every Go probe. Eight hand-computed corpus cases. `docs/adding-a-language.md`
+  documents the whole procedure with Go as the worked example.
 
 ### A new language is now confined to the `languages/` package
 

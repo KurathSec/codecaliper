@@ -1,0 +1,96 @@
+[case]
+id = "go-features-001"
+language = "go"
+rulings = ["CC-ALL-0001", "CC-GO-0001", "CC-GO-0003", "COG-ALL-0001", "COG-ALL-0003",
+           "TOK-GO-0001", "HAL-ALL-0001", "BW-ALL-0001", "BW-GO-0001", "BW-GO-0002",
+           "LOC-ALL-0001", "LOC-ALL-0002", "LOC-ALL-0003", "LOC-ALL-0004",
+           "MI-ALL-0001", "CORE-ALL-0004", "TOK-ALL-0005"]
+computed_by = "hand"
+notes = """
+Feature witness. 9 physical lines (line 2 blank), sloc 8, no comments.
+CC = 1 + if(1) + `ok && x`(1 &&) = 3. Cognitive = if(+1) + `&&` run(+1) = 2,
+both modes.
+lloc (LOC-ALL-0004) = package_clause + function_declaration +
+short_var(x := true) + if + 2 return = 6.
+
+Tokenization witnesses (BW-GO-0001 / TOK-GO-0001): `true` is a predeclared
+IDENTIFIER, not a keyword; `"yes"` and `"no"` are atomic STRING tokens. So the
+token classes are:
+  KEYWORD (5 tokens): package, func, if, return, return
+  OPERATOR (2): :=, &&
+  PUNCT (6): ( ) { { } }
+  IDENTIFIER (9): main, tag, ok, bool, string, x, true, ok, x
+  STRING (2): "yes", "no"
+
+Halstead (HAL-ALL-0001; operators = KEYWORD+OPERATOR+PUNCT, operands =
+IDENTIFIER+NUMBER+STRING):
+  distinct operators {package,func,if,return, :=, &&, (,),{,}} -> n1 = 10;
+  occurrences 5+2+6 = 13 -> N1 = 13.
+  distinct operands {main,tag,ok,bool,string,x,true, "yes","no"} -> n2 = 9;
+  occurrences 9+2 = 11 -> N2 = 11.
+  n = 19, N = 24. V = 24*log2(19) = 101.95026...; D = (10/2)*(11/9) = 6.11111...
+MI (MI-ALL-0001) = clamp((171 - 5.2*ln(101.95026) - 0.23*3 - 16.2*ln(8))*100/171)
+  = 65.83376 (cc=3, sloc=8).
+
+BW (BW-ALL-0001; averages over 9 physical lines):
+  identifiers per line: L1 main(1), L3 tag/ok/bool/string(4), L4 x/true(2),
+    L5 ok/x(2) -> avg 9/9 = 1.0, max 4.
+  keywords per line: package/func/if/return/return, one per line -> avg 5/9,
+    max 1. `true` is NOT a keyword (BW-GO-0001), so it does not inflate this.
+  branches (BW-GO-0002): one `if` token -> avg 1/9; loops: no `for` -> 0.
+  numbers 0; comments 0.
+"""
+
+[expect.file]
+cyclomatic = 3
+physical_lines = 9
+blank_lines = 1
+sloc = 8
+comment_lines = 0
+lloc = 6
+
+[expect.file.cognitive]
+whitepaper = 2
+sonar_compat = 2
+
+[expect.file."halstead.n1"]
+value = 10.0
+abs_tol = 0.0
+
+[expect.file."halstead.N1"]
+value = 13.0
+abs_tol = 0.0
+
+[expect.file."halstead.n2"]
+value = 9.0
+abs_tol = 0.0
+
+[expect.file."halstead.N2"]
+value = 11.0
+abs_tol = 0.0
+
+[expect.file."halstead.volume"]
+value = 101.9503
+abs_tol = 0.0001
+
+[expect.file."halstead.difficulty"]
+value = 6.1111
+abs_tol = 0.0001
+
+[expect.file.maintainability_index]
+value = 65.8338
+abs_tol = 0.0001
+
+[expect.functions.tag]
+cyclomatic = 3
+cognitive = 2
+
+[expect.bw]
+avg_identifiers = 1.0
+max_identifiers = 4.0
+max_keywords = 1.0
+avg_numbers = 0.0
+avg_loops = 0.0
+avg_comments = 0.0
+avg_keywords = {value = 0.555556, abs_tol = 1e-6}
+avg_branches = {value = 0.111111, abs_tol = 1e-6}

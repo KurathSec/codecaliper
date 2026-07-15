@@ -9,7 +9,7 @@ from codecaliper.errors import LanguageDetectionError, UnsupportedLanguageError
 from codecaliper.languages.base import LanguageAdapter
 from codecaliper.spec import require
 
-_BUILTIN = ("python", "java")
+_BUILTIN = ("python", "java", "go")
 
 R_LANG_AUTO = require("CORE-ALL-0005")  # extension map, never a guess
 
@@ -24,6 +24,10 @@ def get_adapter(name: str) -> LanguageAdapter:
         from codecaliper.languages.java import JavaAdapter
 
         return JavaAdapter()
+    if name == "go":
+        from codecaliper.languages.go import GoAdapter
+
+        return GoAdapter()
     raise UnsupportedLanguageError(
         f"no adapter for language {name!r}; available: {', '.join(_BUILTIN)}"
     )

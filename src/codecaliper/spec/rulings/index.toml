@@ -4,7 +4,22 @@
 #   major = any change that alters a number for any existing corpus case
 #           (including a grammar pin bump that does so).
 [spec]
-version = "1.1.0"
+version = "1.2.0"
+
+[[changelog]]
+version = "1.2.0"
+summary = """
+Go language support (MINOR: new rulings, no existing corpus value changes). New
+rulings: CC-GO-0001..0005 (if; the single `for` loop in all its forms;
+short-circuit operators; switch/type-switch case labels; select communication
+cases), COG-GO-0001 (labeled break/continue and goto are a fundamental +1 in
+both modes), TOK-GO-0001 (interpreted/raw string and rune literals are atomic),
+BW-GO-0001 (the 25 Go reserved words; true/false/nil/iota are predeclared
+IDENTIFIERS, not keywords — a spec-faithful divergence from Java) and BW-GO-0002
+(Go branch/loop keyword features). Go reuses every -ALL- ruling. The grammar
+tree-sitter-go 0.25.0 is pinned and calibrated. Every new ruling ships with its
+hand-computed corpus case; no existing number moved.
+"""
 
 [[changelog]]
 version = "1.1.0"

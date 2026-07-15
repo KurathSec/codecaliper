@@ -122,3 +122,21 @@ with cyclomatic, where the guard IS a decision point (CC-PY-0004).
 """
 node_types = ["if_clause", "for_in_clause"]
 examples = ["py-comprehension-001"]
+
+[[ruling]]
+id = "COG-GO-0001"
+metric = "cognitive"
+language = "go"
+title = "Labeled jumps and goto are a fundamental increment: flat +1, both modes"
+since_spec = "1.2.0"
+statement = """
+A `break LABEL`, `continue LABEL`, or `goto LABEL` contributes a flat +1
+regardless of nesting depth and does not deepen nesting (the whitepaper's
+fundamental increment list names goto/break/continue to a label; both modes
+agree). A bare break/continue contributes nothing, and the label declaration
+itself (`LABEL: for ...`) is not separately counted. `goto` always targets a
+label, so it always counts. Cyclomatic is unaffected: a jump is not a decision
+point.
+"""
+node_types = ["break_statement", "continue_statement", "goto_statement"]
+examples = ["go-labeled-jump-001"]
