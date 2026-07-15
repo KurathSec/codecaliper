@@ -63,11 +63,13 @@ Isolation seams, enforced rather than agreed:
   strings, only the `NodeClass` and `TokenKind` enums. Per-language knowledge lives in
   `languages/python.py` and `languages/java.py` as plain dict tables plus small named hooks, every
   increment-bearing row citing a ruling. That seam is real for `metrics/`, `readability/`,
-  `model.py` and `api.py`, which a new language does not touch. It is NOT true that a language
-  touches zero code outside `languages/`: three files hardcode the language set and all three must
-  be edited: `languages/__init__.py` (`_BUILTIN`, `get_adapter()`), `syntax/grammars.py`
-  (`_GRAMMAR_MODULES`, an unguarded dict lookup that raises a bare `KeyError`) and `cli.py`
-  (`--lang choices`). The full checklist is in CONTRIBUTING.md.
+  `model.py`, `api.py`, `cli.py` and `syntax/grammars.py`, which a new language does not touch: the
+  CLI derives `--lang` choices from the registry and the grammar loader takes its tree-sitter
+  package name from the adapter's `grammar_module`. A new language is confined to the `languages/`
+  package: the new adapter module plus one edit to `languages/__init__.py` (`_BUILTIN` and a
+  `get_adapter()` branch), which is the registry. That registry is the only hand-maintained spot
+  (keep `_BUILTIN` and the if-chain in step; a miss raises `UnsupportedLanguageError`). The full
+  checklist is in CONTRIBUTING.md.
 - `tests/_reference/` holds verbatim ports from Spaghetti Architect (the stdlib BW extractor, the
   Python-AST lane) used as per-PR differential oracles. They must NEVER be imported from `src/`:
   that is the anti-salami boundary, and NOTICE credits the origin (DOI 10.5281/zenodo.21033174).

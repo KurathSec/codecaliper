@@ -64,6 +64,7 @@ class PythonAdapter(LanguageAdapter):
         super().__init__(
             name="python",
             file_extensions=(".py", ".pyi"),
+            grammar_module="tree_sitter_python",
             # BW-PY-0001: kwlist (True/False/None included; soft keywords are identifiers)
             keywords=frozenset(keyword.kwlist),
             # BW-PY-0001: soft keywords are identifiers, matching tokenize NAME.

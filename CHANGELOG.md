@@ -19,6 +19,20 @@ three versions, not one:
 - package 0.1.2.dev0 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5 (binding tree-sitter 0.26.0)
 
+### A new language is now confined to the `languages/` package
+
+- No emitted number changed: this is a plumbing refactor, and the spec-drift
+  gate proves every corpus value is untouched.
+- Two duplications of the language set that used to sit outside `languages/`
+  were folded back in. `syntax/grammars.py` no longer keeps a `_GRAMMAR_MODULES`
+  dict; `load(language_name, module)` takes the tree-sitter package name from
+  the adapter, which now carries it as `LanguageAdapter.grammar_module`. `cli.py`
+  no longer hardcodes `--lang choices`; it derives them from the registry via
+  `available_languages()`. Adding a language therefore touches only a new adapter
+  module and the registry in `languages/__init__.py`; the CLI and the grammar
+  loader need no edit. (Internal API: `grammars.load` gained a required `module`
+  argument.)
+
 ## [0.1.1] - 2026-07-14
 
 - package 0.1.1 · spec 1.1.0 · grammars: tree-sitter-python 0.25.0,

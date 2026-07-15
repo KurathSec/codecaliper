@@ -69,6 +69,7 @@ class JavaAdapter(LanguageAdapter):
         super().__init__(
             name="java",
             file_extensions=(".java",),
+            grammar_module="tree_sitter_java",
             keywords=_JAVA_KEYWORDS,
             keyword_leaf_types=frozenset({"true", "false", "null_literal"}),
             # underscore_pattern: `_` as an unnamed variable declarator is the

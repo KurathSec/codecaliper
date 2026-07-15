@@ -446,19 +446,23 @@ needs none either, though it is not language-neutral: its snippet-scaffold fallb
 `adapter.name == "java"` (CORE-JAVA-0001), so a new language simply gets no scaffolding until a
 ruling gives it one.
 
-Three files outside `languages/` do have to change, and a contributor who is told otherwise walks
-into them:
+A new language is confined to the `languages/` package: the new adapter module and one edit to
+`languages/__init__.py`, which is the registry. Two duplications of the language set that used to
+live outside it were folded back in and no longer exist:
 
-| file | what is hardcoded | symptom if skipped |
-|---|---|---|
-| `languages/__init__.py` | `_BUILTIN` tuple; `get_adapter()`'s if-chain | `UnsupportedLanguageError` |
-| `syntax/grammars.py` | `_GRAMMAR_MODULES`, an unguarded dict lookup | bare `KeyError` from `load()` |
-| `cli.py` | `--lang` `choices=["auto", "python", "java"]` | argparse rejects the language, exit 1 |
+- `syntax/grammars.py` took the tree-sitter package name from a `_GRAMMAR_MODULES` dict keyed by
+  language. That dict is gone; `load(language_name, module)` now receives the module from the
+  adapter, which carries it as `LanguageAdapter.grammar_module` next to its `file_extensions`.
+- `cli.py` hardcoded `--lang choices=["auto", "python", "java"]`. It is now
+  `["auto", *available_languages()]`, so a new registered language becomes a valid CLI argument
+  with no edit to `cli.py`.
 
-Only the first is registration in any meaningful sense; the other two are unparameterized lookups
-that a fourth language would hit again. Making them one table is a 1.x cleanup, not a blocker. The
-registry is a plain dict, and entry-point plugin discovery is deferred until a third party actually
-exists.
+What remains is the registry in `languages/__init__.py`: `get_adapter()`'s lazy-import if-chain and
+the `_BUILTIN` tuple that also drives `detect_language()`. That is one file and it is registration in
+the real sense (the lazy imports are deliberate, so no adapter is loaded until it is asked for). The
+one wart left is that `_BUILTIN` and the if-chain are two spots in that file to keep in step; a
+`get_adapter` miss raises `UnsupportedLanguageError`, not a bare `KeyError`. The registry is a plain
+dict, and entry-point plugin discovery is deferred until a third party actually exists.
 
 ## 6. Metric engines (`metrics/`)
 

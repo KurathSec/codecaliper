@@ -128,44 +128,40 @@ changed number unless you pass `--confirm-spec-bump` (rule 1).
 
 ## Adding a language (the afternoon tutorial)
 
-Most of the work is in one new file. The metric engines, the readability
-extractors, `model.py` and `api.py` need no edit at all: they are written
-against the `NodeClass` and `TokenKind` enums and never against a node-type
-string, so your tables are the only thing that teaches them your language.
-
-Three files outside `languages/` do hardcode the language set, and you have to
-edit all three. Skipping one fails in a way that will not remind you of this
-list, so they are steps 5, 6 and 7 rather than a footnote:
+Most of the work is in one new file, and a new language is confined to the
+`languages/` package. The metric engines, the readability extractors,
+`model.py`, `api.py`, the CLI and the grammar loader need no edit at all: the
+first four are written against the `NodeClass` and `TokenKind` enums and never
+against a node-type string, `cli.py` derives `--lang`'s choices from the
+registry, and `syntax/grammars.py` takes the tree-sitter package name from your
+adapter. Your tables are the only thing that teaches the tool your language.
 
 1. Pin the grammar wheel (compatible range in `pyproject.toml`, exact pin in
    `constraints/ci.txt`, calibrated version in
    `src/codecaliper/spec/validated_grammars.toml`).
 2. Write `src/codecaliper/languages/<lang>.py`: token tables, node-class map,
-   hooks. Every increment-bearing row cites a ruling (nesting-only rows carry
-   an empty tuple). `tests/test_grammar_integrity.py` will hold your tables to
-   the compiled grammar.
+   hooks, and `grammar_module="tree_sitter_<lang>"` (the package name the
+   grammar loader will import; it lives on the adapter, next to
+   `file_extensions`). Every increment-bearing row cites a ruling (nesting-only
+   rows carry an empty tuple). `tests/test_grammar_integrity.py` will hold your
+   tables to the compiled grammar.
 3. Add `*-<LANG>-*` rulings for every language-specific decision.
 4. Add corpus cases with hand-computed expectations.
-5. Register the adapter in `src/codecaliper/languages/__init__.py`: add the name
-   to the `_BUILTIN` tuple *and* a branch to `get_adapter()`. Miss this and you
-   get `UnsupportedLanguageError`; `_BUILTIN` alone also drives
-   `detect_language()`, so an unregistered language cannot be auto-detected.
-6. Add the grammar module to `_GRAMMAR_MODULES` in
-   `src/codecaliper/syntax/grammars.py`. It is an unguarded dict lookup, so
-   until you do, `load("<lang>")` raises a bare `KeyError('<lang>')` rather than
-   a codecaliper error.
-7. Add the language to `--lang`'s `choices` in `src/codecaliper/cli.py`
-   (currently `["auto", "python", "java"]`). Until you do, the API works and the
-   CLI rejects your language with an argparse usage error and exit 1.
-8. Bump the spec MINOR (additive) and regenerate the snapshot. The drift test
+5. Register the adapter in `src/codecaliper/languages/__init__.py`, which is the
+   one place outside your new file that you touch: add the name to the `_BUILTIN`
+   tuple *and* a branch to `get_adapter()`. Miss this and you get
+   `UnsupportedLanguageError`; `_BUILTIN` alone also drives `detect_language()`
+   (so an unregistered language cannot be auto-detected) and `cli.py`'s `--lang`
+   choices (so the CLI rejects it with an argparse error until it is registered).
+6. Bump the spec MINOR (additive) and regenerate the snapshot. The drift test
    proves existing languages' numbers did not move.
-9. Regenerate `docs/spec/rulings.md` with `python tools/gen_spec_docs.py` and
+7. Regenerate `docs/spec/rulings.md` with `python tools/gen_spec_docs.py` and
    commit it (see the table above). If you also classified a new oracle
    divergence, regenerate `docs/spec/divergences.md` too.
 
-Steps 6 and 7 are unparameterized lookups, not a designed extension point.
-Collapsing them into the `languages/` registry is a welcome cleanup; it is not
-your problem to solve before your language lands.
+The registry in step 5 is the only hand-maintained spot: keep `_BUILTIN` and the
+`get_adapter()` branch in step with each other. The lazy imports there are
+deliberate, so no adapter (and no grammar) loads until it is asked for.
 
 One thing you get for free and should not fight: `api.py` guards the Java
 snippet-scaffold fallback with `adapter.name == "java"` (CORE-JAVA-0001), so a

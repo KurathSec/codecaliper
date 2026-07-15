@@ -67,6 +67,7 @@ class LanguageAdapter:
 
     name: str = ""
     file_extensions: tuple[str, ...] = ()
+    grammar_module: str = ""  # tree-sitter package name; the adapter owns it, not syntax/grammars.py
 
     # --- token tables (BW + Halstead + LOC share them; BW-ALL-0006) ---
     keywords: frozenset[str] = frozenset()
@@ -105,7 +106,9 @@ class LanguageAdapter:
         if self._parser is None:
             from codecaliper.syntax import grammars
 
-            self._grammar, self._parser, self._grammar_info = grammars.load(self.name)
+            self._grammar, self._parser, self._grammar_info = grammars.load(
+                self.name, self.grammar_module
+            )
 
     def parse(self, source: bytes) -> Tree:
         self._ensure_loaded()

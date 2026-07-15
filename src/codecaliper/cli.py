@@ -1,6 +1,6 @@
 """The codecaliper CLI (stdlib argparse, zero extra dependencies).
 
-    codecaliper FILE... [--lang auto|python|java] [--json|--csv] ...
+    codecaliper FILE... [--lang auto|<lang>] [--json|--csv] ...
     codecaliper spec version | list | show RULING-ID
     codecaliper env                  # the calibration plate
     codecaliper cite [--format ...]  # methods-section template
@@ -37,12 +37,14 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _measure_parser() -> argparse.ArgumentParser:
+    from codecaliper.languages import available_languages
+
     p = _Parser(
         prog="codecaliper",
         description="A cross-language code readability + complexity measurement instrument.",
     )
     p.add_argument("files", nargs="+", metavar="FILE")
-    p.add_argument("--lang", default="auto", choices=["auto", "python", "java"])
+    p.add_argument("--lang", default="auto", choices=["auto", *available_languages()])
     fmt = p.add_mutually_exclusive_group()
     fmt.add_argument("--json", action="store_true", help="JSON output (default)")
     fmt.add_argument("--csv", action="store_true", help="wide-format CSV output")
