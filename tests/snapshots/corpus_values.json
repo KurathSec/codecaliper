@@ -5,7 +5,7 @@
     "python": "0.25.0"
   },
   "spec_version": "1.2.0",
-  "tool_version": "0.1.2.dev0",
+  "tool_version": "0.2.0",
   "values": {
     "go-boolop-001": {
       "blank_lines": 1,

@@ -21,8 +21,8 @@
     "n_snippets": 100,
     "parse_ok_count": 29,
     "scaffolded_count": 10,
-    "spec_version": "1.1.0",
-    "tool_version": "0.1.1"
+    "spec_version": "1.2.0",
+    "tool_version": "0.2.0"
   },
   "labels": {
     "n_high": 59,

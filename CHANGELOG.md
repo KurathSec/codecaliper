@@ -14,10 +14,13 @@ three versions, not one:
 - **grammars**: the exact calibrated tree-sitter grammar versions
   (`src/codecaliper/spec/validated_grammars.toml`).
 
-## [Unreleased]
+## [0.2.0] - 2026-07-17
 
-- package 0.1.2.dev0 · spec 1.2.0 · grammars: tree-sitter-python 0.25.0,
+- package 0.2.0 · spec 1.2.0 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
+- The package MINOR bump reflects a third language and a new runtime dependency
+  (tree-sitter-go); no previously emitted number changed, so the spec bump is a
+  MINOR too (1.1.0 -> 1.2.0).
 
 ### Go language support (spec 1.2.0)
 
