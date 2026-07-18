@@ -16,8 +16,17 @@ three versions, not one:
 
 ## [Unreleased]
 
-- package 0.2.1.dev0 · spec 1.2.0 · grammars: tree-sitter-python 0.25.0,
+- package 0.2.1.dev0 · spec 1.2.1 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
+- Spec 1.2.1 is an editorial PATCH: BW-ALL-0002 gains a correction note — its
+  statement attributed the 4-11 line calibrated-regime window to the
+  Buse-Weimer paper, which states no line range (TSE 2010: 7.7 lines on
+  average, sizes in characters; the original snippets span 4-13 lines). The
+  window is this tool's own diagnostic threshold; no behaviour or number
+  changed. The mis-attribution is also corrected in README.md,
+  ARCHITECTURE.md and the bw2010.py comment.
+- The weekly grammar-bump canary now force-upgrades tree-sitter-go alongside
+  the other grammar wheels (it had been left out when Go landed).
 
 ## [0.2.0] - 2026-07-17
 

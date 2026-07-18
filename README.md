@@ -99,8 +99,9 @@ codecaliper's response is to make its own operationalization inspectable:
 codecaliper guarantees procedural consistency: identical rules over isomorphic
 syntax across languages. It does not guarantee that a Python CC and a Java CC
 are numerically comparable. MI contains CC. Halstead absolute values are
-implementation-defined. The BW vector is calibrated on 4-to-11-line snippets, so
-function-level and file-level vectors are labelled extrapolation. Metrics run on
+implementation-defined. The BW vector is calibrated on short snippets (a
+diagnostic fires outside the tool's 4-to-11-line window), so function-level and
+file-level vectors are labelled extrapolation. Metrics run on
 pre-preprocessing source text. None of this lives only in this README: it is
 enforced in the result types and emitted as diagnostics (ARCHITECTURE.md §13).
 

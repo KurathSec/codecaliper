@@ -546,7 +546,8 @@ Output is always the raw 25-vector in canonical Fig. 6 order, inherited verbatim
 into any trained-model artifact as a feature-order integrity gate. `granularity ∈ {snippet,
 function, file}` and `extrapolated = granularity != "snippet"` (a typed field plus a diagnostic).
 Even at snippet granularity, a `snippet-out-of-calibrated-range` diagnostic fires outside the
-paper's 4-to-11-line regime.
+4-to-11-line window — the tool's own threshold, not a range the paper states (BW-ALL-0002's
+1.2.1 editorial note).
 
 ### 7.3 Bare-snippet parsing (CORE-JAVA-0001, critical-path ruling for §8.3)
 
@@ -832,8 +833,9 @@ artifact is general-purpose measurement primitives.
 2. MI contains CC. Never treat them as independent signals (typed `derived_from`).
 3. Halstead absolute values are implementation-defined; only trends and ratios are stable.
 4. BW output is a feature set, not a score. No score field exists.
-5. Function-level and file-level readability vectors are labelled extrapolation. The calibrated
-   regime is 4-to-11-line snippets.
+5. Function-level and file-level readability vectors are labelled extrapolation. The
+   calibrated-regime diagnostic window is 4-to-11-line snippets (the tool's threshold; the
+   paper states no line range).
 6. Metrics operate on pre-preprocessing source text.
 7. Byte-identical output is a per-platform claim (the float/libm caveat is documented).
 8. The BW-ambiguity rulings are arbitrated on the same dataset the reproduction reports. That is

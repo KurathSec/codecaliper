@@ -4,8 +4,8 @@
     "java": "0.23.5",
     "python": "0.25.0"
   },
-  "spec_version": "1.2.0",
-  "tool_version": "0.2.0",
+  "spec_version": "1.2.1",
+  "tool_version": "0.2.1.dev0",
   "values": {
     "go-boolop-001": {
       "blank_lines": 1,

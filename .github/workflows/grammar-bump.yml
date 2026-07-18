@@ -22,7 +22,7 @@ jobs:
       - name: Install package, then force-upgrade grammars PAST the caps
         run: |
           pip install -e ".[dev]"
-          pip install --upgrade --pre tree-sitter tree-sitter-python tree-sitter-java
+          pip install --upgrade --pre tree-sitter tree-sitter-python tree-sitter-java tree-sitter-go
           pip list | grep -i tree
       - name: Drift + node inventory against latest grammars
         id: probe

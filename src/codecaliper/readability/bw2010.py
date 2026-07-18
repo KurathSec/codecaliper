@@ -51,7 +51,8 @@ BW_RULINGS: tuple[str, ...] = (
     R_FEATURES, R_GRANULARITY, R_COMMENT_ONCE, R_TOKEN_LEVEL, R_ID_LENGTH, R_OP_CLASSES,
 )
 
-#: The paper's calibrated snippet regime (BW-ALL-0002).
+#: This tool's calibrated-regime diagnostic window (BW-ALL-0002; the paper
+#: states no line range — see the ruling's 1.2.1 editorial note).
 CALIBRATED_LINE_RANGE = (4, 11)
 
 

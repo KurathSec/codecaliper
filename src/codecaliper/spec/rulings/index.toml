@@ -4,7 +4,18 @@
 #   major = any change that alters a number for any existing corpus case
 #           (including a grammar pin bump that does so).
 [spec]
-version = "1.2.0"
+version = "1.2.1"
+
+[[changelog]]
+version = "1.2.1"
+summary = """
+Editorial (PATCH, no behaviour or number changes): BW-ALL-0002 gains a
+correction note. Its statement attributed the 4-11 line calibrated-regime
+window to the Buse-Weimer paper; the paper states no line range (TSE 2010:
+7.7 lines on average, sizes in characters), and the original snippets span
+4-13 lines. The (4, 11) window is this tool's own diagnostic threshold. The
+threshold values and the diagnostic behaviour are unchanged.
+"""
 
 [[changelog]]
 version = "1.2.0"

@@ -29,6 +29,13 @@ granularity is one of snippet | function | file; anything other than snippet is
 extrapolation beyond the model's native unit and is labelled with
 extrapolated=true plus a diagnostic. Even at snippet granularity, a diagnostic
 warns when the unit falls outside the paper's 4-11 line calibrated regime.
+(Editorial correction in spec 1.2.1: "the paper's" mis-attributes the range.
+TSE 2010 reports the snippets at 7.7 lines on average and gives their size
+distribution in characters; it states no 4-11 line range, and the original 100
+snippets themselves span 4-13 physical lines under this tool's line semantics,
+7 of them outside 4-11. The (4, 11) window is THIS TOOL's diagnostic threshold
+for "close to the calibrated snippet shape". The normative behaviour — the
+threshold values and the diagnostic — is unchanged.)
 """
 examples = ["java-snippet-constructor-001"]
 
