@@ -2,7 +2,8 @@
 
 lizard's CCN is token-based, which is exactly why it is a useful witness: it
 disagrees with tree-shape counting on ruled axes (comprehension `for` tokens,
-bare-wildcard `case _` arms) and agrees everywhere else.
+bare-wildcard `case _` arms, a case guard's `if` token counted on top of its
+case) and agrees everywhere else, including on every Go input.
 """
 
 from __future__ import annotations

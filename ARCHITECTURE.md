@@ -11,7 +11,7 @@
 > **Design thesis.** Every number codecaliper emits is *traceable* and *reproducible*: traceable to
 > a spec version, to the exact rulings that fired, and to the exact grammar that parsed the source;
 > reproducible because it is clock-free, hash-seed-free and order-stable. Where a scoreboard says
-> "CC = 7", this instrument says "CC = 7 *under spec 1.1.0, ruling CC-PY-0003, tree-sitter-python
+> "CC = 7", this instrument says "CC = 7 *under spec 1.2.0, ruling CC-PY-0003, tree-sitter-python
 > 0.25.0*". That sentence is the data model.
 >
 > This document synthesizes a three-way architecture study (instrument-purist, API/extensibility,
@@ -23,8 +23,9 @@
 ## 0. Fixed decisions (from the charter; do not relitigate)
 
 - **MVP languages: Python + Java.** Java is the Buse-Weimer (BW) native language, which is what
-  makes the §6.3 faithfulness reproduction possible. (Go was added after the MVP as the first
-  third language, validating the extension seam end-to-end; see §5 and `docs/adding-a-language.md`.) That reproduction is the project's main piece
+  makes the §6.3 faithfulness reproduction possible. (Go was added after the MVP as the third
+  language, the first addition since the extension seam was tightened, and it exercised that seam
+  end-to-end; see §5 and `docs/adding-a-language.md`.) That reproduction is the project's main piece
   of external evidence that the extractor implements what the paper describes.
 - **tree-sitter is the unified syntactic base.** Metrics operate on the **pre-preprocessing
   source text**, declared honestly: the C-family preprocessor makes any syntactic tool an
@@ -76,7 +77,7 @@ codecaliper/
 │   │   │   ├── core.toml        # CORE-*: parse policy, error nodes, nested-unit attribution,
 │   │   │   │                    #         snippet scaffolding, float emission policy
 │   │   │   ├── tokenization.toml# TOK-*: encoding, BOM, CRLF, tabs, atomic tokens
-│   │   │   ├── cyclomatic.toml  # CC-ALL-*, CC-PY-*, CC-JAVA-*
+│   │   │   ├── cyclomatic.toml  # CC-ALL-*, CC-PY-*, CC-JAVA-*, CC-GO-*
 │   │   │   ├── cognitive.toml   # COG-* (mode-tagged where the two modes diverge)
 │   │   │   ├── halstead.toml    # HAL-*
 │   │   │   ├── mi.toml          # MI-*
@@ -96,7 +97,8 @@ codecaliper/
 │   │   ├── base.py              # LanguageAdapter protocol; NodeClass enum; Classified (TokenKind
 │   │   │                        #   lives with the lexer, in syntax/tokens.py)
 │   │   ├── python.py            # classification dicts + named hook methods, every row cites rulings
-│   │   └── java.py
+│   │   ├── java.py
+│   │   └── go.py
 │   ├── metrics/
 │   │   ├── base.py              # MetricContext.count(ruling, node, delta): the trace/audit seam
 │   │   ├── cyclomatic.py        # decision points over NodeClass
@@ -112,7 +114,7 @@ codecaliper/
 ├── tests/
 │   ├── conftest.py              # corpus loading shared by every gate
 │   ├── corpus/                  # ★ §6.1 consistency corpus: <lang>/<case-id>/{input.*, expected.toml}
-│   │                            #   26 cases today: 16 python, 10 java
+│   │                            #   34 cases today: 16 python, 10 java, 8 go
 │   ├── snapshots/corpus_values.json   # ★ spec-drift snapshot (spec+grammar stamped)
 │   ├── tools_snapshot.py        # the corpus-value computation the drift gate and
 │   │                            #   tools/update_snapshot.py share, so they cannot disagree
@@ -154,7 +156,8 @@ codecaliper/
 │   ├── gen_spec_docs.py         # ruling TOMLs → docs/spec/rulings.md (generated, staleness-checked)
 │   ├── gen_divergences.py       # classification TOMLs → docs/spec/divergences.md
 │   └── update_snapshot.py       # refuses numeric changes without --confirm-spec-bump
-├── docs/                        # index, quickstart, honesty, validation, api + the generated spec/
+├── docs/                        # index, quickstart, honesty, validation, api, contributing,
+│                                #   adding-a-language + the generated spec/
 └── .github/workflows/           # ci.yml (test / typecheck / spec-docs / differential jobs),
                                  #   docs.yml, grammar-bump.yml, release.yml
 ```
@@ -396,9 +399,10 @@ complete scholarly artifact the charter promises.
   instead of silently zeroing metrics. No vendored `node-types.json` needed.
 
 Verified environment shape (2026-07): binding `tree-sitter 0.26.0` (`Language(capsule)`,
-`Parser(lang)`, ABI 15, min 13), grammar wheels `tree-sitter-python 0.25.0` and
-`tree-sitter-java 0.23.5`. The grammar wheels enforce no runtime-compat constraint themselves
-(their `core` extra is optional), so we pin both sides ourselves (§11). The MVP deliberately avoids
+`Parser(lang)`, ABI 15, min 13), grammar wheels `tree-sitter-python 0.25.0`,
+`tree-sitter-java 0.23.5` and `tree-sitter-go 0.25.0`. The grammar wheels enforce no
+runtime-compat constraint themselves (their `core` extra is optional), so we pin both sides
+ourselves (§11). The MVP deliberately avoids
 the Query API entirely, since cursor walks suffice; that sidesteps the 0.24/0.25
 `Query → QueryCursor` churn. If queries are ever needed, the shim lives here.
 
@@ -432,14 +436,15 @@ each hook citing a ruling; the token-classification frozensets (identifier, numb
 comment, keyword-leaf and operator-leaf node-type sets); `atomic_types`; the operator-class tables
 (arithmetic, comparison, assignment) which serve the BW-ALL-0006 operator-class features only,
 Halstead classifying by `TokenKind` rather than by these tables; `conditional_token_rulings`;
-`function_units()`; and the keyword list. `PythonAdapter` and `JavaAdapter` are thin. The behaviour
+`function_units()`; and the keyword list. `PythonAdapter`, `JavaAdapter` and `GoAdapter` are thin. The behaviour
 lives in the tables, every increment-bearing row cites a ruling (nesting-only rows carry an empty
 tuple by design: no increment, nothing to cite), and the node-type strings are validated by the
 grammar-integrity gate.
 
-**Adding language #3** is a checklist in `CONTRIBUTING.md` ("Adding a language"), gated by the
-existing meta-tests: new adapter module and tables, new `*-GO-*` rulings, corpus cases, an oracle
-probe, a grammar pin.
+**Adding a language** is a checklist in `CONTRIBUTING.md` ("Adding a language"), narrated in
+`docs/adding-a-language.md`, and gated by the existing meta-tests. Go, language #3, followed it
+end-to-end at spec 1.2.0: a new adapter module and tables, nine `*-GO-*` rulings, eight
+hand-computed corpus cases, lizard probes, a grammar pin.
 
 The seam holds where it claims to: `metrics/`, `readability/` and `model.py` need no edit, because
 they are written against `NodeClass` and `TokenKind` and never against a node-type string. `api.py`
@@ -617,7 +622,9 @@ The probe/SKIP pattern is inherited from `bench/anchor.py`. Honesty runs two way
 Oracle set. **Per-PR, zero-install**: the two `tests/_reference/` ports (the stdlib BW extractor and
 the Python-AST lane) run on every PR as free differential witnesses. **Differential CI job**: radon,
 lizard and cognitive_complexity from pip, with `cognitive_complexity` specifically witnessing
-`--sonar-compat`, plus **PMD 7.26.0** for Java. PMD sits outside the pip closure `constraints/ci.txt`
+`--sonar-compat`, plus **PMD 7.26.0** for Java. lizard also witnesses Go cyclomatic (the
+`GO_PROBES` snippets plus the comparable Go corpus cases) and concurs on every Go input, which is
+why no Go entry appears in `divergences.toml`. PMD sits outside the pip closure `constraints/ci.txt`
 pins (it is a JVM tool and needs `java` on PATH), so it carries its own pin,
 `tests/differential/pmd.toml` (version, URL, sha256, size), and `tools/fetch_pmd.py` downloads and
 sha256-verifies exactly that artifact into the gitignored `.oracles/`. PMD witnesses **both**
@@ -738,10 +745,10 @@ def iter_rulings(metric=None, language=None) -> Iterator[Ruling]
 ```
 
 `py.typed`; mypy `--strict` in CI. Errors: `CodecaliperError` → `UnsupportedLanguageError`,
-`GrammarLoadError`, `SpecError`, `StrictParseError`.
+`LanguageDetectionError`, `GrammarLoadError`, `SpecError`, `StrictParseError`.
 
 ```
-codecaliper FILE... [--lang auto|python|java] [--json|--csv] [--metrics …] [--sonar-compat]
+codecaliper FILE... [--lang auto|<lang>] [--json|--csv] [--metrics …] [--sonar-compat]
             [--no-readability] [--bw-granularity snippet|function|file] [--explain] [--strict] [-o OUT]
 codecaliper spec version | list [--metric --lang] | show CC-PY-0003
 codecaliper env            # calibration plate: tool/spec/binding/grammar/ABI/Python versions
@@ -758,7 +765,8 @@ than a guess. Diagnostics go to stderr, data to stdout; exit codes 0/1/2.
 ## 10. Grammar-evolution policy (the top long-term risk)
 
 - Install metadata uses **compatible ranges** (`tree-sitter>=0.25,<0.27`,
-  `tree-sitter-python>=0.25,<0.26`, `tree-sitter-java>=0.23.5,<0.24`) so that pip can resolve in
+  `tree-sitter-python>=0.25,<0.26`, `tree-sitter-java>=0.23.5,<0.24`,
+  `tree-sitter-go>=0.25,<0.26`) so that pip can resolve in
   shared environments. `constraints/ci.txt` pins **exact** versions for CI and releases;
   `spec/validated_grammars.toml` records the calibrated set; provenance records the
   **actually-installed** versions and stamps `validated=false` plus a diagnostic on deviation. Run
@@ -772,7 +780,7 @@ than a guess. Diagnostics go to stderr, data to stdout; exit codes 0/1/2.
 ## 11. Packaging and CI
 
 - hatchling, src layout, `requires-python = ">=3.10"`, `tomli; python_version < "3.11"`. Runtime
-  dependencies: the tree-sitter binding, two grammar wheels, nothing else.
+  dependencies: the tree-sitter binding, one grammar wheel per supported language, nothing else.
 - Extras: `[retrain]` (scikit-learn), `[oracles]` (radon, lizard, cognitive_complexity, all
   test-time only), `[dev]`, `[docs]` (mkdocs-material and mkdocstrings; `docs.yml` installs it
   under `constraints/docs.txt`).
@@ -795,8 +803,9 @@ than a guess. Diagnostics go to stderr, data to stdout; exit codes 0/1/2.
   happen here").
 - Docs (mkdocs-material). The nav is home, quickstart, the honesty invariants, the **generated**
   spec pages (rulings and known divergences), a validation page that verbatim-includes the derived
-  faithfulness and arbitration reports via snippet includes, an mkdocstrings API reference, and a
-  contributor page. That last one is not a second copy of anything: `docs/contributing.md` is a
+  faithfulness and arbitration reports via snippet includes, an mkdocstrings API reference, a
+  contributor page, and an adding-a-language walkthrough. The contributor page is not a second
+  copy of anything: `docs/contributing.md` is a
   snippet transclusion of the repository's `CONTRIBUTING.md`, so how to add a ruling, a corpus case
   or a language is hosted on the site without a checklist existing in two versions. `ARCHITECTURE.md`
   is the file that is linked rather than re-hosted, because it is written for someone with the tree

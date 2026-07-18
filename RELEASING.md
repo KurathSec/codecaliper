@@ -102,6 +102,12 @@ only the version string is wrong. Step 2 below is where that gets prevented.
    `src/codecaliper/_version.py`, `spec/rulings/index.toml` and
    `spec/validated_grammars.toml`. The release workflow extracts this section
    verbatim as the GitHub Release notes.
+   Then grep the prose docs for the version strings being superseded: README.md,
+   ARCHITECTURE.md, docs/index.md and docs/quickstart.md all quote released
+   output ("CC = 7 under spec ...", the `codecaliper env` plate, the
+   `codecaliper cite` line, the quickstart JSON excerpt), and every one of them
+   went stale at both 0.1.1 and 0.2.0 because this step keyed off the CHANGELOG
+   alone. Regenerate those blocks from the release being cut, not by hand.
 5. Commit (`Release vX.Y.Z`), push, and wait for CI to go green.
 6. Tag and push the tag. This is fail-fast: the spec version is read first, so a
    broken environment aborts instead of minting a tag with a mangled message.

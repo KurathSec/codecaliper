@@ -81,7 +81,11 @@ def render() -> str:
         "witnesses *whitepaper* mode rather than the `sonar-compat` mode these",
         "comparisons run in. Java's sonar-compat recursion behaviour therefore",
         "has no external witness, and rests on the hand-computed corpus and the",
-        "spec alone. rust-code-analysis remains staged, not wired.",
+        "spec alone. Go is witnessed by lizard (cyclomatic), which concurs on",
+        "every Go input, which is why no Go entry appears in the tables below;",
+        "Go cognitive has no external witness at all and rests on the",
+        "hand-computed corpus and the spec. rust-code-analysis remains staged,",
+        "not wired.",
         "",
     ]
     by_oracle: dict[str, list[dict]] = {}

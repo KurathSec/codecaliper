@@ -70,7 +70,7 @@ path = "src/codecaliper/_version.py"
 # cache); this list is the explicit, gitignore-independent policy for what must
 # never enter the immutable PyPI artifact. release.yml asserts it.
 exclude = [
-  "/paper",                              # unreviewed draft: the repo/DOI archive carries it, PyPI does not
+  "/paper",                              # local-only submission drafts: gitignored, never tracked; this is a second fence for local trees
   "/.github",
   "/CLAUDE.md",
   "/site",

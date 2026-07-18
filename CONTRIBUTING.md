@@ -147,21 +147,34 @@ adapter. Your tables are the only thing that teaches the tool your language.
    tables to the compiled grammar.
 3. Add `*-<LANG>-*` rulings for every language-specific decision.
 4. Add corpus cases with hand-computed expectations.
-5. Register the adapter in `src/codecaliper/languages/__init__.py`, which is the
-   one place outside your new file that you touch: add the name to the `_BUILTIN`
-   tuple *and* a branch to `get_adapter()`. Miss this and you get
-   `UnsupportedLanguageError`; `_BUILTIN` alone also drives `detect_language()`
-   (so an unregistered language cannot be auto-detected) and `cli.py`'s `--lang`
-   choices (so the CLI rejects it with an argparse error until it is registered).
-6. Bump the spec MINOR (additive) and regenerate the snapshot. The drift test
+5. Register the adapter in `src/codecaliper/languages/__init__.py`, the one
+   place in the runtime package outside your new file that you touch: add the
+   name to the `_BUILTIN` tuple *and* a branch to `get_adapter()`. Miss this and
+   you get `UnsupportedLanguageError`; `_BUILTIN` alone also drives
+   `detect_language()` (so an unregistered language cannot be auto-detected) and
+   `cli.py`'s `--lang` choices (so the CLI rejects it with an argparse error
+   until it is registered).
+6. Extend the language alternation in `_RULING_ID_RE` in
+   `tests/test_spec_coverage.py` (e.g. `(?:ALL|PY|JAVA|GO)` gained `GO`).
+   Until you do, the phantom-citation sweep cannot see your `*-<LANG>-*` IDs in
+   src/ comments and docstrings.
+7. Wire the language into the differential lane: a probe dict in
+   `tests/differential/_harness.py` (Go added `GO_PROBES`), branches in
+   `inputs()`/`comparisons()`, and the language's inputs in the relevant oracle
+   test (`test_lizard.py` covers cyclomatic for all three languages). Classify
+   any divergence in `tests/differential/divergences.toml`; a lizard-vs-us
+   disagreement fails the lane until it is classified.
+8. Bump the spec MINOR (additive) and regenerate the snapshot. The drift test
    proves existing languages' numbers did not move.
-7. Regenerate `docs/spec/rulings.md` with `python tools/gen_spec_docs.py` and
+9. Regenerate `docs/spec/rulings.md` with `python tools/gen_spec_docs.py` and
    commit it (see the table above). If you also classified a new oracle
    divergence, regenerate `docs/spec/divergences.md` too.
 
-The registry in step 5 is the only hand-maintained spot: keep `_BUILTIN` and the
-`get_adapter()` branch in step with each other. The lazy imports there are
-deliberate, so no adapter (and no grammar) loads until it is asked for.
+The registry in step 5 is the only hand-maintained spot in the *runtime*
+package: keep `_BUILTIN` and the `get_adapter()` branch in step with each other.
+The lazy imports there are deliberate, so no adapter (and no grammar) loads
+until it is asked for. `docs/adding-a-language.md` narrates this whole
+checklist with Go as the worked example.
 
 One thing you get for free and should not fight: `api.py` guards the Java
 snippet-scaffold fallback with `adapter.name == "java"` (CORE-JAVA-0001), so a

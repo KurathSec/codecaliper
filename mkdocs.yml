@@ -2,7 +2,7 @@ site_name: codecaliper
 site_description: >-
   A traceable, reproducible code readability + complexity measurement
   instrument (Buse-Weimer 2010, cyclomatic, dual-mode cognitive, Halstead,
-  MI) on a unified tree-sitter base for Python and Java.
+  MI, LOC) on a unified tree-sitter base for Python, Java, and Go.
 site_url: https://kurathsec.github.io/codecaliper/
 repo_url: https://github.com/KurathSec/codecaliper
 repo_name: KurathSec/codecaliper

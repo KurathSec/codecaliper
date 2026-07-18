@@ -354,8 +354,9 @@ def load_table() -> tuple[TableEntry, ...]:
 def our_functions(source: str, language: str, metric: str) -> dict[str, tuple[str, int]]:
     """simple name -> (qualified name, per-function value).
 
-    Cognitive values run in sonar-compat mode, because the oracle under
-    comparison (cognitive_complexity) is a Sonar-lineage implementation.
+    Cognitive values run in sonar-compat mode for every oracle under comparison
+    (cognitive_complexity and PMD, both Sonar-lineage implementations); the
+    recursion caveat is recorded on the COG-ALL-0006 rows in divergences.toml.
     """
     rep = measure(
         source,

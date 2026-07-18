@@ -11,7 +11,7 @@ Every number codecaliper emits is *traceable* and *reproducible*: traceable to a
 versioned metric-to-syntax specification, to the exact rulings that fired, and to
 the exact grammar that parsed the source; reproducible because it is clock-free,
 hash-seed-free and order-stable. Where a scoreboard says "CC = 7", codecaliper
-says "CC = 7 under spec 1.1.0, ruling CC-PY-0003, tree-sitter-python 0.25.0".
+says "CC = 7 under spec 1.2.0, ruling CC-PY-0003, tree-sitter-python 0.25.0".
 
 This README says what the tool is and how to use it. The design rationale, the
 requirements record and the decision log are in
@@ -124,17 +124,18 @@ pip install -e . -c constraints/ci.txt   # from a checkout
 
 The calibrated versions are listed in
 `src/codecaliper/spec/validated_grammars.toml` (currently tree-sitter-python
-0.25.0, tree-sitter-java 0.23.5). To see what you are actually running, and
+0.25.0, tree-sitter-java 0.23.5, tree-sitter-go 0.25.0). To see what you are actually running, and
 whether it is calibrated:
 
 ```console
 $ codecaliper env
-codecaliper 0.1.1
-spec 1.1.0
+codecaliper 0.2.0
+spec 1.2.0
 python 3.14.6 (Linux x86_64)
 tree-sitter 0.26.0 (binding)
 tree-sitter-python 0.25.0 (ABI 15, calibrated)
 tree-sitter-java 0.23.5 (ABI 14, calibrated)
+tree-sitter-go 0.25.0 (ABI 15, calibrated)
 ```
 
 An uncalibrated grammar prints `UNVALIDATED` on its line. That plate belongs in
@@ -164,14 +165,15 @@ print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 
 ## Status
 
-Package **0.1.1** is released: on
+Package **0.2.0** is released: on
 [PyPI](https://pypi.org/project/codecaliper/), tagged
-[v0.1.1](https://github.com/KurathSec/codecaliper/releases/tag/v0.1.1), archived
+[v0.2.0](https://github.com/KurathSec/codecaliper/releases/tag/v0.2.0), archived
 at Zenodo. The badge above is the concept DOI, which always resolves to the
 latest version; every released version also has its own DOI, listed on that
-Zenodo record. It ships spec **1.1.0**: the spec and the package are versioned
-independently, and a spec bump happens only when a ruling changes, so 0.1.1
-leaving every emitted number where it was is exactly why the spec did not move.
+Zenodo record. It ships spec **1.2.0**: the spec and the package are versioned
+independently, and 0.2.0 shows the split working in the other direction from
+0.1.1 — a third language (Go) arrived as new rulings and new corpus cases, a
+spec MINOR, while every previously emitted number stayed where it was.
 See [`CHANGELOG.md`](CHANGELOG.md).
 
 Python, Java and Go are wired end-to-end. Every active ruling is exercised by a
