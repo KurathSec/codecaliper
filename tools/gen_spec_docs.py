@@ -3,7 +3,7 @@
 
 The TOMLs are the single source of truth; the rendered table is a build
 artifact. CI regenerates and diffs it so the published spec can never lag the
-shipped one (ARCHITECTURE.md §3.4).
+shipped one (ARCHITECTURE.md §11, the spec-docs job).
 """
 
 from __future__ import annotations
