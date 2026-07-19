@@ -90,7 +90,7 @@ read as a claim that it may be.
 [datasets.dorn2012]
 id = "dorn2012-multilang-snippets"
 archive = "DatasetDorn.zip"
-description = "Dorn's multi-language readability corpus: 121 Java + 121 CUDA + 120 Python snippets with per-language scores (Dorn, 2012)"
+description = "Dorn's multi-language readability corpus: 121 Java + 120 CUDA + 119 Python snippets with per-language scores (Dorn, 2012)"
 url = "https://dibt-research.unimol.it/report/readability/files/DatasetDorn.zip"
 # TOFU-anchored 2026-07-13 against the archive fetched from the URL above; the
 # URL was re-confirmed by HTTP HEAD on 2026-07-13 (200, Content-Length 329256).

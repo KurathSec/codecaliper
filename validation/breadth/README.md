@@ -11,7 +11,7 @@ the script must reproduce it byte for byte.
 |---|---|---|---|
 | Buse & Weimer (2010) | `DatasetBW.zip` | 100 Java snippets rated 1–5 by 121 annotator rows | all 100 snippets |
 | Scalabrino et al. (2018) | `Dataset.zip` | 200 rated Java **methods** | all 200 snippets |
-| Dorn (2012) | `DatasetDorn.zip` | multi-language corpus: 121 Java + 121 CUDA + 120 Python snippets | the **121 Java** snippets only |
+| Dorn (2012) | `DatasetDorn.zip` | multi-language corpus: 121 Java + 120 CUDA + 119 Python snippets | the **121 Java** snippets only |
 
 Dorn's CUDA and Python snippets are deliberately excluded. Measuring them under
 the Java grammar would be a category error, and it was the source of an earlier
