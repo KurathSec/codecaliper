@@ -31,7 +31,12 @@ jobs:
         run: pip install -e ".[dev,oracles]" -c constraints/ci.txt
       - run: ruff check src tests tools
       - run: mypy
-      - name: Oracles must import (differential lane must not silently SKIP)
+      # PMD is deliberately NOT re-proved here: the tag must sit in main's
+      # history with green CI (RELEASING.md steps 5-6), and ci.yml's
+      # differential job proves PMD live (`pmd --version` before pytest) on
+      # that same commit. In this gate the PMD tests skip; the pip oracles are
+      # hard-imported so their three quarters of the lane cannot no-op.
+      - name: Pip oracles must import (radon/lizard/cognitive-complexity must not silently SKIP)
         run: python -c "import radon.complexity, lizard, cognitive_complexity.api"
       - run: pytest
       - name: Generated spec docs must not be stale (same check as ci.yml)
