@@ -507,8 +507,9 @@ through `ctx.count(ruling, node, delta)`. Each computes file-level and per-funct
 **Nested-unit attribution is explicitly ruled** (CORE-ALL-\*), a gap all three designs missed and a
 classic radon-versus-lizard divergence axis. A nested function, lambda or inner-class body counts
 toward the *enclosing* function's file-level walk, but per-function values are computed on each
-function's own subtree **excluding** nested `FUNCTION_DEF`, `LAMBDA` and `CLASS_DEF` subtrees, which
-get their own `FunctionReport`s. File-level values come from one whole-file walk, and are *not* the
+function's own subtree **excluding** nested `FUNCTION_DEF` and `CLASS_DEF` subtrees, which get
+their own `FunctionReport`s; a `LAMBDA` subtree stays part of the enclosing unit and never gets a
+`FunctionReport` of its own (the classified PMD divergence `snippet:diff-java-lambda` pins this). File-level values come from one whole-file walk, and are *not* the
 sum of the functions. Corpus cases pin this per language.
 
 **Parse-error policy** (CORE-ALL-0002): tree-sitter always returns a tree. ERROR and MISSING

@@ -39,7 +39,8 @@ One corpus may be redistributed; two may not. The distinction is never blurred.
   [`../bw_faithfulness/derived/arbitration_inputs/`](../bw_faithfulness/derived/arbitration_inputs/),
   and they are the only dataset content in this repository.
 - **Scalabrino et al. (2018)** and **Dorn (2012)**: **no permission has been sought
-  or granted.** Both are publicly downloadable from the authors' replication pages.
+  or granted.** Both are publicly downloadable from the Scalabrino et al.
+  replication page (which republishes Dorn's data alongside its own).
   This project only *uses* them. It fetches them at run time, measures them, and
   publishes aggregate results (the parse rates below). It does not redistribute
   them, not one byte enters the tracked tree, and it makes no claim that it may.

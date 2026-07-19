@@ -76,8 +76,9 @@ request.
 
 Two further corpora are measured by `validation/breadth/`: the Scalabrino et al. 200 Java methods
 and the Dorn 121 Java snippets. Neither publishes an explicit data licence, and no permission has
-been sought or granted for either. Both are publicly downloadable from their authors' replication
-page (`dibt-research.unimol.it/report/readability`), and this project treats them accordingly:
+been sought or granted for either. Both are publicly downloadable from the Scalabrino et al. replication
+page (`dibt-research.unimol.it/report/readability`, which republishes Dorn's data alongside its
+own), and this project treats them accordingly:
 
 - fetched at run time into the gitignored `cache/`, never committed, never redistributed. Not one
   byte of either corpus enters the tracked tree;
