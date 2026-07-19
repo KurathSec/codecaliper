@@ -14,10 +14,13 @@ three versions, not one:
 - **grammars**: the exact calibrated tree-sitter grammar versions
   (`src/codecaliper/spec/validated_grammars.toml`).
 
-## [Unreleased]
+## [0.2.1] - 2026-07-19
 
-- package 0.2.1.dev0 · spec 1.2.1 · grammars: tree-sitter-python 0.25.0,
+- package 0.2.1 · spec 1.2.1 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
+- An editorial PATCH release: no emitted number changed. It supersedes v0.2.0,
+  whose published archive cannot be edited and still carries the two records
+  corrected below.
 - Spec 1.2.1 is an editorial PATCH: BW-ALL-0002 gains a correction note — its
   statement attributed the 4-11 line calibrated-regime window to the
   Buse-Weimer paper, which states no line range (TSE 2010: 7.7 lines on
@@ -25,8 +28,19 @@ three versions, not one:
   window is this tool's own diagnostic threshold; no behaviour or number
   changed. The mis-attribution is also corrected in README.md,
   ARCHITECTURE.md and the bw2010.py comment.
+- The recorded Dorn corpus composition is corrected: the sha256-pinned
+  DatasetDorn.zip holds 121 Java + 120 CUDA + 119 Python snippets, not the
+  121 + 121 + 120 that dataset.toml and the breadth README claimed. The Java
+  count, the only measured subset, was already right.
 - The weekly grammar-bump canary now force-upgrades tree-sitter-go alongside
   the other grammar wheels (it had been left out when Go landed).
+- A seven-round adversarial documentation review (89 confirmed findings)
+  reconciled the prose with the code: among others, ARCHITECTURE no longer
+  claims per-function values exclude lambda subtrees (CORE-ALL-0003 keeps a
+  lambda in its enclosing unit, as the classified PMD divergence pins), the
+  CONTRIBUTING add-a-language tutorial regained the coverage-regex and
+  differential-wiring steps, and the release-gate step name no longer claims
+  PMD coverage it does not deliver.
 
 ## [0.2.0] - 2026-07-17
 

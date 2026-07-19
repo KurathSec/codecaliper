@@ -11,7 +11,7 @@
 > **Design thesis.** Every number codecaliper emits is *traceable* and *reproducible*: traceable to
 > a spec version, to the exact rulings that fired, and to the exact grammar that parsed the source;
 > reproducible because it is clock-free, hash-seed-free and order-stable. Where a scoreboard says
-> "CC = 7", this instrument says "CC = 7 *under spec 1.2.0, ruling CC-PY-0003, tree-sitter-python
+> "CC = 7", this instrument says "CC = 7 *under spec 1.2.1, ruling CC-PY-0003, tree-sitter-python
 > 0.25.0*". That sentence is the data model.
 >
 > This document synthesizes a three-way architecture study (instrument-purist, API/extensibility,

@@ -5,7 +5,7 @@ and complexity (cyclomatic, dual-mode cognitive, Halstead, maintainability
 index, LOC) for Python, Java, and Go, and it tells you where every number came from.
 
 A metrics scoreboard says *"CC = 7"*. codecaliper says *"CC = 7 under spec
-1.2.0, on tree-sitter-python 0.25.0, and here are the seven increments, each one
+1.2.1, on tree-sitter-python 0.25.0, and here are the seven increments, each one
 with the ruling that made it and the span it fired on"*. Every value it emits
 is:
 
