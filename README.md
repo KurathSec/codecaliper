@@ -130,7 +130,7 @@ whether it is calibrated:
 
 ```console
 $ codecaliper env
-codecaliper 0.2.1
+codecaliper 0.2.2
 spec 1.2.1
 python 3.14.6 (Linux x86_64)
 tree-sitter 0.26.0 (binding)
@@ -166,17 +166,16 @@ print(dict(zip(vec.names, vec.values)), vec.extrapolated)
 
 ## Status
 
-Package **0.2.1** is released: on
+Package **0.2.2** is released: on
 [PyPI](https://pypi.org/project/codecaliper/), tagged
-[v0.2.1](https://github.com/KurathSec/codecaliper/releases/tag/v0.2.1), archived
+[v0.2.2](https://github.com/KurathSec/codecaliper/releases/tag/v0.2.2), archived
 at Zenodo. The badge above is the concept DOI, which always resolves to the
 latest version; every released version also has its own DOI, listed on that
-Zenodo record. It ships spec **1.2.1**, an editorial PATCH: no emitted number
-has moved since 0.2.0, whose archive this release supersedes because a
-published archive cannot be edited — 0.2.0 still carries a ruling statement
-that mis-attributes the calibrated-regime window to the Buse-Weimer paper and
-a provenance record that misstates the Dorn archive's contents, both corrected
-here. See [`CHANGELOG.md`](CHANGELOG.md).
+Zenodo record. It ships spec **1.2.1**: the instrument is unchanged since
+0.2.1, and the release archives new validation work — the cross-parser lane
+(javac, JavaParser), the audit of the two first-party Buse-Weimer tools, four
+faithfulness-lane probes and the Dorn-Python breadth row. See
+[`CHANGELOG.md`](CHANGELOG.md).
 
 Python, Java and Go are wired end-to-end. Every active ruling is exercised by a
 hand-computed corpus case. `mypy --strict` and the differential oracle lane are
