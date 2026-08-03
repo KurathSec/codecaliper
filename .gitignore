@@ -40,6 +40,10 @@ htmlcov/
 # from any corpus may join it. Do not add ignore rules for derived/, which also
 # holds the committable computed outputs (feature vectors, stamps, reports).
 validation/bw_faithfulness/cache/
+# Cross-parser and reimplementation-audit caches: third-party jars and
+# generated variant files, fetched/derived at run time, never committed.
+validation/crossparser/cache/
+validation/audit/cache/
 validation/bw_faithfulness/*.zip
 
 # mkdocs build output (deployed by .github/workflows/docs.yml, never committed)

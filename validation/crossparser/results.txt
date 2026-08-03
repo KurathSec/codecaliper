@@ -1,0 +1,16 @@
+front ends: javac 21.0.11 (JavacTask.parse) | javaparser-core 3.26.2
+javac (compilation-unit entry):
+  as written                       clean=   0/100
+  scaffold allowed                 clean=  27/100
+  brace-balanced                   clean=   0/100
+  brace-balanced + scaffold        clean=  84/100
+javaparser (ParseStart=COMPILATION_UNIT):
+  as written                       clean=   0/100
+  scaffold allowed                 clean=  29/100
+  brace-balanced                   clean=   0/100
+  brace-balanced + scaffold        clean=  93/100
+javaparser, as written, other entry points:
+  classbody entry                  clean=   3/100
+  block entry (brace-wrapped)      clean=  26/100
+  any entry (cu|classbody|block)   clean=  29/100
+reference, tree-sitter-java 0.23.5 (the instrument): as written 27, scaffold 29, brace-balanced 84, balanced+scaffold 94
