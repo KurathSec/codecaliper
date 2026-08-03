@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Cross-corpus parse anatomy: run codecaliper over three Java readability corpora.
+"""Cross-corpus parse anatomy: run codecaliper over the reused readability corpora.
 
-Measures every Java snippet of the Buse-Weimer (2010), Scalabrino et al. (2018)
-and Dorn (2012) corpora through the PUBLIC API (`codecaliper.api.measure`,
-language="java") and reports, per corpus: how many snippets parse cleanly, how
-many are tab-indented, and, for the failures, how many have unbalanced braces
-plus the median/max ERROR-node count of the recovered parse.
+Measures the Buse-Weimer (2010) and Scalabrino et al. (2018) corpora and the
+Java and Python subsets of the Dorn (2012) corpus through the PUBLIC API
+(`codecaliper.api.measure`), each subset under its own grammar, and reports,
+per corpus row: how many snippets parse cleanly, how many are tab-indented,
+and, for the failures, how many have unbalanced braces plus the median/max
+ERROR-node count of the recovered parse. The brace-imbalance column is the
+mid-block-truncation signature for the brace languages; it is computed
+literally for every row and is a meaningful failure signature only for Java.
 
 This script reads all three corpora from their ARCHIVES, which live in the
 gitignored `validation/bw_faithfulness/cache/` and are fetched at run time by
@@ -21,8 +24,8 @@ author's explicit grant (PERMISSIONS.md). The Scalabrino 2018 and Dorn 2012
 corpora carry no permission of any kind: they are measured here and never
 redistributed, and only the aggregate rates in `results.txt` are published.
 
-The three corpora are measured together or not at all: the reported rates are a
-statement about all three, so a missing archive is a hard error (stderr, exit 1),
+The corpus rows are measured together or not at all: the reported rates are a
+statement about all of them, so a missing archive is a hard error (stderr, exit 1),
 never a silent success. A measurement script must not exit 0 having measured nothing.
 """
 
@@ -39,21 +42,30 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 CACHE = HERE.parent / "bw_faithfulness" / "cache"
 
-CORPORA: dict[str, tuple[str, Callable[[str], bool]]] = {
+CORPORA: dict[str, tuple[str, Callable[[str], bool], str]] = {
     "Buse-Weimer": (
         "DatasetBW.zip",
         lambda n: n.startswith("snippets/") and n.endswith(".jsnp"),
+        "java",
     ),
     "Scalabrino": (
         "Dataset.zip",
         lambda n: n.startswith("Dataset/Snippets/") and n.endswith(".jsnp"),
+        "java",
     ),
-    # Dorn ships Java, CUDA and Python snippets; only the 121 Java ones are
-    # measured, under the Java grammar (measuring the others as Java would be a
-    # category error).
-    "Dorn": (
+    # Dorn ships Java, CUDA and Python snippets (121/120/119). The Java and
+    # Python subsets are measured, each under its own grammar (measuring a
+    # snippet under another language's grammar would be a category error);
+    # CUDA has no grammar in the instrument and is not measured.
+    "Dorn-Java": (
         "DatasetDorn.zip",
         lambda n: n.startswith("dataset/snippets/java/") and n.endswith(".jsnp"),
+        "java",
+    ),
+    "Dorn-Python": (
+        "DatasetDorn.zip",
+        lambda n: n.startswith("dataset/snippets/python/") and n.endswith(".jsnp"),
+        "python",
     ),
 }
 
@@ -68,7 +80,7 @@ def errcount(rep: Any) -> int:
 
 
 def main() -> int:
-    missing = [zf for zf, _ in CORPORA.values() if not (CACHE / zf).exists()]
+    missing = sorted({zf for zf, _, _ in CORPORA.values() if not (CACHE / zf).exists()})
     if missing:
         print(f"error: {', '.join(missing)} missing from {CACHE}; run "
               "`python validation/bw_faithfulness/fetch.py --all` first; nothing measured.",
@@ -77,7 +89,7 @@ def main() -> int:
 
     from codecaliper.api import measure
 
-    for name, (zf, sel) in CORPORA.items():
+    for name, (zf, sel, lang) in CORPORA.items():
         z = zipfile.ZipFile(CACHE / zf)
         files = [n for n in z.namelist() if sel(n)]
         total = clean = tabbed = brace_fail = 0
@@ -87,7 +99,7 @@ def main() -> int:
             total += 1
             if any(ln.startswith("\t") for ln in src.splitlines()):
                 tabbed += 1
-            rep = measure(src, language="java")
+            rep = measure(src, language=lang)
             if rep.parse_ok:
                 clean += 1
             else:

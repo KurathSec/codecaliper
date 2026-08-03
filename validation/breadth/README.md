@@ -1,7 +1,8 @@
 # Breadth: cross-corpus parse anatomy + cross-language demonstration
 
-Real codecaliper measurements over three Java readability corpora and two Python
-inputs. Everything here is produced by the shipped public API; nothing is
+Real codecaliper measurements over the reused readability corpora (three Java
+corpus rows, one Python corpus row) and two hand-written Python demo inputs.
+Everything here is produced by the shipped public API; nothing is
 hand-constructed. The recorded output is `results.txt` (tracked), and re-running
 the script must reproduce it byte for byte.
 
@@ -11,13 +12,14 @@ the script must reproduce it byte for byte.
 |---|---|---|---|
 | Buse & Weimer (2010) | `DatasetBW.zip` | 100 Java snippets rated 1–5 by 121 annotator rows | all 100 snippets |
 | Scalabrino et al. (2018) | `Dataset.zip` | 200 rated Java **methods** | all 200 snippets |
-| Dorn (2012) | `DatasetDorn.zip` | multi-language corpus: 121 Java + 120 CUDA + 119 Python snippets | the **121 Java** snippets only |
+| Dorn (2012) | `DatasetDorn.zip` | multi-language corpus: 121 Java + 120 CUDA + 119 Python snippets | the **121 Java** snippets under the Java grammar, the **119 Python** snippets under the Python grammar |
 
-Dorn's CUDA and Python snippets are deliberately excluded. Measuring them under
-the Java grammar would be a category error, and it was the source of an earlier
-wrong 6% / N=360 figure, since corrected.
+Each Dorn subset is measured under its own grammar, never under another
+language's (that category error was the source of an earlier wrong 6% / N=360
+figure, since corrected). Dorn's CUDA snippets stay excluded: the instrument has
+no CUDA grammar.
 
-This script measures all three corpora from the archives, which it reads from the
+This script measures every corpus row from the archives, which it reads from the
 **gitignored** `validation/bw_faithfulness/cache/`. So `fetch.py --all`, and
 therefore the network, is a prerequisite **here**, unlike the faithfulness lane,
 which is self-contained and runs from tracked pins. This is a consequence of the
@@ -56,15 +58,18 @@ python validation/bw_faithfulness/fetch.py --all   # -> cache/ (gitignored), sha
 python validation/breadth/measure_corpora.py       # prints exactly the lines in results.txt
 ```
 
-For every snippet the script calls `codecaliper.api.measure(src, language="java")`
-and emits one line per corpus:
+For every snippet the script calls `codecaliper.api.measure(src, language=...)`
+with the row's own language (Java for the three Java rows, Python for
+Dorn-Python) and emits one line per corpus row:
 
 - `N`, snippets measured;
 - `clean`, how many parse with no ERROR node (`parse_ok=true`), with the percentage;
 - `tabbed`, how many have at least one tab-indented line;
 - `fail`, `N - clean`, i.e. snippets whose parse was recovered rather than clean;
 - `brace_imbalance`, of those failures, how many have differing `{` and `}` counts
-  (the snippet is a truncated fragment of a larger unit, not broken syntax);
+  (the snippet is a truncated fragment of a larger unit, not broken syntax). The
+  count is computed literally for every row but is a meaningful truncation
+  signature only for the brace language rows, not for Python;
 - `err_med` / `err_max`, median and maximum ERROR-node count of the recovered parses.
 
 If any archive is missing from `cache/`, the script names the missing files on
@@ -77,8 +82,17 @@ Recorded output (`results.txt`):
 ```
 Buse-Weimer    N=100 clean= 27 (27.0%) tabbed= 32 (32.0%) fail= 73 brace_imbalance= 69 err_med=1 err_max=10
 Scalabrino     N=200 clean=190 (95.0%) tabbed=151 (75.5%) fail= 10 brace_imbalance=  0 err_med=2 err_max=3
-Dorn           N=121 clean= 19 (15.7%) tabbed=108 (89.3%) fail=102 brace_imbalance= 76 err_med=2 err_max=6
+Dorn-Java      N=121 clean= 19 (15.7%) tabbed=108 (89.3%) fail=102 brace_imbalance= 76 err_med=2 err_max=6
+Dorn-Python    N=119 clean=106 (89.1%) tabbed=  7 ( 5.9%) fail= 13 brace_imbalance=  1 err_med=1 err_max=20
 ```
+
+The Dorn-Java versus Dorn-Python contrast is the instructive one: the same
+corpus's equally fragment-style snippets parse cleanly 15.7% of the time under
+the Java grammar and 89.1% under the Python grammar, because a fragment cut at
+line boundaries is usually still a valid statement sequence in an
+indentation-delimited language, while a brace-language fragment truncated
+mid-block necessarily carries unbalanced braces (76 of the 102 Dorn-Java
+failures; 1 of the 13 Dorn-Python failures).
 
 These numbers are spec- and grammar-dependent: they hold for the spec version and
 grammar pins of this working tree (`codecaliper env` prints both). A change that
