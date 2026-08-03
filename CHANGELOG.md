@@ -18,6 +18,39 @@ three versions, not one:
 
 - package 0.2.2.dev0 · spec 1.2.1 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
+- The instrument itself is unchanged; everything below is validation-lane
+  work prompted by an external blind-review pass over the ICPC draft.
+- `validation/breadth/` now also measures the 119 Python snippets of the Dorn
+  corpus under the Python grammar (new `Dorn-Python` row: 106/119 clean parse;
+  the three pre-existing rows reproduce byte-identically). The Dorn-Java row
+  is renamed from `Dorn`.
+- `validation/bw_faithfulness/` gains four probe scripts, all runnable from
+  the tracked pins alone: `annotator_sensitivity.py` (leave-one-row-out over
+  the 121 annotator rows: zero label flips, the 59/41 split and the 21/24
+  sign-agreement count invariant), `brace_repair_probe.py` (adaptive brace
+  balancing repairs 84/100, 94/100 with the scaffold, against 27 as written
+  and 29 scaffold-only), `uncertainty_probes.py` (per-feature bootstrap CIs:
+  18 of 24 exclude zero; paired tab-8-vs-1 contrast -0.23, CI [-0.52, +0.05];
+  out-of-fold label stability across the 32 arbitration cells: max 16 flips,
+  all in error-opaque cells) and `nested_arbitration_probe.py` (the decision
+  rule re-run inside each outer fold: selection-aware accuracy 0.800
+  [0.750, 0.860] against the non-nested 0.820 [0.770, 0.870]).
+- New `validation/crossparser/` lane: the parse anatomy re-measured with two
+  architecturally different front ends (javac's `JavacTask.parse` and
+  javaparser-core 3.26.2, sha256-pinned). Strict compilation-unit entries
+  accept 0/100 snippets as written; entry-tolerance-normalized counts agree
+  with the instrument (scaffolded 27/29 vs 29; balanced+scaffold 84/93 vs 94).
+- New `validation/audit/` lane: the two first-party readability tools
+  recovered and audited (artifacts sha256-pinned, fetched at run time, never
+  committed). The original Buse-Weimer tool's source counts a tab as FOUR
+  columns in the indentation feature only (in-source comment "might add more
+  than just 1?"), its snippet path is purely lexical, and its operator
+  features are per-line character counts with no comment exclusion;
+  re-counting under that semantics on the 100 pinned snippets yields Spearman
+  +0.10 (comments included) against -0.24 (comments stripped), diagnosing the
+  persistent avg_arithmetic_ops sign divergence as a counting-semantics
+  artifact. Scalabrino et al.'s rsm.jar values every tab at zero columns in
+  its BW features and returns NaN for truncated fragments in scoring mode.
 
 ## [0.2.1] - 2026-07-19
 
