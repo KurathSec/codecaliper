@@ -1,0 +1,13 @@
+runtime: openjdk version "21.0.11" 2026-04-21 LTS
+rsm.jar ExtractMetrics: 25 BW features emitted
+  BW Avg indentation length: tabs=0 sp8=20.5714 sp1=2.57143 -> tab contributes zero (ignored)
+  BW Avg line length: tabs=8.28571 sp8=28.8571 sp1=10.8571 -> tab contributes less than one column
+  BW Avg spaces: tabs=2.14286 sp8=22.7143 sp1=4.71429 -> tab contributes less than one column
+  BW Max char: tabs=69 sp8=357 sp1=105 -> tab contributes less than one column
+  BW Max indentation: tabs=0 sp8=40 sp1=5 -> tab contributes zero (ignored)
+  BW Max line length: tabs=17 sp8=50 sp1=21 -> tab contributes less than one column
+rsm.jar tab policy over whitespace-sensitive BW features: 0 expand-to-8, 0 count-as-1, 2 ignored, 4 below-one-column
+rsm.jar scoring mode on the well-formed tab probe: TabProbe_tabs.java	0.9894396662712097
+rsm.jar ExtractMetrics on truncated snippet 8: 25 BW features emitted, 0 NaN, 9 zero
+rsm.jar scoring mode on the fragment: Fragment8.java	NaN
+readability-original.jar (stdin, ### separator): runs, 1 score line(s), first: 0.6277207732200623

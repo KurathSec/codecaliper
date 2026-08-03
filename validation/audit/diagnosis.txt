@@ -1,0 +1,3 @@
+avg arithmetic feature, original character semantics (chars '+*%/-' per raw line, comments included): Spearman +0.1029
+same count with comments stripped:                    Spearman -0.2447
+instrument, operator-token semantics (BW-ALL-0006):   Spearman -0.2297 (derived/train_results.json, avg_arithmetic_ops)
