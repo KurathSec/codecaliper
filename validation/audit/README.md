@@ -77,12 +77,46 @@ sign divergences is thereby diagnosed rather than open.
   scoring mode returns `NaN` (the well-formed probe scores 0.989), so end to
   end the tool implements a de facto drop policy for fragments.
 
+## End-to-end policy-corner re-run (`policy_corner_results.txt`)
+
+The findings above establish that tools occupy divergent policy points. This
+lane's last experiment closes the remaining step: it runs a published tool end
+to end on a published corpus and measures how far its **own output** moves
+between two points of a policy space no publication states.
+
+`policy_corner_rerun.py` scores the 200 rated Java methods of Scalabrino et
+al.'s own dataset with `rsm.jar` under two corners that differ in one
+convention and nothing else: as distributed (151 of the 200 are tab-indented)
+and with every leading tab expanded to eight spaces. The code is semantically
+identical under both. Both corners are wrapped in a byte-identical, unindented
+class declaration, because the units are bare methods and the CLI returns NaN
+without a compilation unit; the wrapper cancels out of the contrast. The
+corpus is fetched at run time and never redistributed; only these aggregates
+are published.
+
+```
+score changes when leading tabs are expanded to eight spaces: 174 of 200 methods
+  delta score (expanded minus as-distributed): mean -0.0235, median +0.0000, min -0.4577, max +0.2057
+  binary classification at cut 0.4: 21 of 200 methods change class (9 to readable, 12 to unreadable)
+  binary classification at cut 0.5: 11 of 200 methods change class (4 to readable, 7 to unreadable)
+  binary classification at cut 0.6: 14 of 200 methods change class (3 to readable, 11 to unreadable)
+```
+
+So the whitespace convention is not only a within-instrument sensitivity: on a
+published model, on the corpus its own authors published, it moves 174 of 200
+readability scores and flips the readable/unreadable verdict for 11 methods at
+the conventional cut (21 and 14 at the neighbouring cuts). A study consuming
+this tool's score as a variable inherits that movement, and no publication of
+the tool states which convention its features assume.
+
 ## Reproducing
 
 ```bash
 python validation/audit/fetch.py                  # artifacts into cache/ (gitignored), sha256-verified
 python validation/audit/run_audit.py              # needs a JRE (recorded under Temurin 21.0.11)
 python validation/audit/divergence_diagnosis.py   # pure stdlib, tracked pins only
+python validation/bw_faithfulness/fetch.py --all # the Scalabrino corpus into its gitignored cache
+python validation/audit/policy_corner_rerun.py   # needs a JRE; ~10 JVM launches
 ```
 
 The source-audit findings are checkable by unzipping `cache/readability-applet.jar`

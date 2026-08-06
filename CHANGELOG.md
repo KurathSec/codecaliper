@@ -18,6 +18,19 @@ three versions, not one:
 
 - package 0.2.3.dev0 · spec 1.2.1 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
+- The instrument is unchanged; the additions are validation-lane work.
+- `validation/audit/policy_corner_rerun.py` (new) runs a published readability
+  model end to end under two policy corners that differ only in a whitespace
+  convention: on the 200 rated methods of its own authors' corpus, expanding
+  leading tabs to eight columns moves 174 of 200 scores (mean -0.024, largest
+  -0.458) and changes the readable-versus-unreadable verdict for 11 of 200 at
+  the conventional cut (21 and 14 at cuts 0.4 and 0.6). The corpus is fetched
+  at run time and never redistributed; only aggregates are published.
+- `validation/bw_faithfulness/train.py`'s recorded deviation now quotes the
+  original's exact reported band (TSE 2010 section 4.2: its best classifiers
+  "each correctly classified between 75% and 80% of the snippets"; the
+  abstract summarizes this as 80% effective) instead of an approximate ~0.80.
+  No number changed: the derived reports differ only in that text.
 
 ## [0.2.2] - 2026-08-03
 

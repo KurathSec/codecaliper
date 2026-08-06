@@ -17,8 +17,10 @@ Fixed protocol (ARCHITECTURE.md §8.3; deviations documented in the output):
    sign="unclear" are excluded and counted).
 
 DEVIATIONS FROM THE PAPER (stated here and in the report):
-- Buse & Weimer ran a battery of classifiers (Bayesian, logistic, MLP, ...);
-  the ~80% figure summarizes that setting. We run logistic regression ONLY.
+- Buse & Weimer ran ten classifiers; TSE 2010 section 4.2 reports that their
+  best ones "each correctly classified between 75% and 80% of the snippets"
+  (the abstract summarizes this as 80% effective). We run logistic regression
+  ONLY, so a single figure here is not directly comparable to that band.
 - The paper repeats the entire 10-fold validation 10 times over fresh random
   partitionings and averages across runs; this reproduction uses ONE
   fixed-seed partitioning (random_state=0) per ARCHITECTURE.md section 8.3's
@@ -69,9 +71,11 @@ LABEL_RULE = (
     "cutoff; scores below 3.14 are 'less readable')"
 )
 DEVIATION = (
-    "(1) The paper evaluated a battery of classifiers (Bayesian classifier, "
-    "logistic regression, multilayer perceptron, ...) under 10-fold "
-    "cross-validation; its ~0.80 accuracy summarizes that setting. This "
+    "(1) The paper evaluated ten classifiers (Bayesian classifier, logistic "
+    "regression, multilayer perceptron, voting feature intervals, ...) under "
+    "10-fold cross-validation; its section 4.2 reports that its best ones "
+    "'each correctly classified between 75% and 80% of the snippets', which "
+    "its abstract summarizes as 80% effective. This "
     "reproduction runs logistic regression ONLY (LogisticRegression(max_iter=1000), "
     "raw unscaled features). (2) The paper repeats the entire 10-fold validation "
     "10 times over fresh random partitionings and averages across runs; this "
