@@ -18,46 +18,62 @@ three versions, not one:
 
 - package 0.2.3.dev0 · spec 1.2.1 · grammars: tree-sitter-python 0.25.0,
   tree-sitter-java 0.23.5, tree-sitter-go 0.25.0 (binding tree-sitter 0.26.0)
-- The instrument is unchanged; the additions are validation-lane work.
-- `validation/audit/policy_corner_rerun.py` (new) runs a published readability
-  model end to end under two policy corners that differ only in a whitespace
-  convention: on the 200 rated methods of its own authors' corpus, expanding
-  leading tabs to eight columns moves 174 of 200 scores (mean -0.024, largest
-  -0.458) and changes the readable-versus-unreadable verdict for 11 of 200 at
-  the conventional cut (21 and 14 at cuts 0.4 and 0.6). The corpus is fetched
-  at run time and never redistributed; only aggregates are published.
-- `validation/audit/original_extractor_rerun.py` (new) runs the recovered 2010
-  Buse-Weimer extractor over the 100 pinned snippets through its own detector
-  suite. It records a defect in that artifact: `MaxLineValueDetector` builds
-  its feature name by concatenating an array object rather than its first
-  element and mints a fresh array per call, so five of the tool's own 25
-  features (maximum line length, identifiers, keywords, numbers and
-  indentation) are stored under a name its suite cannot reproduce and enter
-  every instance as the constant zero. Confirmed black box: changing only the
-  maximum indentation of an input leaves its score identical to the last
-  digit. The same run reports per-feature agreement with this instrument
-  (+0.36 to +1.00) and what the original's own vectors yield under this
-  project's protocol: 23 of 24 Figure 9 sign agreements and accuracy 0.790,
-  against 21 of 24 and 0.820 here, which attributes two of the three residual
-  sign divergences to this instrument's counting and shows the third,
-  avg_spaces, is not reproducible from the original artifact either.
-- `validation/bw_faithfulness/` gains two more probes and two extensions, all
-  from the tracked pins: `drop_policy_probe.py` re-runs the reproduction on
-  each corpus a drop policy would leave behind (accuracy 0.820 over all 100
-  against 0.717 at n=27 and 0.733 at n=29, and a fourth feature direction
-  diverges at n=29), `standardization_probe.py` recomputes the 32 cells with
-  features standardized in-fold (the primary criterion is unchanged; the AUC
-  tie-break's pick moves from tab 8 to tab 2), and `uncertainty_probes.py` now
-  also reports a paired bootstrap of the adopted-versus-maximum AUC gap
-  (+0.0025, CI [-0.021, +0.028]) and an avg_spaces counterfactual (+0.039 as
-  shipped, -0.012 counting a tab as one space, -0.242 as eight).
-  `validation/audit/policy_corner_rerun.py` gains a four-column corner: 10 of
-  200 verdicts flip at the conventional cut, against 11 at eight columns.
-- `validation/bw_faithfulness/train.py`'s recorded deviation now quotes the
-  original's exact reported band (TSE 2010 section 4.2: its best classifiers
-  "each correctly classified between 75% and 80% of the snippets"; the
-  abstract summarizes this as 80% effective) instead of an approximate ~0.80.
-  No number changed: the derived reports differ only in that text.
+- The instrument is unchanged; everything below is validation-lane work.
+- Corrects a statement shipped in 0.2.2. `validation/audit/README.md` recorded
+  that the 2010 extractor counts max char occurrences "every character
+  including whitespace (same as the instrument)". It does not:
+  `CharCounter.count(String)` skips `' '` and `'\t'` before tallying and
+  `MaxOccurencesOfSingleChar.runDetector` calls that overload, while
+  BW-ALL-0004 counts every character. The divergence on that feature is a
+  whitespace rule, not the token-versus-character counting the note attributed
+  it to. `divergence_diagnosis.py` now measures both axes: under the original's
+  rule the feature reads -0.2262 and agrees with the published direction,
+  under this instrument's rule +0.0901 and does not, and the two agree on 19 of
+  the 100 snippets.
+- `validation/audit/` runs both first-party artifacts end to end.
+  `original_extractor_rerun.py` (new) records a defect in the distributed 2010
+  tool: `MaxLineValueDetector` builds its feature name by concatenating an
+  array object rather than its first element, so five of the tool's own 25
+  features enter every instance as the constant zero, confirmed black box.
+  Its own vectors under this project's protocol give 23 of 24 Figure 9 sign
+  agreements against 21 of 24 here. `policy_corner_rerun.py` (new) runs a
+  published readability model under corners differing only in the tab column:
+  on the 200 rated methods of its own authors' corpus, expanding leading tabs
+  moves the score of all 151 tab-indented methods and flips the published
+  verdict for 20, 11 and 14 of 200 at cuts 0.4, 0.5 and 0.6, while the score's
+  correlation with the archive's own human ratings does not move (paired
+  difference -0.0031, 95% [-0.036, +0.034]). Those corpora are fetched at run
+  time and never redistributed; only aggregates are published.
+- Sign counts are reported against their own null. Figure 9 signs 21 of the 24
+  clearly-signed features negative, so a constant all-negative guess scores
+  exactly 21 of 24, and `uncertainty_probes.py` now prints that null beside
+  every count. The informative restriction is to the 18 correlations whose
+  interval excludes zero: 17 against a null of 15. The one statistic a
+  constant-sign guess cannot score is a rank agreement between Figure 9's
+  transcribed bar lengths and this instrument's |rho|, +0.783 over the 24 and
+  +0.807 over the 18, one-sided p = 2e-4 with the average and maximum twins of
+  one quantity permuted as blocks. `annotator_sensitivity.py` bounds the
+  determinate set that restriction depends on: over all 121 leave-one-row-out
+  omissions its membership never changes and its agreement holds.
+- Intervals resample snippets rather than folds. `train.py` records the
+  accuracy interval over the 100 snippets' out-of-fold predictions,
+  [0.740, 0.890], beside the fold-level [0.770, 0.870]. The arbitration's
+  baseline-reproduction gate compares named fields and still reproduces the
+  pinned record exactly.
+- `drop_policy_probe.py` re-runs the reproduction on each corpus a drop policy
+  would leave behind (0.820 over all 100 against 0.717 at n=27), corrects its
+  composition test for multiplicity (of 6 features differing at p < 0.05
+  uncorrected, 3 survive a max-statistic correction over the family of 25), and
+  raises the random-subsample control from 200 draws to 2000. The draws are
+  evaluated in parallel, with the seeded generator emitting the index sets
+  serially so the recorded output is byte-identical to the serial run.
+  `standardization_probe.py` (new) recomputes the 32 cells with features
+  standardized in-fold: the primary criterion is unchanged and the AUC
+  tie-break's pick moves from tab 8 to tab 2.
+- `train.py`'s recorded deviation quotes the original's exact reported band
+  (TSE 2010 section 4.2, its best classifiers "each correctly classified
+  between 75% and 80% of the snippets") instead of an approximate ~0.80. No
+  number changed; the derived reports differ only in that text.
 
 ## [0.2.2] - 2026-08-03
 
