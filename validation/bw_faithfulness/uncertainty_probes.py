@@ -74,15 +74,20 @@ def main() -> int:
     # --- 1. per-feature bootstrap CIs (adopted configuration)
     print("per-feature Spearman rho with bootstrap 95% CI "
           f"(snippet resampling, {ITERS} replicates, seed {SEED}):")
+    rho_of: dict[str, float] = {}
+    determinate: set[str] = set()
     for name in BW_FEATURE_NAMES:
         xs = [feats[i][col[name]] for i in ids]
         rho = stats.spearman(xs, means)
+        rho_of[name] = rho
 
         def d(idx: list[int], xs: list[float] = xs) -> float:
             return stats.spearman([xs[j] for j in idx], [means[j] for j in idx])
 
         lo, hi = boot_ci(d, n)
         star = " *" if lo > 0 or hi < 0 else ""
+        if star:
+            determinate.add(name)
         print(f"  {name:28s} {rho:+.3f}  [{lo:+.3f}, {hi:+.3f}]{star}")
 
     # --- 2. paired tab contrast on avg_indentation (fallback_on mode)
@@ -96,6 +101,124 @@ def main() -> int:
     with (HERE / "fig9_signs.toml").open("rb") as f:
         import tomllib
         signs = tomllib.load(f)["signs"]
+
+    # A sign count carries no information against the direction the published
+    # figure assigns most often. Print that null beside every count, the way
+    # the majority-class baseline is printed beside the accuracy.
+    signed = [nm for nm in BW_FEATURE_NAMES if signs[nm]["sign"] != "unclear"]
+    agree_all = sum(1 for nm in signed
+                    if (rho_of[nm] > 0) == (signs[nm]["sign"] == "+"))
+    null_all = sum(1 for nm in signed if signs[nm]["sign"] == "-")
+    det = [nm for nm in signed if nm in determinate]
+    agree_det = sum(1 for nm in det
+                    if (rho_of[nm] > 0) == (signs[nm]["sign"] == "+"))
+    null_det = sum(1 for nm in det if signs[nm]["sign"] == "-")
+    print(f"sign agreement: {agree_all} of {len(signed)} clearly-signed "
+          f"features, against a constant-negative null of {null_all}")
+    print(f"  restricted to the {len(det)} whose interval excludes zero: "
+          f"{agree_det} of {len(det)}, against a null of {null_det}")
+
+    # The one statistic a constant-sign guess cannot score at all: does the
+    # reproduction rank the features the way Figure 9's bar lengths do?
+    powers = [signs[nm]["relative_power"] for nm in signed]
+    mags = [abs(rho_of[nm]) for nm in signed]
+    rank_all = stats.spearman(powers, mags)
+    rank_det = stats.spearman([signs[nm]["relative_power"] for nm in det],
+                              [abs(rho_of[nm]) for nm in det])
+
+    def perm_p(xs: list[float], ys: list[float], obs: float,
+               iters: int = 20000, seed: int = 0) -> float:
+        rg = random.Random(seed)
+        pool = list(ys)
+        hits = 0
+        for _ in range(iters):
+            rg.shuffle(pool)
+            if stats.spearman(xs, pool) >= obs:
+                hits += 1
+        return (hits + 1) / (iters + 1)
+
+    # The 25 features include avg/max twins of the same underlying quantity, so
+    # a permutation that shuffles them independently understates the dependence.
+    # Permute among blocks of EQUAL SIZE instead: the twins move together, the
+    # observed statistic is unchanged, and only the null is affected.
+    blocks: dict[str, list[int]] = {}
+    for pos, nm in enumerate(signed):
+        key = nm[4:] if nm.startswith(("avg_", "max_")) else nm
+        blocks.setdefault(key, []).append(pos)
+    groups: dict[int, list[list[int]]] = {}
+    for b in blocks.values():
+        groups.setdefault(len(b), []).append(b)
+
+    def block_perm_p(xs: list[float], ys: list[float], obs: float,
+                     iters: int = 20000, seed: int = 0) -> float:
+        rg = random.Random(seed)
+        hits = 0
+        buf = [0.0] * len(xs)
+        for _ in range(iters):
+            for group in groups.values():
+                src = list(group)
+                rg.shuffle(src)
+                for tgt, sr in zip(group, src, strict=True):
+                    for a, b in zip(tgt, sr, strict=True):
+                        buf[a] = ys[b]
+            if stats.spearman(xs, buf) >= obs:
+                hits += 1
+        return (hits + 1) / (iters + 1)
+
+    n_pairs = sum(1 for b in blocks.values() if len(b) == 2)
+    print(f"rank permutation blocks over the {len(signed)} clearly-signed features: "
+          f"{len(blocks)} ({n_pairs} avg/max pairs, "
+          f"{len(blocks) - n_pairs} singletons); block-permuted p = "
+          f"{block_perm_p(powers, mags, rank_all):.5f}")
+
+    print(f"rank agreement, Figure 9 bar length against |rho|: "
+          f"{rank_all:+.3f} over the {len(signed)} clearly-signed "
+          f"(one-sided permutation p = {perm_p(powers, mags, rank_all):.5f}), "
+          f"{rank_det:+.3f} over the {len(det)} determinate "
+          f"(p = {perm_p([signs[nm]['relative_power'] for nm in det], [abs(rho_of[nm]) for nm in det], rank_det):.5f})")
+
+    # The original does not say which correlation statistic it computed. That is
+    # itself one of the unreported decisions, so measure what it costs.
+    def pearson(xs: list[float], ys: list[float]) -> float:
+        m = len(xs)
+        mx = sum(xs) / m
+        my = sum(ys) / m
+        num = sum((a - mx) * (b - my) for a, b in zip(xs, ys, strict=True))
+        den = (sum((a - mx) ** 2 for a in xs)
+               * sum((b - my) ** 2 for b in ys)) ** 0.5
+        return num / den if den else 0.0
+
+    flipped = []
+    agree_p = 0
+    for name in signed:
+        xs = [feats[i][col[name]] for i in ids]
+        rp = pearson(xs, means)
+        if (rp > 0) != (rho_of[name] > 0):
+            flipped.append(f"{name} ({rho_of[name]:+.4f} to {rp:+.4f})")
+        if (rp > 0) == (signs[name]["sign"] == "+"):
+            agree_p += 1
+    print(f"under Pearson instead of Spearman: {len(flipped)} of {len(signed)} "
+          f"clearly-signed features change sign"
+          + (f" ({', '.join(flipped)})" if flipped else "")
+          + f"; agreement becomes {agree_p} of {len(signed)}")
+
+    # Five of the original artifact's own 25 features never reach its classifier
+    # (validation/audit/original_extractor_results.txt). Withholding them moves
+    # both the count and the null, so report the pair rather than the count.
+    ZEROED = ("max_identifiers", "max_indentation", "max_keywords",
+              "max_line_length", "max_numbers")
+    kept = [nm for nm in signed if nm not in ZEROED]
+    kept_det = [nm for nm in kept if nm in determinate]
+    def pair(group: list[str]) -> tuple[int, int, int]:
+        return (len(group),
+                sum(1 for nm in group
+                    if (rho_of[nm] > 0) == (signs[nm]["sign"] == "+")),
+                sum(1 for nm in group if signs[nm]["sign"] == "-"))
+    k_n, k_a, k_null = pair(kept)
+    d_n, d_a, d_null = pair(kept_det)
+    print(f"withholding the {len(ZEROED)} features the original's own pipeline "
+          f"zeroes: {k_a} of {k_n} against a null of {k_null}; restricted to "
+          f"the determinate ones, {d_a} of {d_n} against a null of {d_null}")
 
     def agreement_at(tw: int) -> int:
         n_ok = 0

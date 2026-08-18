@@ -24,6 +24,12 @@ per-feature Spearman rho with bootstrap 95% CI (snippet resampling, 2000 replica
   avg_blank_lines              +0.262  [+0.045, +0.448] *
   max_char_occurrences         +0.090  [-0.111, +0.286]
   max_identifier_occurrences   -0.285  [-0.460, -0.066] *
+sign agreement: 21 of 24 clearly-signed features, against a constant-negative null of 21
+  restricted to the 18 whose interval excludes zero: 17 of 18, against a null of 15
+rank permutation blocks over the 24 clearly-signed features: 19 (5 avg/max pairs, 14 singletons); block-permuted p = 0.00020
+rank agreement, Figure 9 bar length against |rho|: +0.783 over the 24 clearly-signed (one-sided permutation p = 0.00010), +0.807 over the 18 determinate (p = 0.00010)
+under Pearson instead of Spearman: 1 of 24 clearly-signed features change sign (avg_spaces (+0.0387 to -0.0425)); agreement becomes 22 of 24
+withholding the 5 features the original's own pipeline zeroes: 16 of 19 against a null of 16; restricted to the determinate ones, 13 of 14 against a null of 11
 avg_indentation rho at tab=0: +0.0637 95% CI [-0.1463, +0.2717]  Figure 9 agreement 19/24
 avg_indentation rho at tab=1: +0.0007 95% CI [-0.2071, +0.2181]  Figure 9 agreement 20/24
 avg_indentation rho at tab=2: -0.0992 95% CI [-0.3051, +0.1227]  Figure 9 agreement 21/24
