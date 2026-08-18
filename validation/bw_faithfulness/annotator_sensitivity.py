@@ -25,6 +25,7 @@ single-row omissions, and no feature's agreement status changes.
 from __future__ import annotations
 
 import csv
+import random
 import sys
 from pathlib import Path
 
@@ -38,6 +39,11 @@ FEATURES = HERE / "derived" / "features.csv"
 SIGNS = HERE / "fig9_signs.toml"
 
 PAPER_CUTOFF = 3.14  # TSE 2010 section 4.1, the Figure 5 bimodal cutoff
+# The determinate sweep runs a bootstrap inside a 121-fold leave-one-out, so it
+# uses fewer replicates than the headline interval in uncertainty_probes.py
+# (2000). The count it bounds is a set membership, not an interval endpoint.
+SWEEP_ITERS = 500
+SWEEP_SEED = 0
 
 
 def main() -> int:
@@ -112,6 +118,32 @@ def main() -> int:
             count += 1 if ok else 0
         return count, agree
 
+    signed = [nm for nm in names if signs[nm]["sign"] != "unclear"]
+
+    def determinate(means: list[float]) -> dict[str, tuple[bool, bool]]:
+        """{feature: (agrees with Fig. 9, bootstrap interval excludes zero)}.
+
+        The second element is the dagger status of Table 3. Once the headline
+        is an agreement count restricted to the determinate features, that set
+        is both the numerator and the denominator, so an unbounded set is an
+        unbounded headline.
+        """
+        out: dict[str, tuple[bool, bool]] = {}
+        n = len(means)
+        for name in signed:
+            expected = signs[name]["sign"]
+            xs = cols[name]
+            rho = stats.spearman(xs, means)
+            rg = random.Random(SWEEP_SEED)
+            reps = sorted(
+                stats.spearman([xs[j] for j in idx], [means[j] for j in idx])
+                for idx in ([rg.randrange(n) for _ in range(n)]
+                            for _ in range(SWEEP_ITERS)))
+            lo = reps[int(0.025 * SWEEP_ITERS)]
+            hi = reps[int(0.975 * SWEEP_ITERS)]
+            out[name] = ((rho > 0) == (expected == "+"), lo > 0 or hi < 0)
+        return out
+
     base_count, base_agree = agreement(means_full)
     counts = []
     unstable: set[str] = set()
@@ -125,6 +157,35 @@ def main() -> int:
           f"[{min(counts)}, {max(counts)}]")
     print(f"features whose agreement status changes under any omission: "
           f"{sorted(unstable) if unstable else 'none'}")
+
+    base_det = determinate(means_full)
+    def summarise(det: dict[str, tuple[bool, bool]]) -> tuple[int, int, int]:
+        members = [nm for nm, (_, d) in det.items() if d]
+        agree_n = sum(1 for nm in members if det[nm][0])
+        null_n = sum(1 for nm in members if signs[nm]["sign"] == "-")
+        return len(members), agree_n, null_n
+    b_size, b_agree, b_null = summarise(base_det)
+    print(f"determinate features (bootstrap interval excludes zero, "
+          f"{SWEEP_ITERS} replicates, seed {SWEEP_SEED}): {b_size} of "
+          f"{len(signed)}; agreement {b_agree} of {b_size} against a "
+          f"constant-negative null of {b_null}")
+    sizes, agrees, nulls = [], [], []
+    membership_changes: set[str] = set()
+    for a in range(n_ann):
+        means = [(totals[s] - rows[a][s]) / (n_ann - 1) for s in range(n_snip)]
+        det = determinate(means)
+        sz, ag, nu = summarise(det)
+        sizes.append(sz)
+        agrees.append(ag)
+        nulls.append(nu)
+        membership_changes |= {nm for nm in signed
+                               if det[nm][1] != base_det[nm][1]}
+    print(f"leave-one-row-out over the determinate set: size spans "
+          f"[{min(sizes)}, {max(sizes)}], agreement spans "
+          f"[{min(agrees)}, {max(agrees)}], null spans "
+          f"[{min(nulls)}, {max(nulls)}]")
+    print(f"features whose determinate membership changes under any omission: "
+          f"{sorted(membership_changes) if membership_changes else 'none'}")
     return 0
 
 

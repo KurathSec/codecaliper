@@ -1,0 +1,9 @@
+annotator rows: 121 (paper reports 120); snippets: 100
+recomputed means match scores.csv: True
+full-archive split at 3.14: 59 high / 41 low
+leave-one-row-out: max label flips over any single omitted row = 0; rows causing any flip = 0; splits observed = [(59, 41)]
+Fig. 9 sign agreement: 21 of 24 with all rows; over the 121 single-row omissions the count spans [21, 21]
+features whose agreement status changes under any omission: none
+determinate features (bootstrap interval excludes zero, 500 replicates, seed 0): 18 of 24; agreement 17 of 18 against a constant-negative null of 15
+leave-one-row-out over the determinate set: size spans [18, 18], agreement spans [17, 17], null spans [15, 15]
+features whose determinate membership changes under any omission: none
