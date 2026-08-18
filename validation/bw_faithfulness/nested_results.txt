@@ -1,0 +1,13 @@
+nested selection-aware protocol (selection re-run inside each outer fold):
+  picked fallback_on/tab=8/V2_incdec        fold accuracy 0.90
+  picked fallback_on/tab=1/V0_current       fold accuracy 0.70
+  picked fallback_on/tab=1/V0_current       fold accuracy 0.80
+  picked fallback_on/tab=1/V0_current       fold accuracy 0.70
+  picked fallback_on/tab=1/V0_current       fold accuracy 0.80
+  picked fallback_on/tab=1/V0_current       fold accuracy 0.80
+  picked fallback_on/tab=4/V1_minimal       fold accuracy 0.70
+  picked fallback_on/tab=1/V0_current       fold accuracy 0.80
+  picked fallback_on/tab=1/V0_current       fold accuracy 1.00
+  picked fallback_on/tab=4/V2_incdec        fold accuracy 0.80
+nested accuracy mean 0.800, ci95 bootstrap over fold accuracies [0.750, 0.860]
+(reference: the non-nested reproduction reports 0.820 [0.770, 0.870])
