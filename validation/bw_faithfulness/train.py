@@ -181,6 +181,17 @@ def main() -> int:
     auc = float(roc_auc_score(y, decision))
     accuracy_mean = stats.mean(fold_accuracies)
     ci95 = stats.ci95_bootstrap(fold_accuracies)
+    # Ten fold accuracies are dependent and few, so a percentile interval over
+    # them carries no coverage guarantee. Resample the SNIPPETS instead, the
+    # unit used everywhere else in this lane: the out-of-fold decision function
+    # gives each snippet one correctness indicator, and the mean of those is the
+    # same accuracy computed over the same predictions.
+    oof_correct = [
+        1.0 if (float(d) >= 0.0) == bool(t) else 0.0
+        for d, t in zip(decision.tolist(), y.tolist(), strict=True)
+    ]
+    accuracy_oof = stats.mean(oof_correct)
+    ci95_snippet = stats.ci95_bootstrap(oof_correct)
 
     # --- per-feature Spearman vs snippet mean score + Fig. 9 sign agreement
     with SIGNS.open("rb") as f:
@@ -248,6 +259,8 @@ def main() -> int:
             "fold_accuracies": fold_accuracies,
             "accuracy_mean": accuracy_mean,
             "accuracy_ci95_bootstrap": ci95,
+            "accuracy_out_of_fold": accuracy_oof,
+            "accuracy_ci95_snippet_bootstrap": ci95_snippet,
             "auc": auc,
             "convergence_warnings": n_convergence_warnings,
         },

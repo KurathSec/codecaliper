@@ -225,7 +225,12 @@
       0.77,
       0.87
     ],
+    "accuracy_ci95_snippet_bootstrap": [
+      0.74,
+      0.89
+    ],
     "accuracy_mean": 0.82,
+    "accuracy_out_of_fold": 0.82,
     "auc": 0.827614716825,
     "convergence_warnings": 0,
     "fold_accuracies": [
