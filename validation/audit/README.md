@@ -50,8 +50,11 @@ per-feature values, 25 of them prefixed `BW`.
    keywords (`if`, `for`, `while`) are raw `indexOf` substring counts that
    also match inside identifiers; `avg spaces` counts the space character
    only (tabs contribute nothing, same as the instrument); max char
-   occurrences counts every character including whitespace (same as the
-   instrument).
+   occurrences counts every character EXCEPT space and tab, which the
+   instrument does not (`CharCounter.count(String)` skips `' '` and `'\t'`
+   before tallying, and `MaxOccurencesOfSingleChar.runDetector` calls that
+   overload). The two rules give the same value on only 19 of the 100
+   snippets, because on most of them the most frequent character is a space.
 
 ## Diagnosis: the avg_arithmetic_ops sign divergence (`diagnosis.txt`)
 
@@ -148,20 +151,26 @@ without a compilation unit; the wrapper cancels out of the contrast. The
 corpus is fetched at run time and never redistributed; only these aggregates
 are published.
 
+All three corners are rebuilt through `splitlines()` before scoring, so that
+line-ending normalisation is common to them and the only difference between
+them is the tab column. Without that the baseline would carry raw CRLF for the
+41 snippets that have it, and 24 snippets with no leading tab at all would
+appear to move.
+
 ```
-score changes when leading tabs are expanded to eight spaces: 174 of 200 methods
-  delta score (expanded minus as-distributed): mean -0.0235, median +0.0000, min -0.4577, max +0.2057
-  binary classification at cut 0.4: 21 of 200 methods change class (9 to readable, 12 to unreadable)
+score changes when leading tabs are expanded to eight spaces: 151 of 200 methods
+  delta score (expanded minus as-distributed): mean -0.0224, median +0.0000, min -0.4577, max +0.1923
+  binary classification at cut 0.4: 20 of 200 methods change class (9 to readable, 11 to unreadable)
   binary classification at cut 0.5: 11 of 200 methods change class (4 to readable, 7 to unreadable)
   binary classification at cut 0.6: 14 of 200 methods change class (3 to readable, 11 to unreadable)
 ```
 
 So the whitespace convention is not only a within-instrument sensitivity: on a
-published model, on the corpus its own authors published, it moves 174 of 200
-readability scores and flips the readable/unreadable verdict for 11 methods at
-the conventional cut (21 and 14 at the neighbouring cuts). A study consuming
-this tool's score as a variable inherits that movement, and no publication of
-the tool states which convention its features assume.
+published model, on the corpus its own authors published, it moves the score of
+every one of the 151 tab-indented methods and flips the readable/unreadable
+verdict for 11 of the 200 at the conventional cut (20 and 14 at the neighbouring
+cuts). A study consuming this tool's score as a variable inherits that movement,
+and no publication of the tool states which convention its features assume.
 
 ## Reproducing
 

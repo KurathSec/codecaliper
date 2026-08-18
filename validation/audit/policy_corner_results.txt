@@ -1,10 +1,15 @@
 tool: rsm.jar (Scalabrino et al., JSEP 2018), classifier from readability.classifier
 corpus: 200 methods, 151 tab-indented (75.5%); scored under both corners: 200
-score changes when leading tabs are expanded to eight spaces: 174 of 200 methods
-  delta score (expanded minus as-distributed): mean -0.0235, median +0.0000, min -0.4577, max +0.2057
-  eight columns, cut 0.4: 21 of 200 methods change class (9 to readable, 12 to unreadable)
+score changes when leading tabs are expanded to eight spaces: 151 of 200 methods
+  delta score (expanded minus as-distributed): mean -0.0224, median +0.0000, min -0.4577, max +0.1923
+  eight columns, cut 0.4: 20 of 200 methods change class (9 to readable, 11 to unreadable)
   eight columns, cut 0.5: 11 of 200 methods change class (4 to readable, 7 to unreadable)
   eight columns, cut 0.6: 14 of 200 methods change class (3 to readable, 11 to unreadable)
-  four columns, cut 0.4: 13 of 200 methods change class (4 to readable, 9 to unreadable)
+  four columns, cut 0.4: 12 of 200 methods change class (4 to readable, 8 to unreadable)
   four columns, cut 0.5: 10 of 200 methods change class (2 to readable, 8 to unreadable)
   four columns, cut 0.6: 11 of 200 methods change class (3 to readable, 8 to unreadable)
+score against mean human rating, 200 methods (Dataset/scores.csv, mean of the evaluator rows):
+  as distributed (tabs count nothing)    Spearman +0.6034
+  tabs expanded to eight columns         Spearman +0.6003
+  tabs expanded to four columns          Spearman +0.6041
+  paired difference (eight columns minus as distributed): -0.0031, 95% interval [-0.0357, +0.0344] (2000 resamples, seed 0)

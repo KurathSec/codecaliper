@@ -1,3 +1,6 @@
 avg arithmetic feature, original character semantics (chars '+*%/-' per raw line, comments included): Spearman +0.1029
 same count with comments stripped:                    Spearman -0.2447
 instrument, operator-token semantics (BW-ALL-0006):   Spearman -0.2297 (derived/train_results.json, avg_arithmetic_ops)
+max char occurrences, instrument rule (every character, BW-ALL-0004):   Spearman +0.0901
+same feature under the original's rule (space and tab skipped):      Spearman -0.2262
+  snippets where the two rules give the same value: 19 of 100; Figure 9 signs this feature negative, so the original's rule agrees and ours disagrees

@@ -72,6 +72,36 @@ def main() -> int:
           f"Spearman {rho_nc:+.4f}")
     print("instrument, operator-token semantics (BW-ALL-0006):   "
           "Spearman -0.2297 (derived/train_results.json, avg_arithmetic_ops)")
+
+    # The second feature the original wins is NOT on the comment/string axis.
+    # Both implementations count characters over raw text; the original's
+    # CharCounter.count(String) skips ' ' and '\t' before tallying
+    # (raykernel/util/CharCounter.java in the applet build, called from
+    # MaxOccurencesOfSingleChar.runDetector), and BW-ALL-0004 does not. On most
+    # snippets the most frequent character IS a space, so the two features are
+    # measuring different quantities.
+    def max_char(src: str, skip_ws: bool) -> float:
+        freq: dict[str, int] = {}
+        for line in src.splitlines():
+            for ch in line:
+                if skip_ws and ch in (" ", "\t"):
+                    continue
+                freq[ch] = freq.get(ch, 0) + 1
+        return float(max(freq.values())) if freq else 0.0
+
+    ours = [max_char(srcs[i], skip_ws=False) for i in ids]
+    theirs = [max_char(srcs[i], skip_ws=True) for i in ids]
+    rho_ours = stats.spearman(ours, means)
+    rho_theirs = stats.spearman(theirs, means)
+    exact = sum(1 for a, b in zip(ours, theirs, strict=True) if a == b)
+    print("max char occurrences, instrument rule (every character, "
+          f"BW-ALL-0004):   Spearman {rho_ours:+.4f}")
+    print("same feature under the original's rule (space and tab skipped): "
+          f"     Spearman {rho_theirs:+.4f}")
+    print(f"  snippets where the two rules give the same value: {exact} of {len(ids)}; "
+          f"Figure 9 signs this feature negative, so the original's rule "
+          f"{'agrees' if rho_theirs < 0 else 'disagrees'} and ours "
+          f"{'agrees' if rho_ours < 0 else 'disagrees'}")
     return 0
 
 

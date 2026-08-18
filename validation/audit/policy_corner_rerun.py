@@ -41,7 +41,10 @@ output: policy_corner_results.txt (regenerate, never edit).
 
 from __future__ import annotations
 
+import csv
+import io
 import os
+import random
 import shutil
 import subprocess
 import sys
@@ -54,6 +57,14 @@ RSM = CACHE / "rsm.jar"
 CORPUS_ZIP = HERE.parent / "bw_faithfulness" / "cache" / "Dataset.zip"
 MEMBER = "Dataset/Snippets/"
 CUTS = (0.4, 0.5, 0.6)
+RATINGS = "Dataset/scores.csv"
+BOOT_ITERS = 2000
+BOOT_SEED = 0
+
+# The Spearman implementation is the faithfulness lane's, not a second copy:
+# the two lanes must not be able to disagree about what a rank correlation is.
+sys.path.insert(0, str(HERE.parent / "bw_faithfulness"))
+import stats  # noqa: E402
 
 
 def _java() -> str:
@@ -65,6 +76,27 @@ def _java() -> str:
         print("ERROR: java not found on PATH and JAVA_HOME unset.", file=sys.stderr)
         raise SystemExit(1)
     return found
+
+
+def _mean_ratings() -> dict[int, float]:
+    """{snippet number: mean human readability rating} from the archive.
+
+    scores.csv is one row per evaluator and one column per snippet, rated 1 to
+    5; the mean over the evaluator rows is the per-snippet rating the dataset's
+    own papers use.
+    """
+    with zipfile.ZipFile(CORPUS_ZIP) as z:
+        text = z.read(RATINGS).decode("utf-8", "replace")
+    rows = list(csv.reader(io.StringIO(text)))
+    header = rows[0]
+    out: dict[int, float] = {}
+    for col, name in enumerate(header):
+        if not name.startswith("Snippet"):
+            continue
+        vals = [float(r[col]) for r in rows[1:] if r and r[col].strip()]
+        if vals:
+            out[int(name[len("Snippet"):])] = sum(vals) / len(vals)
+    return out
 
 
 def score_dir(java: str, directory: Path) -> dict[str, float]:
@@ -125,13 +157,19 @@ def main() -> int:
                     + ln.lstrip("\t")
                     for ln in text.splitlines())
 
+            # expand() rebuilds the text through splitlines(), which also
+            # normalises CRLF to LF. 24 of the 200 snippets carry CRLF, so
+            # leaving the baseline as raw bytes would put a line-ending change
+            # inside the contrast alongside the tab change. Normalise all three
+            # corners identically, so the only difference is the tab column.
+            baseline = "\n".join(src.splitlines())
             expanded = expand(src, 8)
             expanded4 = expand(src, 4)
             # The corpus units are bare METHODS; rsm.jar's CLI needs a
             # compilation unit and returns NaN without one. Both corners get
             # the byte-identical unindented wrapper, so it cancels out of the
             # contrast while leaving every body line's own indentation intact.
-            for corner, text in (("as_distributed", src),
+            for corner, text in (("as_distributed", baseline),
                                  ("tabs_expanded_8", expanded),
                                  ("tabs_expanded_4", expanded4)):
                 (corners[corner] / f"S{stem}.java").write_text(
@@ -170,6 +208,45 @@ def main() -> int:
             print(f"  {label}, cut {cut}: {len(flips)} of {len(scored)} methods "
                   f"change class ({up} to readable, "
                   f"{len(flips) - up} to unreadable)")
+
+    # Does the convention reach the tool's agreement with its own corpus's human
+    # ratings, or only its output? The archive ships the per-evaluator ratings
+    # alongside the snippets, so the association is measurable at each corner.
+    ratings = _mean_ratings()
+    paired = [(f, ratings[int(Path(f).stem[1:])]) for f in scored
+              if int(Path(f).stem[1:]) in ratings]
+    if len(paired) != len(scored):
+        print(f"NOTE: {len(scored) - len(paired)} scored methods have no rating "
+              f"row and are excluded from the correlations.")
+    human = [r for _, r in paired]
+    print(f"score against mean human rating, {len(paired)} methods "
+          f"({RATINGS}, mean of the evaluator rows):")
+    corner_rho = {}
+    for label, table in (("as distributed (tabs count nothing)", a),
+                         ("tabs expanded to eight columns", b),
+                         ("tabs expanded to four columns", b4)):
+        rho = stats.spearman([table[f] for f, _ in paired], human)
+        corner_rho[label] = rho
+        print(f"  {label:38s} Spearman {rho:+.4f}")
+
+    # The corners share every snippet, so the contrast is paired: resample
+    # methods, recompute both correlations on the same resample, difference them.
+    rng = random.Random(BOOT_SEED)
+    n = len(paired)
+    deltas_b = []
+    for _ in range(BOOT_ITERS):
+        idx = [rng.randrange(n) for _ in range(n)]
+        hs = [human[j] for j in idx]
+        deltas_b.append(stats.spearman([b[paired[j][0]] for j in idx], hs)
+                        - stats.spearman([a[paired[j][0]] for j in idx], hs))
+    deltas_b.sort()
+    lo = deltas_b[int(0.025 * BOOT_ITERS)]
+    hi = deltas_b[int(0.975 * BOOT_ITERS)]
+    d = (corner_rho["tabs expanded to eight columns"]
+         - corner_rho["as distributed (tabs count nothing)"])
+    print(f"  paired difference (eight columns minus as distributed): {d:+.4f}, "
+          f"95% interval [{lo:+.4f}, {hi:+.4f}] "
+          f"({BOOT_ITERS} resamples, seed {BOOT_SEED})")
     return 0
 
 
