@@ -152,6 +152,69 @@ def main() -> int:
           f"cells with any flip = {len(nonzero)}/32")
     for k, v in sorted(nonzero.items(), key=lambda kv: -kv[1]):
         print(f"  {k:38s} {v}")
+
+    # --- 4. is the AUC gap between the adopted cell and the maximum-AUC cell
+    # resolvable? Paired bootstrap over snippets on fixed out-of-fold scores.
+    from sklearn.metrics import roc_auc_score
+
+    def cell_scores(mode: str, tab: int, variant: str) -> Any:
+        rows = []
+        for i in ids:
+            vec = list(matrices[mode][i])
+            avg, mx = indent[i][tab]
+            vec[col["avg_indentation"]] = avg
+            vec[col["max_indentation"]] = mx
+            if variant != "V0_current":
+                vec[col["avg_arithmetic_ops"]] = arith[i][mode][variant]
+            rows.append(vec)
+        return cross_val_predict(LogisticRegression(max_iter=1000), np.array(rows),
+                                 y, cv=skf, method="decision_function")
+
+    adopted_s = cell_scores("fallback_on", 8, "V0_current")
+    maxauc_s = cell_scores("fallback_on", 1, "V0_current")
+    auc_a = float(roc_auc_score(y, adopted_s))
+    auc_m = float(roc_auc_score(y, maxauc_s))
+
+    def paired_auc_delta(idx: list[int]) -> float:
+        yy = y[idx]
+        if yy.min() == yy.max():
+            return 0.0
+        return float(roc_auc_score(yy, maxauc_s[idx])
+                     - roc_auc_score(yy, adopted_s[idx]))
+
+    lo, hi = boot_ci(paired_auc_delta, n)
+
+    def auc_ci(scores: Any) -> list[float]:
+        def f(idx: list[int]) -> float:
+            yy = y[idx]
+            return (float(roc_auc_score(yy, scores[idx]))
+                    if yy.min() != yy.max() else 0.5)
+        return boot_ci(f, n)
+
+    ca, cm = auc_ci(adopted_s), auc_ci(maxauc_s)
+    print(f"AUC of the adopted cell (tab=8, full stream): {auc_a:.4f} "
+          f"95% CI [{ca[0]:.4f}, {ca[1]:.4f}]")
+    print(f"AUC of the maximum-AUC cell (tab=1, full stream): {auc_m:.4f} "
+          f"95% CI [{cm[0]:.4f}, {cm[1]:.4f}]")
+    print(f"paired difference (max minus adopted): {auc_m - auc_a:+.4f}, "
+          f"95% CI [{lo:+.4f}, {hi:+.4f}]")
+
+    # --- 5. counterfactual: extend the tab convention to the space count
+    def avg_spaces(i: int, tab_cols: int) -> float:
+        lines = arbitrate._snippet_lines(snippets[i])
+        if not lines:
+            return 0.0
+        return sum(ln.count(" ") + tab_cols * ln.count("\t")
+                   for ln in lines) / len(lines)
+
+    for tw in (0, 1, 8):
+        a = [avg_spaces(i, tw) for i in ids]
+        rho = stats.spearman(a, means)
+        label = {0: "as shipped, a tab counts nothing",
+                 1: "a tab counts as one space",
+                 8: "a tab counts as eight spaces"}[tw]
+        print(f"avg_spaces counterfactual, {label:34s} rho {rho:+.4f} "
+              f"({'agrees' if rho < 0 else 'disagrees'} with Figure 9's negative)")
     return 0
 
 

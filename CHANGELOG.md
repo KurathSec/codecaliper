@@ -41,6 +41,18 @@ three versions, not one:
   against 21 of 24 and 0.820 here, which attributes two of the three residual
   sign divergences to this instrument's counting and shows the third,
   avg_spaces, is not reproducible from the original artifact either.
+- `validation/bw_faithfulness/` gains two more probes and two extensions, all
+  from the tracked pins: `drop_policy_probe.py` re-runs the reproduction on
+  each corpus a drop policy would leave behind (accuracy 0.820 over all 100
+  against 0.717 at n=27 and 0.733 at n=29, and a fourth feature direction
+  diverges at n=29), `standardization_probe.py` recomputes the 32 cells with
+  features standardized in-fold (the primary criterion is unchanged; the AUC
+  tie-break's pick moves from tab 8 to tab 2), and `uncertainty_probes.py` now
+  also reports a paired bootstrap of the adopted-versus-maximum AUC gap
+  (+0.0025, CI [-0.021, +0.028]) and an avg_spaces counterfactual (+0.039 as
+  shipped, -0.012 counting a tab as one space, -0.242 as eight).
+  `validation/audit/policy_corner_rerun.py` gains a four-column corner: 10 of
+  200 verdicts flip at the conventional cut, against 11 at eight columns.
 - `validation/bw_faithfulness/train.py`'s recorded deviation now quotes the
   original's exact reported band (TSE 2010 section 4.2: its best classifiers
   "each correctly classified between 75% and 80% of the snippets"; the

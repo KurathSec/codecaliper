@@ -144,3 +144,25 @@ bare threshold. Report accuracy with a bootstrap 95% CI and require (a) the CI
 to overlap the paper's ≈0.80, and (b) sign agreement on the paper's
 top-weighted features. Stats use the stdlib `spearman`/`ci95_bootstrap`
 descended from Spaghetti Architect `bench/grade.py` (see NOTICE).
+
+## Review-driven probes
+
+Five scripts answer questions a reviewer of a readability reproduction asks.
+All run from the tracked pins alone; each records its output beside it.
+
+| probe | question | headline |
+|---|---|---|
+| `annotator_sensitivity.py` | does the 121-vs-120 annotator row matter? | no: zero label flips, 59/41 and 21/24 invariant over all 121 omissions |
+| `brace_repair_probe.py` | is the fixed scaffold the only repair? | no: brace balancing leaves 84/100 parsing cleanly, 94 with the scaffold |
+| `uncertainty_probes.py` | which correlations are distinguishable from zero, and is the AUC ordering? | 18 of 24 exclude zero; the adopted-vs-maximum AUC gap is +0.0025, CI [-0.021, +0.028]; extending the tab convention to the space count moves `avg_spaces` from +0.039 to -0.012 (tab as one space) or -0.242 (as eight), agreeing with Figure 9 either way |
+| `nested_arbitration_probe.py` | what does the selection cost? | nested accuracy 0.800 [0.750, 0.860] against the non-nested 0.820 |
+| `drop_policy_probe.py` | does a drop policy change what is MEASURED, not just the corpus size? | yes: accuracy 0.820 to 0.717 (as written, n=27) and 0.733 (scaffolded, n=29), and at n=29 a fourth feature direction diverges |
+| `standardization_probe.py` | does the arbitration winner survive standardized features? | the primary criterion does (every tab of 2 or more still clears); the AUC tie-break's pick moves from tab 8 to tab 2, confirming that choice is below resolution rather than determined |
+
+`standardization_probe.py` implements the JOINT (tab, ops) preference chain,
+so it reports `V2_incdec` for the operator dimension. That is the outcome the
+arbitration report records as the disclosed deviation: the joint chain would
+have switched the operator set on AUC noise, so the dimensions were evaluated
+marginally instead and the incumbent `V0_current` stands. The probe reproducing
+that outcome is a cross-check on the deviation record, not a contradiction of
+the adopted ruling.

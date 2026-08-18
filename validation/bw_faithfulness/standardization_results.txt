@@ -1,0 +1,2 @@
+raw (as adopted): winner tab=8 ops=V2_incdec; clearing candidates 12/16; full-stream AUC by tab 1:0.8297, 2:0.8260, 4:0.8210, 8:0.8272
+standardized in-fold: winner tab=2 ops=V2_incdec; clearing candidates 12/16; full-stream AUC by tab 1:0.8082, 2:0.8152, 4:0.8107, 8:0.8123

@@ -2,6 +2,9 @@ tool: rsm.jar (Scalabrino et al., JSEP 2018), classifier from readability.classi
 corpus: 200 methods, 151 tab-indented (75.5%); scored under both corners: 200
 score changes when leading tabs are expanded to eight spaces: 174 of 200 methods
   delta score (expanded minus as-distributed): mean -0.0235, median +0.0000, min -0.4577, max +0.2057
-  binary classification at cut 0.4: 21 of 200 methods change class (9 to readable, 12 to unreadable)
-  binary classification at cut 0.5: 11 of 200 methods change class (4 to readable, 7 to unreadable)
-  binary classification at cut 0.6: 14 of 200 methods change class (3 to readable, 11 to unreadable)
+  eight columns, cut 0.4: 21 of 200 methods change class (9 to readable, 12 to unreadable)
+  eight columns, cut 0.5: 11 of 200 methods change class (4 to readable, 7 to unreadable)
+  eight columns, cut 0.6: 14 of 200 methods change class (3 to readable, 11 to unreadable)
+  four columns, cut 0.4: 13 of 200 methods change class (4 to readable, 9 to unreadable)
+  four columns, cut 0.5: 10 of 200 methods change class (2 to readable, 8 to unreadable)
+  four columns, cut 0.6: 11 of 200 methods change class (3 to readable, 8 to unreadable)

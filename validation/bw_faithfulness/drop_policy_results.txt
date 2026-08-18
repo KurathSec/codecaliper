@@ -1,0 +1,9 @@
+reproduction under each corpus a drop policy would leave behind (adopted operationalization, tab=8, full lexical stream):
+  full (measure anyway)  n=100 (59 high / 41 low)  signs 21/24  10-fold acc 0.820  AUC 0.828
+      diverging: avg_arithmetic_ops, avg_spaces, max_char_occurrences
+  as written             n= 27 (15 high / 12 low)  signs 21/24  10-fold acc 0.717  AUC 0.711
+      diverging: avg_arithmetic_ops, avg_spaces, max_char_occurrences
+  scaffold allowed       n= 29 (17 high / 12 low)  signs 20/24  10-fold acc 0.733  AUC 0.706
+      diverging: avg_arithmetic_ops, avg_blank_lines, avg_spaces, max_char_occurrences
+  brace balanced         n= 84 (47 high / 37 low)  signs 21/24  10-fold acc 0.811  AUC 0.827
+      diverging: avg_arithmetic_ops, avg_spaces, max_char_occurrences

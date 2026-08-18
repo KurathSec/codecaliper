@@ -22,6 +22,8 @@ The two corners differ in ONE convention and nothing else:
 
   A. as distributed (151 of the 200 methods are tab-indented)
   B. every leading tab expanded to eight spaces
+  C. every leading tab expanded to four columns, the convention the original
+     extractor's own source uses
 
 Both corners are wrapped in a byte-identical, unindented class declaration,
 because the corpus units are bare methods and the tool's CLI returns NaN
@@ -103,7 +105,8 @@ def main() -> int:
 
     # --- materialize the two corners into the gitignored cache
     corners = {"as_distributed": CACHE / "corner_tabs",
-               "tabs_expanded_8": CACHE / "corner_spaces"}
+               "tabs_expanded_8": CACHE / "corner_spaces",
+               "tabs_expanded_4": CACHE / "corner_spaces4"}
     for d in corners.values():
         d.mkdir(parents=True, exist_ok=True)
     n_files = n_tabbed = 0
@@ -116,16 +119,21 @@ def main() -> int:
             if any(ln.startswith("\t") for ln in src.splitlines()):
                 n_tabbed += 1
             stem = Path(n).stem
-            expanded = "\n".join(
-                ln[:len(ln) - len(ln.lstrip("\t"))].replace("\t", " " * 8)
-                + ln.lstrip("\t")
-                for ln in src.splitlines())
+            def expand(text: str, cols: int) -> str:
+                return "\n".join(
+                    ln[:len(ln) - len(ln.lstrip("\t"))].replace("\t", " " * cols)
+                    + ln.lstrip("\t")
+                    for ln in text.splitlines())
+
+            expanded = expand(src, 8)
+            expanded4 = expand(src, 4)
             # The corpus units are bare METHODS; rsm.jar's CLI needs a
             # compilation unit and returns NaN without one. Both corners get
             # the byte-identical unindented wrapper, so it cancels out of the
             # contrast while leaving every body line's own indentation intact.
             for corner, text in (("as_distributed", src),
-                                 ("tabs_expanded_8", expanded)):
+                                 ("tabs_expanded_8", expanded),
+                                 ("tabs_expanded_4", expanded4)):
                 (corners[corner] / f"S{stem}.java").write_text(
                     f"class S{stem} {{\n{text}\n}}\n", encoding="utf-8")
     if n_files == 0:
@@ -135,8 +143,10 @@ def main() -> int:
 
     a = score_dir(java, corners["as_distributed"])
     b = score_dir(java, corners["tabs_expanded_8"])
-    common = sorted(set(a) & set(b))
-    scored = [f for f in common if a[f] == a[f] and b[f] == b[f]]  # drop NaN
+    b4 = score_dir(java, corners["tabs_expanded_4"])
+    common = sorted(set(a) & set(b) & set(b4))
+    scored = [f for f in common
+              if a[f] == a[f] and b[f] == b[f] and b4[f] == b4[f]]  # drop NaN
 
     print("tool: rsm.jar (Scalabrino et al., JSEP 2018), classifier from "
           "readability.classifier")
@@ -153,12 +163,13 @@ def main() -> int:
         median_d = deltas[mid] if len(deltas) % 2 else (deltas[mid - 1] + deltas[mid]) / 2
         print(f"  delta score (expanded minus as-distributed): mean {mean_d:+.4f}, "
               f"median {median_d:+.4f}, min {deltas[0]:+.4f}, max {deltas[-1]:+.4f}")
-    for cut in CUTS:
-        flips = [f for f in scored if (a[f] >= cut) != (b[f] >= cut)]
-        up = sum(1 for f in flips if b[f] >= cut)
-        print(f"  binary classification at cut {cut}: {len(flips)} of "
-              f"{len(scored)} methods change class "
-              f"({up} to readable, {len(flips) - up} to unreadable)")
+    for label, other in (("eight columns", b), ("four columns", b4)):
+        for cut in CUTS:
+            flips = [f for f in scored if (a[f] >= cut) != (other[f] >= cut)]
+            up = sum(1 for f in flips if other[f] >= cut)
+            print(f"  {label}, cut {cut}: {len(flips)} of {len(scored)} methods "
+                  f"change class ({up} to readable, "
+                  f"{len(flips) - up} to unreadable)")
     return 0
 
 
