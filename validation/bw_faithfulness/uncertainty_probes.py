@@ -39,7 +39,7 @@ FEATURES_OFF = HERE / "derived" / "features_fallback_off.csv"
 PAPER_CUTOFF = 3.14
 ITERS = 2000
 SEED = 0
-TAB_WIDTHS = (1, 2, 4, 8)
+TAB_WIDTHS = (0, 1, 2, 4, 8)
 MODES = ("fallback_off", "fallback_on")
 
 
@@ -93,9 +93,37 @@ def main() -> int:
             for tw in TAB_WIDTHS}
         for i in ids
     }
+    with (HERE / "fig9_signs.toml").open("rb") as f:
+        import tomllib
+        signs = tomllib.load(f)["signs"]
+
+    def agreement_at(tw: int) -> int:
+        n_ok = 0
+        for name in BW_FEATURE_NAMES:
+            expected = signs[name]["sign"]
+            if expected == "unclear":
+                continue
+            if name == "avg_indentation":
+                rho = stats.spearman([indent[i][tw][0] for i in ids], means)
+            elif name == "max_indentation":
+                rho = stats.spearman([indent[i][tw][1] for i in ids], means)
+            else:
+                rho = stats.spearman([feats[i][col[name]] for i in ids], means)
+            if (rho > 0) if expected == "+" else (rho < 0):
+                n_ok += 1
+        return n_ok
+
     for tw in TAB_WIDTHS:
         a = [indent[i][tw][0] for i in ids]
-        print(f"avg_indentation rho at tab={tw}: {stats.spearman(a, means):+.4f}")
+        rho = stats.spearman(a, means)
+
+        def d(idx: list[int], a: list[float] = a) -> float:
+            return stats.spearman([a[j] for j in idx], [means[j] for j in idx])
+
+        lo_t, hi_t = boot_ci(d, n)
+        print(f"avg_indentation rho at tab={tw}: {rho:+.4f} "
+              f"95% CI [{lo_t:+.4f}, {hi_t:+.4f}]  "
+              f"Figure 9 agreement {agreement_at(tw)}/24")
     a8 = [indent[i][8][0] for i in ids]
     a1 = [indent[i][1][0] for i in ids]
 

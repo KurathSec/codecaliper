@@ -117,6 +117,68 @@ def main() -> int:
                           ("scaffold allowed", scaffold),
                           ("brace balanced", balanced)):
         report(label, subset)
+
+    # --- power control: is the small-corpus accuracy drop about WHICH
+    # snippets survive, or only about how few there are? Draw random
+    # subsamples of the same size from the full 100 and compare.
+    import random
+
+    y_all = np.array([1 if means[i] >= PAPER_CUTOFF else 0 for i in ids])
+    x_all = np.array([[float(rows[i][name]) for name in BW_FEATURE_NAMES]
+                      for i in ids])
+
+    def signs_of(idx: list[int]) -> int:
+        sub = [ids[j] for j in idx]
+        n_ok = 0
+        for name in BW_FEATURE_NAMES:
+            expected = signs[name]["sign"]
+            if expected == "unclear":
+                continue
+            rho = stats.spearman([float(rows[i][name]) for i in sub],
+                                 [means[i] for i in sub])
+            if (rho > 0) if expected == "+" else (rho < 0):
+                n_ok += 1
+        return n_ok
+
+    def acc_of(idx: list[int]) -> float | None:
+        y = y_all[idx]
+        n_hi, n_lo = int(y.sum()), int(len(y) - y.sum())
+        folds = min(10, n_hi, n_lo)
+        if folds < 2:
+            return None
+        x = x_all[idx]
+        skf = StratifiedKFold(n_splits=folds, shuffle=True, random_state=0)
+        accs = []
+        for tr, te in skf.split(x, y):
+            clf = LogisticRegression(max_iter=1000)
+            clf.fit(x[tr], y[tr])
+            accs.append(float(clf.score(x[te], y[te])))
+        return stats.mean(accs)
+
+    rng = random.Random(0)
+    for size, observed, label in ((len(as_written), 0.717, "as written"),
+                                  (len(scaffold), 0.733, "scaffold allowed")):
+        draws = []
+        sign_draws = []
+        while len(draws) < 200:
+            idx = rng.sample(range(len(ids)), size)
+            a = acc_of(idx)
+            if a is not None:
+                draws.append(a)
+                sign_draws.append(signs_of(idx))
+        draws.sort()
+        below = sum(1 for a in draws if a <= observed)
+        lost = sum(1 for v in sign_draws if v < 21)
+        sign_draws.sort()
+        print(f"  power control, random {size}-snippet subsamples of the full "
+              f"100 (200 draws): accuracy median {draws[len(draws) // 2]:.3f}, "
+              f"5th-95th [{draws[10]:.3f}, {draws[189]:.3f}]; the observed "
+              f"{label} value {observed:.3f} sits at the {100 * below / len(draws):.0f}th "
+              "percentile of that distribution")
+        print(f"      sign agreement over the same draws: median "
+              f"{sign_draws[len(sign_draws) // 2]}/24, range "
+              f"{sign_draws[0]}-{sign_draws[-1]}; below 21 in "
+              f"{100 * lost / len(sign_draws):.0f}% of draws")
     return 0
 
 

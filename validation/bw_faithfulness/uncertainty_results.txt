@@ -1,0 +1,75 @@
+per-feature Spearman rho with bootstrap 95% CI (snippet resampling, 2000 replicates, seed 0):
+  avg_line_length              -0.544  [-0.692, -0.365] *
+  max_line_length              -0.412  [-0.587, -0.213] *
+  avg_identifiers              -0.660  [-0.771, -0.518] *
+  max_identifiers              -0.494  [-0.632, -0.324] *
+  avg_identifier_length        -0.535  [-0.678, -0.364] *
+  max_identifier_length        -0.239  [-0.431, -0.037] *
+  avg_indentation              -0.230  [-0.420, -0.026] *
+  max_indentation              -0.254  [-0.427, -0.060] *
+  avg_keywords                 -0.331  [-0.503, -0.140] *
+  max_keywords                 -0.206  [-0.389, -0.024] *
+  avg_numbers                  -0.167  [-0.356, +0.052]
+  max_numbers                  -0.129  [-0.315, +0.084]
+  avg_comments                 +0.291  [+0.096, +0.468] *
+  avg_periods                  -0.442  [-0.600, -0.264] *
+  avg_commas                   -0.442  [-0.584, -0.274] *
+  avg_spaces                   +0.039  [-0.159, +0.240]
+  avg_parentheses              -0.619  [-0.725, -0.481] *
+  avg_arithmetic_ops           -0.230  [-0.417, -0.016] *
+  avg_comparison_ops           -0.335  [-0.494, -0.149] *
+  avg_assignments              -0.067  [-0.265, +0.135]
+  avg_branches                 -0.213  [-0.391, -0.011] *
+  avg_loops                    -0.131  [-0.301, +0.070]
+  avg_blank_lines              +0.262  [+0.045, +0.448] *
+  max_char_occurrences         +0.090  [-0.111, +0.286]
+  max_identifier_occurrences   -0.285  [-0.460, -0.066] *
+avg_indentation rho at tab=0: +0.0637 95% CI [-0.1463, +0.2717]  Figure 9 agreement 19/24
+avg_indentation rho at tab=1: +0.0007 95% CI [-0.2071, +0.2181]  Figure 9 agreement 20/24
+avg_indentation rho at tab=2: -0.0992 95% CI [-0.3051, +0.1227]  Figure 9 agreement 21/24
+avg_indentation rho at tab=4: -0.2568 95% CI [-0.4527, -0.0342]  Figure 9 agreement 21/24
+avg_indentation rho at tab=8: -0.2299 95% CI [-0.4196, -0.0264]  Figure 9 agreement 21/24
+paired tab contrast, avg_indentation, fallback_on: delta rho (tab8 - tab1) = -0.2306, 95% CI [-0.5225, +0.0497]
+label flips vs adopted cell over 32 cells: max = 16, cells with any flip = 36/32
+  fallback_off/tab=0/V0_current          16
+  fallback_off/tab=0/V1_minimal          16
+  fallback_off/tab=0/V2_incdec           16
+  fallback_off/tab=0/V3_compound         16
+  fallback_off/tab=1/V0_current          16
+  fallback_off/tab=1/V1_minimal          16
+  fallback_off/tab=1/V2_incdec           16
+  fallback_off/tab=1/V3_compound         16
+  fallback_off/tab=2/V0_current          14
+  fallback_off/tab=2/V1_minimal          14
+  fallback_off/tab=2/V2_incdec           14
+  fallback_off/tab=2/V3_compound         14
+  fallback_off/tab=4/V0_current          11
+  fallback_off/tab=4/V1_minimal          11
+  fallback_off/tab=4/V2_incdec           11
+  fallback_off/tab=4/V3_compound         11
+  fallback_off/tab=8/V0_current          11
+  fallback_off/tab=8/V1_minimal          11
+  fallback_off/tab=8/V2_incdec           11
+  fallback_off/tab=8/V3_compound         11
+  fallback_on/tab=0/V0_current           3
+  fallback_on/tab=0/V1_minimal           3
+  fallback_on/tab=0/V2_incdec            3
+  fallback_on/tab=0/V3_compound          3
+  fallback_on/tab=1/V0_current           3
+  fallback_on/tab=1/V1_minimal           3
+  fallback_on/tab=1/V2_incdec            3
+  fallback_on/tab=1/V3_compound          3
+  fallback_on/tab=2/V0_current           2
+  fallback_on/tab=2/V1_minimal           2
+  fallback_on/tab=2/V2_incdec            2
+  fallback_on/tab=2/V3_compound          2
+  fallback_on/tab=4/V0_current           2
+  fallback_on/tab=4/V1_minimal           2
+  fallback_on/tab=4/V2_incdec            2
+  fallback_on/tab=4/V3_compound          2
+AUC of the adopted cell (tab=8, full stream): 0.8272 95% CI [0.7349, 0.9087]
+AUC of the maximum-AUC cell (tab=1, full stream): 0.8297 95% CI [0.7374, 0.9100]
+paired difference (max minus adopted): +0.0025, 95% CI [-0.0206, +0.0277]
+avg_spaces counterfactual, as shipped, a tab counts nothing   rho +0.0387 (disagrees with Figure 9's negative)
+avg_spaces counterfactual, a tab counts as one space          rho -0.0124 (agrees with Figure 9's negative)
+avg_spaces counterfactual, a tab counts as eight spaces       rho -0.2421 (agrees with Figure 9's negative)
