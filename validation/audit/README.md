@@ -77,6 +77,60 @@ sign divergences is thereby diagnosed rather than open.
   scoring mode returns `NaN` (the well-formed probe scores 0.989), so end to
   end the tool implements a de facto drop policy for fragments.
 
+## The original extractor, run end to end (`original_extractor_results.txt`)
+
+`original_extractor_rerun.py` runs the recovered original extractor over the
+same 100 tracked snippets, through its own detector suite, and reports what
+the tool itself computes. Three results, in increasing order of consequence.
+
+**1. Five of the original's own 25 features never reach its classifier.**
+`MaxLineValueDetector.featureName()` returns `"max " + fd.featureNames()`,
+concatenating the ARRAY OBJECT instead of its first element, and
+`featureNames()` calls `featureName()` again, minting a fresh array each time.
+The name a max feature is stored under therefore never equals the name the
+suite advertises, and `TrainableAdapter.getInstance` substitutes a
+`StandardValueFeature(..., 0)` on a lookup miss. So maximum line length,
+maximum identifiers, maximum keywords, maximum numbers and maximum
+indentation enter every training and scoring instance as the constant zero.
+The tool computes all five correctly; nothing downstream can see them.
+
+Confirmed on the tool's own scoring path, black box: two inputs whose only
+difference is the distribution of an identical number of leading tabs (so
+average indentation, line lengths, space counts and character frequencies are
+all unchanged, and only maximum indentation differs, 8 against 16) score
+identically to the last digit, 0.8587440848350525 both, while doubling the
+AVERAGE indentation instead moves the score to 0.8770732283592224.
+
+**2. Per-feature agreement with this instrument.** Spearman correlations
+between the original's values and ours run from +0.36 to +1.00 over the 100
+snippets (full table in the recorded output). The lowest agreements are
+exactly the features whose counting semantics the source audit above shows to
+differ: `max_char_occurrences` (+0.356), `avg_arithmetic_ops` (+0.399),
+`max_identifiers` (+0.554), `avg_identifier_length` (+0.574). Exact-value
+agreement is high where the definitions coincide (`avg_blank_lines` 99/100,
+`avg_numbers` 95/100, `avg_commas` 95/100) and low where they cannot
+(`avg_parentheses` 5/100: the original counts `(` and `{`, we count `(` and
+`)`; `avg_line_length` 0/100: the original trims each line first).
+
+**3. What the original's own vectors yield under our protocol.** Feeding the
+original's 25 columns to this project's reproduction protocol (logistic
+regression, stratified ten-fold, seed 0) gives **23 of 24** Figure 9 sign
+agreements and ten-fold accuracy **0.790**, AUC 0.788, against our 21 of 24
+and 0.820. Two consequences:
+
+- Two of this project's three residual sign divergences are ours, not the
+  definition's: `avg_arithmetic_ops` and `max_char_occurrences` agree with
+  Figure 9 under the original's character-level counting and disagree under
+  our token-level counting.
+- The third does not survive even the original: `avg_spaces` reads +0.041
+  under the tool's own extractor against Figure 9's negative direction, close
+  to our +0.039. That published direction is not reproducible from the
+  original artifact on the original corpus.
+
+The accuracy is the corroboration: the original's own features land at 0.790,
+inside the "between 75% and 80%" band its paper reports for its best
+classifiers, while our reimplementation lands slightly above it at 0.820.
+
 ## End-to-end policy-corner re-run (`policy_corner_results.txt`)
 
 The findings above establish that tools occupy divergent policy points. This
@@ -116,6 +170,7 @@ python validation/audit/fetch.py                  # artifacts into cache/ (gitig
 python validation/audit/run_audit.py              # needs a JRE (recorded under Temurin 21.0.11)
 python validation/audit/divergence_diagnosis.py   # pure stdlib, tracked pins only
 python validation/bw_faithfulness/fetch.py --all # the Scalabrino corpus into its gitignored cache
+python validation/audit/original_extractor_rerun.py # needs a JDK; runs the 2010 tool itself
 python validation/audit/policy_corner_rerun.py   # needs a JRE; ~10 JVM launches
 ```
 

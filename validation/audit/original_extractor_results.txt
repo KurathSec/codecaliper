@@ -1,0 +1,35 @@
+original extractor: 100 snippets x 25 features, computed by its own detector suite
+features its own pipeline cannot retrieve by name (silently zeroed): 5 of 25 (max_identifiers, max_indentation, max_keywords, max_line_length, max_numbers)
+black-box check on the tool's own scoring path: doubling MAX indentation at constant average leaves the score IDENTICAL (0.8587440848350525 vs 0.8587440848350525); doubling AVERAGE indentation moves it (0.8587440848350525 vs 0.8770732283592224)
+per-feature agreement, original vs this instrument (Spearman over the 100 snippets, and exact-value matches):
+  avg_line_length              rho +0.9483  exact   0/100
+  avg_identifiers              rho +0.5950  exact   3/100
+  avg_keywords                 rho +0.9640  exact  77/100
+  avg_numbers                  rho +0.9983  exact  95/100
+  avg_indentation              rho +0.8557  exact  52/100
+  avg_identifier_length        rho +0.5737  exact   0/100
+  avg_comments                 rho +0.8784  exact  70/100
+  avg_blank_lines              rho +0.9998  exact  99/100
+  max_line_length              rho +0.9753  exact   2/100  (zeroed in the original's own pipeline)
+  max_identifiers              rho +0.5540  exact  18/100  (zeroed in the original's own pipeline)
+  max_keywords                 rho +0.9255  exact  93/100  (zeroed in the original's own pipeline)
+  max_numbers                  rho +0.9981  exact  99/100  (zeroed in the original's own pipeline)
+  max_indentation              rho +0.8384  exact  68/100  (zeroed in the original's own pipeline)
+  max_identifier_length        rho +0.9476  exact  92/100
+  avg_periods                  rho +0.9665  exact  79/100
+  avg_commas                   rho +0.9804  exact  95/100
+  avg_parentheses              rho +0.9696  exact   5/100
+  avg_spaces                   rho +0.9837  exact  84/100
+  avg_arithmetic_ops           rho +0.3986  exact  62/100
+  avg_assignments              rho +0.6760  exact  67/100
+  avg_comparison_ops           rho +0.7390  exact  82/100
+  avg_branches                 rho +0.8660  exact  86/100
+  avg_loops                    rho +0.6519  exact  85/100
+  max_char_occurrences         rho +0.3559  exact  19/100
+  max_identifier_occurrences   rho +0.6582  exact  76/100
+the original's OWN vectors under this project's reproduction protocol (logistic regression, stratified ten-fold, seed 0):
+  Figure 9 sign agreement: 23 of 24
+  features whose sign still disagrees: avg_spaces (+0.041)
+  (this instrument's three: avg_spaces, avg_arithmetic_ops, max_char_occurrences)
+  ten-fold accuracy 0.790, AUC 0.788
+  (this instrument, adopted operationalization: 21 of 24, accuracy 0.820, AUC 0.828; the original paper reports its best classifiers at between 75% and 80%)

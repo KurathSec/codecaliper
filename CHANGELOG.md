@@ -26,6 +26,21 @@ three versions, not one:
   -0.458) and changes the readable-versus-unreadable verdict for 11 of 200 at
   the conventional cut (21 and 14 at cuts 0.4 and 0.6). The corpus is fetched
   at run time and never redistributed; only aggregates are published.
+- `validation/audit/original_extractor_rerun.py` (new) runs the recovered 2010
+  Buse-Weimer extractor over the 100 pinned snippets through its own detector
+  suite. It records a defect in that artifact: `MaxLineValueDetector` builds
+  its feature name by concatenating an array object rather than its first
+  element and mints a fresh array per call, so five of the tool's own 25
+  features (maximum line length, identifiers, keywords, numbers and
+  indentation) are stored under a name its suite cannot reproduce and enter
+  every instance as the constant zero. Confirmed black box: changing only the
+  maximum indentation of an input leaves its score identical to the last
+  digit. The same run reports per-feature agreement with this instrument
+  (+0.36 to +1.00) and what the original's own vectors yield under this
+  project's protocol: 23 of 24 Figure 9 sign agreements and accuracy 0.790,
+  against 21 of 24 and 0.820 here, which attributes two of the three residual
+  sign divergences to this instrument's counting and shows the third,
+  avg_spaces, is not reproducible from the original artifact either.
 - `validation/bw_faithfulness/train.py`'s recorded deviation now quotes the
   original's exact reported band (TSE 2010 section 4.2: its best classifiers
   "each correctly classified between 75% and 80% of the snippets"; the
