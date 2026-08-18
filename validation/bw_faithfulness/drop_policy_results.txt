@@ -10,8 +10,9 @@ reproduction under each corpus a drop policy would leave behind (adopted operati
   selection check, the 27 that parse as written against the other 73:
       share labelled high: 0.556 against 0.603; mean rating 3.217 against 3.308
       features whose means differ between the groups at a two-sided permutation p < 0.05 (2000 relabelings): 6 of 25 (avg_identifiers, avg_keywords, max_keywords, avg_periods, avg_branches, avg_blank_lines)
+      the same tests under a max-statistic correction over all 25 features (2000 relabelings, family-wise alpha 0.05): 3 survive (max_keywords, avg_periods, avg_blank_lines)
       label difference permutation p: 0.515
-  power control, random 27-snippet subsamples of the full 100 (200 draws): accuracy median 0.717, 5th-95th [0.517, 0.833]; the observed as written value 0.717 sits at the 54th percentile of that distribution
-      sign agreement over the same draws: median 20/24, range 15-23; below 21 in 58% of draws
-  power control, random 29-snippet subsamples of the full 100 (200 draws): accuracy median 0.700, 5th-95th [0.550, 0.833]; the observed scaffold allowed value 0.733 sits at the 61th percentile of that distribution
-      sign agreement over the same draws: median 21/24, range 16-23; below 21 in 49% of draws
+  power control, random 27-snippet subsamples of the full 100 (2000 draws): accuracy median 0.708, 5th-95th [0.533, 0.867]; the observed as written value 0.717 sits at the 55th percentile of that distribution
+      sign agreement over the same draws: median 20/24, range 14-24; below 21 in 56% of draws
+  power control, random 29-snippet subsamples of the full 100 (2000 draws): accuracy median 0.717, 5th-95th [0.550, 0.867]; the observed scaffold allowed value 0.733 sits at the 52th percentile of that distribution
+      sign agreement over the same draws: median 20/24, range 15-24; below 21 in 54% of draws

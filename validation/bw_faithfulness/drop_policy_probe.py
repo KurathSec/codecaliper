@@ -28,6 +28,7 @@ TRACKED pins only, deterministic, no network.
 from __future__ import annotations
 
 import csv
+import os
 import sys
 from pathlib import Path
 
@@ -44,12 +45,25 @@ AI = HERE / "derived" / "arbitration_inputs"
 FEATURES = HERE / "derived" / "features.csv"
 SIGNS = HERE / "fig9_signs.toml"
 PAPER_CUTOFF = 3.14
+MAXSTAT_ITERS = 2000     # family-wise correction over the 25 feature tests
+# Draws are independent, so they are evaluated in parallel. Determinism is
+# preserved by construction: the seeded generator emits a fixed SEQUENCE of
+# index sets, both the serial and the parallel form walk that sequence in
+# order, and both keep the valid ones in order. Only the evaluation is
+# concurrent. The recorded output is byte-identical either way.
+SUBSAMPLE_JOBS = max(1, (os.cpu_count() or 2) - 2)
+SUBSAMPLE_DRAWS = 2000   # each draw refits the ten-fold model, so this is the
+                         # point of diminishing returns: it cuts the Monte Carlo
+                         # error on a reported percentile from about 3.5
+                         # accuracy points at 200 draws to about 1.1, against a
+                         # reported 5th-to-95th span of 31 points
 
 
 def main() -> int:
     pinned.require_inputs()
     try:
         import numpy as np
+        from joblib import Parallel, delayed
         from sklearn.linear_model import LogisticRegression
         from sklearn.metrics import roc_auc_score
         from sklearn.model_selection import StratifiedKFold, cross_val_predict
@@ -195,27 +209,68 @@ def main() -> int:
           f"two-sided permutation p < 0.05 (2000 relabelings): "
           f"{len(differing)} of {len(BW_FEATURE_NAMES)}"
           + (f" ({', '.join(differing)})" if differing else ""))
+
+    # Twenty-five uncorrected tests cannot support "measurably different". The
+    # max-statistic correction controls the family-wise error rate exactly:
+    # one relabeling is applied to every feature at once, and each feature's
+    # observed statistic is read against the distribution of the largest
+    # statistic anywhere in the family under that same relabeling.
+    order = grp_a + grp_b
+    k = len(grp_a)
+    cols = {n: [float(rows[i][n]) for i in order] for n in BW_FEATURE_NAMES}
+    scale = {n: (stats.stdev(cols[n]) or 1.0) for n in BW_FEATURE_NAMES}
+
+    def std_diff(name: str, idx: list[int]) -> float:
+        col = cols[name]
+        return abs(stats.mean([col[j] for j in idx[:k]])
+                   - stats.mean([col[j] for j in idx[k:]])) / scale[name]
+
+    base = list(range(len(order)))
+    observed = {n: std_diff(n, base) for n in BW_FEATURE_NAMES}
+    rg = random.Random(0)
+    max_dist = []
+    for _ in range(MAXSTAT_ITERS):
+        rg.shuffle(base)
+        max_dist.append(max(std_diff(n, base) for n in BW_FEATURE_NAMES))
+    survivors = [
+        n for n in BW_FEATURE_NAMES
+        if (sum(1 for m in max_dist if m >= observed[n]) + 1)
+        / (MAXSTAT_ITERS + 1) < 0.05
+    ]
+    print(f"      the same tests under a max-statistic correction over all "
+          f"{len(BW_FEATURE_NAMES)} features ({MAXSTAT_ITERS} relabelings, "
+          f"family-wise alpha 0.05): {len(survivors)} survive"
+          + (f" ({', '.join(survivors)})" if survivors else ""))
     print(f"      label difference permutation p: "
           f"{perm_p([means[i] for i in grp_a], [means[i] for i in grp_b]):.3f}")
+
+    def evaluate(idx: list[int]) -> tuple[float | None, int]:
+        a = acc_of(idx)
+        return (a, signs_of(idx) if a is not None else 0)
 
     rng = random.Random(0)
     for size, observed, label in ((len(as_written), 0.717, "as written"),
                                   (len(scaffold), 0.733, "scaffold allowed")):
         draws = []
         sign_draws = []
-        while len(draws) < 200:
-            idx = rng.sample(range(len(ids)), size)
-            a = acc_of(idx)
-            if a is not None:
-                draws.append(a)
-                sign_draws.append(signs_of(idx))
+        while len(draws) < SUBSAMPLE_DRAWS:
+            batch = [rng.sample(range(len(ids)), size)
+                     for _ in range(SUBSAMPLE_DRAWS - len(draws))]
+            for a, sg in Parallel(n_jobs=SUBSAMPLE_JOBS)(
+                    delayed(evaluate)(idx) for idx in batch):
+                if a is not None:
+                    draws.append(a)
+                    sign_draws.append(sg)
         draws.sort()
         below = sum(1 for a in draws if a <= observed)
         lost = sum(1 for v in sign_draws if v < 21)
         sign_draws.sort()
+        p05 = draws[int(0.05 * len(draws))]
+        p95 = draws[int(0.95 * len(draws)) - 1]
         print(f"  power control, random {size}-snippet subsamples of the full "
-              f"100 (200 draws): accuracy median {draws[len(draws) // 2]:.3f}, "
-              f"5th-95th [{draws[10]:.3f}, {draws[189]:.3f}]; the observed "
+              f"100 ({SUBSAMPLE_DRAWS} draws): accuracy median "
+              f"{draws[len(draws) // 2]:.3f}, "
+              f"5th-95th [{p05:.3f}, {p95:.3f}]; the observed "
               f"{label} value {observed:.3f} sits at the {100 * below / len(draws):.0f}th "
               "percentile of that distribution")
         print(f"      sign agreement over the same draws: median "
