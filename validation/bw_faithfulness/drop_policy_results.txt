@@ -7,6 +7,10 @@ reproduction under each corpus a drop policy would leave behind (adopted operati
       diverging: avg_arithmetic_ops, avg_blank_lines, avg_spaces, max_char_occurrences
   brace balanced         n= 84 (47 high / 37 low)  signs 21/24  10-fold acc 0.811  AUC 0.827
       diverging: avg_arithmetic_ops, avg_spaces, max_char_occurrences
+  selection check, the 27 that parse as written against the other 73:
+      share labelled high: 0.556 against 0.603; mean rating 3.217 against 3.308
+      features whose means differ between the groups at a two-sided permutation p < 0.05 (2000 relabelings): 6 of 25 (avg_identifiers, avg_keywords, max_keywords, avg_periods, avg_branches, avg_blank_lines)
+      label difference permutation p: 0.515
   power control, random 27-snippet subsamples of the full 100 (200 draws): accuracy median 0.717, 5th-95th [0.517, 0.833]; the observed as written value 0.717 sits at the 54th percentile of that distribution
       sign agreement over the same draws: median 20/24, range 15-23; below 21 in 58% of draws
   power control, random 29-snippet subsamples of the full 100 (200 draws): accuracy median 0.700, 5th-95th [0.550, 0.833]; the observed scaffold allowed value 0.733 sits at the 61th percentile of that distribution

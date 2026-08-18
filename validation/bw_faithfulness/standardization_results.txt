@@ -1,2 +1,8 @@
-raw (as adopted): winner tab=8 ops=V2_incdec; clearing candidates 12/16; full-stream AUC by tab 1:0.8297, 2:0.8260, 4:0.8210, 8:0.8272
-standardized in-fold: winner tab=2 ops=V2_incdec; clearing candidates 12/16; full-stream AUC by tab 1:0.8082, 2:0.8152, 4:0.8107, 8:0.8123
+per-cell agreement, AUC and accuracy at the incumbent operator set (raw features, as adopted):
+  tab=0  fallback_off: 19/24 auc 0.7764 acc 0.700  |  fallback_on: 19/24 auc 0.8185 acc 0.790
+  tab=1  fallback_off: 20/24 auc 0.7834 acc 0.720  |  fallback_on: 20/24 auc 0.8297 acc 0.790
+  tab=2  fallback_off: 21/24 auc 0.7854 acc 0.720  |  fallback_on: 21/24 auc 0.8260 acc 0.800
+  tab=4  fallback_off: 21/24 auc 0.7929 acc 0.770  |  fallback_on: 21/24 auc 0.8210 acc 0.800
+  tab=8  fallback_off: 21/24 auc 0.7983 acc 0.770  |  fallback_on: 21/24 auc 0.8272 acc 0.820
+raw (as adopted): winner tab=8 ops=V2_incdec; clearing candidates 12/16; full-stream AUC by tab 0:0.8185, 1:0.8297, 2:0.8260, 4:0.8210, 8:0.8272
+standardized in-fold: winner tab=2 ops=V2_incdec; clearing candidates 12/16; full-stream AUC by tab 0:0.7966, 1:0.8082, 2:0.8152, 4:0.8107, 8:0.8123

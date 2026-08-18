@@ -37,7 +37,7 @@ FEATURES_ON_TAB1 = HERE / "derived" / "arbitration_inputs" / "features_fallback_
 FEATURES_OFF = HERE / "derived" / "features_fallback_off.csv"
 SIGNS = HERE / "fig9_signs.toml"
 PAPER_CUTOFF = 3.14
-TAB_WIDTHS = (1, 2, 4, 8)
+TAB_WIDTHS = (0, 1, 2, 4, 8)
 MODES = ("fallback_off", "fallback_on")
 
 
@@ -95,6 +95,15 @@ def main() -> int:
             out.append(vec)
         return np.array(out)
 
+    def cell_acc(mode: str, tab: int, variant: str) -> float:
+        x = matrix(mode, tab, variant)
+        accs = []
+        for tr, te in skf.split(x, y):
+            clf = LogisticRegression(max_iter=1000)
+            clf.fit(x[tr], y[tr])
+            accs.append(float(clf.score(x[te], y[te])))
+        return stats.mean(accs)
+
     def cell(mode: str, tab: int, variant: str, scale: bool) -> tuple[int, float]:
         x = matrix(mode, tab, variant)
         n_agree = 0
@@ -109,6 +118,15 @@ def main() -> int:
                     if scale else LogisticRegression(max_iter=1000))
         dec = cross_val_predict(est, x, y, cv=skf, method="decision_function")
         return n_agree, float(roc_auc_score(y, dec))
+
+    print("per-cell agreement, AUC and accuracy at the incumbent operator set "
+          "(raw features, as adopted):")
+    for tab in TAB_WIDTHS:
+        parts = []
+        for m in MODES:
+            a, auc = cell(m, tab, "V0_current", False)
+            parts.append(f"{m}: {a}/24 auc {auc:.4f} acc {cell_acc(m, tab, 'V0_current'):.3f}")
+        print(f"  tab={tab}  " + "  |  ".join(parts))
 
     for scale in (False, True):
         label = "standardized in-fold" if scale else "raw (as adopted)"

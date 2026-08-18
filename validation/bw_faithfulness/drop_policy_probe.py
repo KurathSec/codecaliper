@@ -118,9 +118,10 @@ def main() -> int:
                           ("brace balanced", balanced)):
         report(label, subset)
 
-    # --- power control: is the small-corpus accuracy drop about WHICH
-    # snippets survive, or only about how few there are? Draw random
-    # subsamples of the same size from the full 100 and compare.
+    # --- power control: how much of the small-corpus movement is just size?
+    # Draw random subsamples of the same size from the full 100. This is an
+    # MCAR reference: it bounds the size effect, it cannot detect selection
+    # along the structural mechanism the check above probes.
     import random
 
     y_all = np.array([1 if means[i] >= PAPER_CUTOFF else 0 for i in ids])
@@ -154,6 +155,48 @@ def main() -> int:
             clf.fit(x[tr], y[tr])
             accs.append(float(clf.score(x[te], y[te])))
         return stats.mean(accs)
+
+    # --- selection check: the snippets that parse are not a random subset,
+    # they are selected on a structural property, so a random-subsample
+    # reference cannot detect selection along that mechanism. Compare the two
+    # groups directly instead, on the label and on every feature.
+    parse_ids = set(as_written)
+    grp_a = [i for i in ids if i in parse_ids]
+    grp_b = [i for i in ids if i not in parse_ids]
+    hi = {g: sum(1 for i in g if means[i] >= PAPER_CUTOFF) / len(g)
+          for g in (tuple(grp_a), tuple(grp_b))}
+    print(f"  selection check, the {len(grp_a)} that parse as written against "
+          f"the other {len(grp_b)}:")
+    print(f"      share labelled high: {hi[tuple(grp_a)]:.3f} against "
+          f"{hi[tuple(grp_b)]:.3f}; mean rating "
+          f"{stats.mean([means[i] for i in grp_a]):.3f} against "
+          f"{stats.mean([means[i] for i in grp_b]):.3f}")
+
+    def perm_p(vals_a: list[float], vals_b: list[float], seed: int = 0,
+               iters: int = 2000) -> float:
+        obs = abs(stats.mean(vals_a) - stats.mean(vals_b))
+        pool = vals_a + vals_b
+        k = len(vals_a)
+        rg = random.Random(seed)
+        hits = 0
+        for _ in range(iters):
+            rg.shuffle(pool)
+            if abs(stats.mean(pool[:k]) - stats.mean(pool[k:])) >= obs:
+                hits += 1
+        return (hits + 1) / (iters + 1)
+
+    differing = []
+    for name in BW_FEATURE_NAMES:
+        a = [float(rows[i][name]) for i in grp_a]
+        b = [float(rows[i][name]) for i in grp_b]
+        if perm_p(a, b) < 0.05:
+            differing.append(name)
+    print(f"      features whose means differ between the groups at a "
+          f"two-sided permutation p < 0.05 (2000 relabelings): "
+          f"{len(differing)} of {len(BW_FEATURE_NAMES)}"
+          + (f" ({', '.join(differing)})" if differing else ""))
+    print(f"      label difference permutation p: "
+          f"{perm_p([means[i] for i in grp_a], [means[i] for i in grp_b]):.3f}")
 
     rng = random.Random(0)
     for size, observed, label in ((len(as_written), 0.717, "as written"),
